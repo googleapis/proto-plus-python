@@ -70,7 +70,9 @@ class Marshal:
             return rule_class
         return register_rule_class
 
-    def get_
+    def to_python(self, proto_type, value):
+
+    def to_proto(self, proto_type, value):
 
 
 class NoopMarshal:
