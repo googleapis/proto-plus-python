@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable
-
 from google.protobuf import message
 
 
-class Marshal:
+class MarshalRegistry:
     """A class to translate between protocol buffers and Python classes.
 
     Protocol buffers defines many common types (e.g. Timestamp, Duration)
@@ -39,6 +37,7 @@ class Marshal:
     """
     def __init__(self):
         self._registry = {}
+        self._noop = NoopMarshal()
 
     def register(self, proto_type: type):
         """Return a function that will register a rule against the given type.
@@ -70,16 +69,27 @@ class Marshal:
             return rule_class
         return register_rule_class
 
-    def to_python(self, proto_type, value):
+    def to_python(self, proto_type, value, *, absent: bool = None):
+        rule = self._registry.get(proto_type, self._noop)
+        return rule.to_python(value, absent=absent)
 
-    def to_proto(self, proto_type, value):
+    def to_proto(self, proto_type, value, *, absent: bool = None):
+        rule = self._registry.get(proto_type, self._noop)
+        return rule.to_proto(value, absent=absent)
 
 
 class NoopMarshal:
     """A catch-all marshal that does nothing."""
 
-    def to_python(self, value):
+    def to_python(self, message, key, value):
         return value
 
-    def to_proto(self, value):
+    def to_proto(self, message, key, value):
         return value
+
+
+marshal = MarshalRegistry()
+
+__all__ = (
+    'marshal',
+)

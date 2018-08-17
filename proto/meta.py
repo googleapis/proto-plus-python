@@ -60,7 +60,7 @@ class MessageMeta(type):
 
         # Create the underlying proto descriptor.
         # This programatically duplicates the default code generated
-        # by protoc.   831-234-8071
+        # by protoc.
         class_._desc = descriptor.Descriptor(
             name=full_name.split('.')[-1], fullname=full_name,
             filename=None, containing_type=None,

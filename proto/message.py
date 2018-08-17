@@ -14,6 +14,9 @@
 
 import copy
 
+from proto import meta
+from proto.marshal import marshal
+
 
 class Message(metaclass=meta.MessageMeta):
     """The abstract base class for a message.
@@ -36,9 +39,9 @@ class Message(metaclass=meta.MessageMeta):
         if isinstance(mapping, type(self)):
             mapping = mapping._pb
         if isinstance(mapping, self._desc):
-            self._pb = copy.copy(mapping)
+            self.pb = copy.copy(mapping)
             if kwargs:
-                self._pb.MergeFrom(self._desc(**kwargs))
+                self.pb.MergeFrom(self._desc(**kwargs))
             return
 
         # Handle the remaining case by converging the mapping and kwargs
@@ -47,7 +50,7 @@ class Message(metaclass=meta.MessageMeta):
         if mapping is None:
             mapping = {}
         mapping.update(kwargs)
-        self._pb = self._desc(**mapping)
+        self.pb = self._desc(**mapping)
 
     def __contains__(self, key):
         """Return True if the field is present on the message, False otherwise.
@@ -85,8 +88,11 @@ class Message(metaclass=meta.MessageMeta):
             their Python equivalents. See the ``marshal`` module for
             mode details.
         """
-        pb_value = getattr(self._pb, key)
-        return marshal.to_python(pb_value)
+        pb_type = self._meta.fields[key].pb_type
+        pb_value = getattr(self.pb, key)
+        return marshal.to_python(self, pb_type, pb_value,
+            absent=not self.has_wire_field(key),
+        )
 
     def __setitem__(self, key, value):
         """Set the value on the given field.
@@ -94,14 +100,18 @@ class Message(metaclass=meta.MessageMeta):
         For well-known protocol buffer types which are marshalled, either
         the protocol buffer object or the Python equivalent is accepted.
         """
-        pb_value = marshal.to_proto(value)
-        self._pb.MergeFrom(self._desc(key=pb_value))
+        pb_type = self._meta.fields[key].pb_type
+        pb_value = marshal.to_proto(self, key, value)
+        if pb_value is None:
+            self.pb.ClearField(key)
+        else:
+            self.pb.MergeFrom(self._desc(key=pb_value))
 
     def __delitem__(self, key):
         """Delete the value on the given field.
 
         This is generally equivalent to setting a falsy value."""
-        self._pb.ClearField(key)
+        self.pb.ClearField(key)
 
     def has_wire_field(self, key):
         """Return True if this field was set to something non-zero on the wire.
@@ -128,7 +138,7 @@ class Message(metaclass=meta.MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
-        return self._pb.HasField(key)
+        return self.pb.HasField(key)
 
     def serialize(self) -> bytes:
         """Return the serialized proto.
@@ -136,7 +146,7 @@ class Message(metaclass=meta.MessageMeta):
         Returns:
             bytes: The serialized representation of the protocol buffer.
         """
-        return self._pb.SerializeToString()
+        return self.pb.SerializeToString()
 
     @classmethod
     def deserialize(cls, payload: bytes):

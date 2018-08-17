@@ -14,9 +14,10 @@
 
 import datetime
 
+from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
 
-from .marshal import marshal
+from .registry import marshal
 
 
 @marshal.register(timestamp_pb2.Timestamp)
@@ -25,10 +26,13 @@ class TimestampMarshal:
 
     Note: Python datetimes are less precise than protobuf datetimes
     (microsecond vs. nanosecond level precision). If nanosecond-level
-    precision matters,
+    precision matters, it is recommended to interact with the internal
+    proto directly.
     """
-    def to_python(self, value) -> datetime.datetime:
+    def to_python(self, value, *, absent: bool = None) -> datetime.datetime:
         if isinstance(value, timestamp_pb2.Timestamp):
+            if absent:
+                return None
             return datetime.fromtimestamp(
                 value.seconds + value.nanos / 1e9,
                 tz=datetime.timezone.utc,
@@ -42,3 +46,29 @@ class TimestampMarshal:
                 nanos=int(value.strftime('%f')) * 1000,
             )
         return value
+
+
+@marshal.register(duration_pb2.Duration)
+class DurationMarshal:
+    """A marshal between Python timedeltas and protobuf durations.
+
+    Note: Python timedeltas are less precise than protobuf durations
+    (microsecond vs. nanosecond level precision). If nanosecond-level
+    precision matters, it is recommended to interact with the internal
+    proto directly.
+    """
+    def to_python(self, value, *, absent: bool = None) -> datetime.timedelta:
+        if isinstance(value, duration_pb2.Duration):
+            return datetime.timedelta(
+                days=value.seconds // 86400,
+                seconds=value.seconds % 86400,
+                microseconds=value.nanos // 1000,
+            )
+        return value
+
+    def to_proto(self, value) -> duration_pb2.Duration:
+        if isinstance(value, datetime.timedelta):
+            return duration_pb2.Duration(
+                seconds=value.days * 86400 + value.seconds,
+                nanos=value.microseconds * 1000,
+            )

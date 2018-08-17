@@ -12,4 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .marshal import Marshal
+from .registry import marshal
+
+# We actually want to import the individual marshals even though
+# they are unused, because that is how they are registered to the
+# marshal singleton.
+from .marshals import dates  # noqa: F401
+
+
+__all__ = (
+    'marshal',
+)
