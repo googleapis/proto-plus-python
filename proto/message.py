@@ -77,11 +77,31 @@ class Message(metaclass=meta.MessageMeta):
         relevant. Therefore, this method always returns an empty message
         (following the official implementation). To check for message
         presence, use ``has_wire_field``
+
+        .. note::
+
+            Some well-known protocol buffer types
+            (e.g. ``google.protobuf.Timestamp``) will be converted to
+            their Python equivalents. See the ``marshal`` module for
+            mode details.
         """
         pb_value = getattr(self._pb, key)
         return marshal.to_python(pb_value)
 
-    def __setitem__(self, key):
+    def __setitem__(self, key, value):
+        """Set the value on the given field.
+
+        For well-known protocol buffer types which are marshalled, either
+        the protocol buffer object or the Python equivalent is accepted.
+        """
+        pb_value = marshal.to_proto(value)
+        self._pb.MergeFrom(self._desc(key=pb_value))
+
+    def __delitem__(self, key):
+        """Delete the value on the given field.
+
+        This is generally equivalent to setting a falsy value."""
+        self._pb.ClearField(key)
 
     def has_wire_field(self, key):
         """Return True if this field was set to something non-zero on the wire.
@@ -108,3 +128,25 @@ class Message(metaclass=meta.MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
+        return self._pb.HasField(key)
+
+    def serialize(self) -> bytes:
+        """Return the serialized proto.
+
+        Returns:
+            bytes: The serialized representation of the protocol buffer.
+        """
+        return self._pb.SerializeToString()
+
+    @classmethod
+    def deserialize(cls, payload: bytes):
+        """Given a serialized proto, deserialize it into a Message instance.
+
+        Args:
+            payload (bytes): The serialized proto.
+
+        Returns
+            cls: An instance of the message class against which this
+                method was called.
+        """
+        return cls(cls._desc.FromString(payload))
