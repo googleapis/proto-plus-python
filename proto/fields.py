@@ -12,49 +12,73 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import enum
 
-class FieldType(type):
-    """Metaclass for field types within protocol buffers."""
+from google.protobuf import descriptor
 
 
+class ProtoType(enum.IntEnum):
+    """The set of basic types in protocol buffers."""
+    # These values come from google/protobuf/descriptor.proto
+    DOUBLE = 1
+    FLOAT = 2
+    INT64 = 3
+    UINT64 = 4
+    INT32 = 5
+    FIXED64 = 6
+    FIXED32 = 7
+    BOOL = 8
+    STRING = 9
+    MESSAGE = 11
+    BYTES = 12
+    UINT32 = 13
+    ENUM = 14
+    SFIXED32 = 15
+    SFIXED64 = 16
+    SINT32 = 17
+    SINT64 = 18
 
 
 
 class Field:
-    """A representation of a type of primitive field in protocol buffers."""
+    """A representation of a type of field in protocol buffers."""
 
-    def __init__(self, *, number: int, repeated: bool = False) -> None:
+    def __init__(self, proto_type, *, number: int, repeated: bool = False,
+                 message_type=None, enum_type=None):
+        # This class is not intended to stand entirely alone;
+        # data is augmented by the metaclass for Message.
+        self.mcls_data = {}
+
+        # Save the direct arguments.
+        self._proto_type = proto_type
         self._number = number
         self._repeated = repeated
+        self._message = message_type
+        self._enum = enum_type
 
+        # Once the descriptor is accessed the first time, cache it.
+        # This is important because in rare cases the message or enum
+        # types are written later.
+        self._descriptor = None
 
-
-class Int32(Field):
-    type_code = 5
-    type_name = 'int32'
-
-
-class String(Field):
-    type_code = 9
-    type_name = 'string'
-
-    def to_python(self, value: str):
-        return value
-
-    def to_proto(self, value: str) -> str:
-        return value
-
-class Message(metaclass=FieldType):
-    type_code = 11
-
-
-
-
-"""
-class FooMessage(Message):
-    bar = fields.StringField(number=1)
-    baz = BazMessage.Field(number=2)
-
-    bar = Field(str, number=1)
-    baz = Field(BazMessage, number=2, repeated=True)
-    bacon = Oneof(bar, baz)
+    @property
+    def descriptor(self):
+        """Return the descriptor for the field."""
+        if not self._descriptor:
+            self._descriptor = descriptor.FieldDescriptor(
+                name=self.mcls_data['name'],
+                full_name=self.mcls_data['full_name'],
+                index=self.mcls_data['index'],
+                number=self._number,
+                label=3 if self._repeated else 1,
+                type=self._proto_type,
+                cpp_type=descriptor.FieldDescriptor.ProtoTypeToCppProtoType(
+                    self._proto_type,
+                ),
+                message_type=self._message._meta.pb,
+                enum_type=self._enum,
+                containing_type=None,
+                is_extension=False,
+                extension_scope=None,
+            )
+        return self._descriptor

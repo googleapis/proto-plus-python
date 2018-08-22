@@ -52,19 +52,7 @@ class Message(metaclass=meta.MessageMeta):
         mapping.update(kwargs)
         self.pb = self._desc(**mapping)
 
-    def __contains__(self, key):
-        """Return True if the field is present on the message, False otherwise.
-
-        Because of how protocol buffers approaches fields and values, this
-        method essentially returns True as long as the field exists
-        on the message, regardless of whether it is set.
-
-        Similarly, the complimentary ``__getitem__`` method promises to always
-        return a valid value of the correct type.
-        """
-        return key in type(self)._meta.fields
-
-    def __getitem__(self, key):
+    def __getattr__(self, key):
         """Retrieve the given field's value.
 
         In protocol buffers, the presence of a field on a message is
@@ -79,7 +67,7 @@ class Message(metaclass=meta.MessageMeta):
         message and absence, but this distinction is subtle and rarely
         relevant. Therefore, this method always returns an empty message
         (following the official implementation). To check for message
-        presence, use ``has_wire_field``
+        presence, use ``key in self`` (in other words, ``__contains__``).
 
         .. note::
 
@@ -91,37 +79,37 @@ class Message(metaclass=meta.MessageMeta):
         pb_type = self._meta.fields[key].pb_type
         pb_value = getattr(self.pb, key)
         return marshal.to_python(self, pb_type, pb_value,
-            absent=not self.has_wire_field(key),
+            absent=key not in self,
         )
 
-    def __setitem__(self, key, value):
+    def __setattr__(self, key, value):
         """Set the value on the given field.
 
         For well-known protocol buffer types which are marshalled, either
         the protocol buffer object or the Python equivalent is accepted.
         """
         pb_type = self._meta.fields[key].pb_type
-        pb_value = marshal.to_proto(self, key, value)
+        pb_value = marshal.to_proto(self, pb_type, key, value)
         if pb_value is None:
             self.pb.ClearField(key)
         else:
             self.pb.MergeFrom(self._desc(key=pb_value))
 
-    def __delitem__(self, key):
+    def __delattr__(self, key):
         """Delete the value on the given field.
 
         This is generally equivalent to setting a falsy value."""
         self.pb.ClearField(key)
 
-    def has_wire_field(self, key):
+    def __contains__(self, key):
         """Return True if this field was set to something non-zero on the wire.
 
-        In most cases, this method will return True when ``__getitem__``
+        In most cases, this method will return True when ``__getattr__``
         would return a truthy value and False when it would return a falsy
         value, so explicitly calling this is not useful.
 
         The exception case is empty messages explicitly set on the wire,
-        which are falsy from ``__getitem__``. This method allows to
+        which are falsy from ``__getattr__``. This method allows to
         distinguish between an explcitly provided empty message and the
         absence of that meessage, which is useful in some edge cases.
 
@@ -139,24 +127,3 @@ class Message(metaclass=meta.MessageMeta):
                 wire serialization.
         """
         return self.pb.HasField(key)
-
-    def serialize(self) -> bytes:
-        """Return the serialized proto.
-
-        Returns:
-            bytes: The serialized representation of the protocol buffer.
-        """
-        return self.pb.SerializeToString()
-
-    @classmethod
-    def deserialize(cls, payload: bytes):
-        """Given a serialized proto, deserialize it into a Message instance.
-
-        Args:
-            payload (bytes): The serialized proto.
-
-        Returns
-            cls: An instance of the message class against which this
-                method was called.
-        """
-        return cls(cls._desc.FromString(payload))

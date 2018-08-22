@@ -14,9 +14,16 @@
 
 import collections
 import copy
-from typing import List
+from typing import List, Type
 
 from google.protobuf import descriptor
+from google.protobuf import message
+from google.protobuf import reflection
+from google.protobuf import symbol_database
+
+from proto.fields import Field
+
+sym_db = symbol_database.Default()
 
 
 class MessageMeta(type):
@@ -32,7 +39,8 @@ class MessageMeta(type):
         # Iterate over all the attributes and separate the fields into
         # their own sequence.
         fields = []
-        for name, attr in copy.copy(attrs).values():
+        index = 0
+        for name, attr in copy.copy(attrs).items():
             # Sanity check: If this is not a field, do nothing.
             if not isinstance(attr, fields.Field):
                 continue
@@ -41,39 +49,78 @@ class MessageMeta(type):
             # themselves should not be direct attributes.
             attrs.pop(name)
 
-            # Add the field's name to the field object itself.
-            attr.name = name
+            # Add data that the field requires that we do not take in the
+            # constructor because we can derive it from the metaclass.
+            # (The goal is to make the declaration syntax as nice as possible.)
+            attr.mcs_data = {
+                'name': name,
+                'full_name': '{0}.{1}'.format(full_name, name),
+                'index': index,
+            }
 
             # Add a tuple with the field's declaration order, name, and
             # the field itself, in that order.
             fields.append(attr)
 
-        # Create the MessageInfo instance to be attached to this message.
-        attrs['_meta'] = MessageInfo(
-            fields=fields,
-            full_name=full_name,
-            package=package,
-        )
-
-        # Run the superclass constructor.
-        class_ = super().__new__(mcls, name, bases, attrs)
+            # Increment the field index counter.
+            index += 1
 
         # Create the underlying proto descriptor.
         # This programatically duplicates the default code generated
         # by protoc.
-        class_._desc = descriptor.Descriptor(
-            name=full_name.split('.')[-1], fullname=full_name,
+        desc = descriptor.Descriptor(
+            name=name, full_name=full_name,
             filename=None, containing_type=None,
             fields=[i._desc for i in fields],
             nested_types=[], enum_types=[], extensions=[], oneofs=[],
             syntax='proto3',
         )
 
+        # Create the stock protobuf Message.
+        pb_message = reflection.GeneratedProtocolMessageType(
+            name, (message.Message,), {'DESCRIPTOR': desc, '__module__': None},
+        )
+        sym_db.RegisterMessage(pb_message)
+
+        # Create the MessageInfo instance to be attached to this message.
+        attrs['_meta'] = MessageInfo(
+            pb=pb_message,
+            fields=fields,
+            full_name=full_name,
+            package=package,
+        )
+
+        # Run the superclass constructor.
+        cls = super().__new__(mcls, name, bases, attrs)
+
         # Done; return the message class.
-        return class_
+        return cls
 
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
+
+    def serialize(cls, instance) -> bytes:
+        """Return the serialized proto.
+
+        Args:
+            instance: An instance of this message type.
+
+        Returns:
+            bytes: The serialized representation of the protocol buffer.
+        """
+        return instance.pb.SerializeToString()
+
+    def deserialize(cls, payload: bytes):
+        """Given a serialized proto, deserialize it into a Message instance.
+
+        Args:
+            payload (bytes): The serialized proto.
+
+        Returns
+            cls: An instance of the message class against which this
+                method was called.
+        """
+        return cls(cls._meta.pb.FromString(payload))
 
 
 class MessageInfo:
@@ -84,8 +131,9 @@ class MessageInfo:
             attributes of these instances.
         fields (Tuple[~.fields.Field]): The fields declared on the message.
     """
-    def __init__(self, *, fields: List[fields.Field],
+    def __init__(self, *, pb: Type[message.Message], fields: List[Field],
                  package: str, full_name: str) -> None:
+        self.pb = pb
         self.package = package
         self.full_name = full_name
         self.fields = collections.OrderedDict([
