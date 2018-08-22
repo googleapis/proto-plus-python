@@ -12,32 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import enum
-
 from google.protobuf import descriptor
 
-
-class ProtoType(enum.IntEnum):
-    """The set of basic types in protocol buffers."""
-    # These values come from google/protobuf/descriptor.proto
-    DOUBLE = 1
-    FLOAT = 2
-    INT64 = 3
-    UINT64 = 4
-    INT32 = 5
-    FIXED64 = 6
-    FIXED32 = 7
-    BOOL = 8
-    STRING = 9
-    MESSAGE = 11
-    BYTES = 12
-    UINT32 = 13
-    ENUM = 14
-    SFIXED32 = 15
-    SFIXED64 = 16
-    SINT32 = 17
-    SINT64 = 18
-
+from proto.primitives import get_default_value
 
 
 class Field:
@@ -65,6 +42,12 @@ class Field:
     def descriptor(self):
         """Return the descriptor for the field."""
         if not self._descriptor:
+            # Determine the default value.
+            default_value = get_default_value(self._proto_type)
+            if self._repeated:
+                default_value = []
+
+            # Set the descriptor.
             self._descriptor = descriptor.FieldDescriptor(
                 name=self.mcls_data['name'],
                 full_name=self.mcls_data['full_name'],
@@ -75,7 +58,8 @@ class Field:
                 cpp_type=descriptor.FieldDescriptor.ProtoTypeToCppProtoType(
                     self._proto_type,
                 ),
-                message_type=self._message._meta.pb,
+                default_value=default_value,
+                message_type=self._message._meta.pb if self._message else None,
                 enum_type=self._enum,
                 containing_type=None,
                 is_extension=False,

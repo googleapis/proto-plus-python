@@ -30,9 +30,13 @@ class MessageMeta(type):
     """A metaclass for building and registering Message subclasses."""
 
     def __new__(mcls, name, bases, attrs):
+        # Do not do any special behavior for Message itself.
+        if not bases:
+            return super().__new__(mcls, name, bases, attrs)
+
         # A package and full name should be present.
-        package = attrs.pop('package')
-        full_name = attrs.pop('full_name')
+        package = attrs.pop('package', '')
+        full_name = attrs.pop('full_name', name)
 
         # Iterate over the nested messages and enums and
 
@@ -42,7 +46,7 @@ class MessageMeta(type):
         index = 0
         for name, attr in copy.copy(attrs).items():
             # Sanity check: If this is not a field, do nothing.
-            if not isinstance(attr, fields.Field):
+            if not isinstance(attr, Field):
                 continue
 
             # Remove the field from the attrs dictionary; the field objects
@@ -52,7 +56,7 @@ class MessageMeta(type):
             # Add data that the field requires that we do not take in the
             # constructor because we can derive it from the metaclass.
             # (The goal is to make the declaration syntax as nice as possible.)
-            attr.mcs_data = {
+            attr.mcls_data = {
                 'name': name,
                 'full_name': '{0}.{1}'.format(full_name, name),
                 'index': index,
@@ -71,7 +75,7 @@ class MessageMeta(type):
         desc = descriptor.Descriptor(
             name=name, full_name=full_name,
             filename=None, containing_type=None,
-            fields=[i._desc for i in fields],
+            fields=[i.descriptor for i in fields],
             nested_types=[], enum_types=[], extensions=[], oneofs=[],
             syntax='proto3',
         )
@@ -96,6 +100,7 @@ class MessageMeta(type):
         # Done; return the message class.
         return cls
 
+    @classmethod
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
 

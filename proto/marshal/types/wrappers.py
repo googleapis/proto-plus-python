@@ -14,7 +14,7 @@
 
 from google.protobuf import wrappers_pb2
 
-from .registry import marshal
+from ..marshal import marshal
 
 
 @marshal.register(wrappers_pb2.BoolValue)

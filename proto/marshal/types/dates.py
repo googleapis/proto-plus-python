@@ -17,7 +17,7 @@ import datetime
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
 
-from .registry import marshal
+from ..marshal import marshal
 
 
 @marshal.register(timestamp_pb2.Timestamp)
