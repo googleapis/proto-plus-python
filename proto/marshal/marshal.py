@@ -73,18 +73,18 @@ class MarshalRegistry:
         rule = self._registry.get(proto_type, self._noop)
         return rule.to_python(value, absent=absent)
 
-    def to_proto(self, proto_type, value, *, absent: bool = None):
+    def to_proto(self, proto_type, value):
         rule = self._registry.get(proto_type, self._noop)
-        return rule.to_proto(value, absent=absent)
+        return rule.to_proto(value)
 
 
 class NoopMarshal:
     """A catch-all marshal that does nothing."""
 
-    def to_python(self, message, key, value):
-        return value
+    def to_python(self, pb_value, *, absent: bool = None):
+        return pb_value
 
-    def to_proto(self, message, key, value):
+    def to_proto(self, value):
         return value
 
 

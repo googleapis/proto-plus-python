@@ -44,41 +44,52 @@ class MessageMeta(type):
         # their own sequence.
         fields = []
         index = 0
-        for name, attr in copy.copy(attrs).items():
+        for key, value in copy.copy(attrs).items():
             # Sanity check: If this is not a field, do nothing.
-            if not isinstance(attr, Field):
+            if not isinstance(value, Field):
                 continue
 
             # Remove the field from the attrs dictionary; the field objects
             # themselves should not be direct attributes.
-            attrs.pop(name)
+            attrs.pop(key)
 
             # Add data that the field requires that we do not take in the
             # constructor because we can derive it from the metaclass.
             # (The goal is to make the declaration syntax as nice as possible.)
-            attr.mcls_data = {
-                'name': name,
-                'full_name': '{0}.{1}'.format(full_name, name),
+            value.mcls_data = {
+                'name': key,
+                'full_name': '{0}.{1}'.format(full_name, key),
                 'index': index,
             }
 
             # Add a tuple with the field's declaration order, name, and
             # the field itself, in that order.
-            fields.append(attr)
+            fields.append(value)
 
             # Increment the field index counter.
             index += 1
+
+        # Get a file descriptor object.
+        module = attrs.get('__module__', name.lower()).replace('.', '/')
+        if module not in _file_descriptor_registry:
+            _file_descriptor_registry[module] = descriptor.FileDescriptor(
+                name='%s.proto' % module,
+                package=package,
+                syntax='proto3',
+            )
 
         # Create the underlying proto descriptor.
         # This programatically duplicates the default code generated
         # by protoc.
         desc = descriptor.Descriptor(
             name=name, full_name=full_name,
+            file=_file_descriptor_registry[module],
             filename=None, containing_type=None,
             fields=[i.descriptor for i in fields],
             nested_types=[], enum_types=[], extensions=[], oneofs=[],
             syntax='proto3',
         )
+        _file_descriptor_registry[module].message_types_by_name[name] = desc
 
         # Create the stock protobuf Message.
         pb_message = reflection.GeneratedProtocolMessageType(
@@ -104,6 +115,18 @@ class MessageMeta(type):
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
 
+    @property
+    def meta(cls):
+        return cls._meta
+
+    def pb(cls, obj=None):
+        """Return the underlying protobuf Message class."""
+        if not obj:
+            return cls.meta.pb
+        if not isinstance(obj, cls):
+            raise TypeError('%r is not an instance of %s' % (obj, cls.__name__))
+        return obj._pb
+
     def serialize(cls, instance) -> bytes:
         """Return the serialized proto.
 
@@ -113,7 +136,7 @@ class MessageMeta(type):
         Returns:
             bytes: The serialized representation of the protocol buffer.
         """
-        return instance.pb.SerializeToString()
+        return cls.pb(instance).SerializeToString()
 
     def deserialize(cls, payload: bytes):
         """Given a serialized proto, deserialize it into a Message instance.
@@ -125,7 +148,7 @@ class MessageMeta(type):
             cls: An instance of the message class against which this
                 method was called.
         """
-        return cls(cls._meta.pb.FromString(payload))
+        return cls(cls.pb().FromString(payload))
 
 
 class MessageInfo:
@@ -147,3 +170,6 @@ class MessageInfo:
         self.fields_by_number = collections.OrderedDict([
             (i.number, i) for i in fields
         ])
+
+
+_file_descriptor_registry = {}

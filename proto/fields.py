@@ -27,11 +27,11 @@ class Field:
         self.mcls_data = {}
 
         # Save the direct arguments.
-        self._proto_type = proto_type
-        self._number = number
-        self._repeated = repeated
-        self._message = message_type
-        self._enum = enum_type
+        self.number = number
+        self.repeated = repeated
+        self.proto_type = proto_type
+        self.message = message_type
+        self.enum = enum_type
 
         # Once the descriptor is accessed the first time, cache it.
         # This is important because in rare cases the message or enum
@@ -43,8 +43,8 @@ class Field:
         """Return the descriptor for the field."""
         if not self._descriptor:
             # Determine the default value.
-            default_value = get_default_value(self._proto_type)
-            if self._repeated:
+            default_value = get_default_value(self.proto_type)
+            if self.repeated:
                 default_value = []
 
             # Set the descriptor.
@@ -52,17 +52,28 @@ class Field:
                 name=self.mcls_data['name'],
                 full_name=self.mcls_data['full_name'],
                 index=self.mcls_data['index'],
-                number=self._number,
-                label=3 if self._repeated else 1,
-                type=self._proto_type,
+                number=self.number,
+                label=3 if self.repeated else 1,
+                type=self.proto_type,
                 cpp_type=descriptor.FieldDescriptor.ProtoTypeToCppProtoType(
-                    self._proto_type,
+                    self.proto_type,
                 ),
                 default_value=default_value,
-                message_type=self._message._meta.pb if self._message else None,
-                enum_type=self._enum,
+                message_type=self.message._meta.pb if self.message else None,
+                enum_type=self.enum,
                 containing_type=None,
                 is_extension=False,
                 extension_scope=None,
             )
         return self._descriptor
+
+    @property
+    def name(self):
+        """Return the name of the field."""
+        return self.mcls_data['name']
+
+    @property
+    def pb_type(self):
+        if self.message:
+            return self.message.pb()
+        return None

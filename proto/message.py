@@ -38,10 +38,10 @@ class Message(metaclass=meta.MessageMeta):
         # a copy of the underlying protobuf descriptor instance.
         if isinstance(mapping, type(self)):
             mapping = mapping._pb
-        if isinstance(mapping, self._desc):
-            self.pb = copy.copy(mapping)
+        if isinstance(mapping, self._meta.pb):
+            self._pb = copy.copy(mapping)
             if kwargs:
-                self.pb.MergeFrom(self._desc(**kwargs))
+                self._pb.MergeFrom(self._meta.pb(**kwargs))
             return
 
         # Handle the remaining case by converging the mapping and kwargs
@@ -50,7 +50,7 @@ class Message(metaclass=meta.MessageMeta):
         if mapping is None:
             mapping = {}
         mapping.update(kwargs)
-        self.pb = self._desc(**mapping)
+        self._pb = self._meta.pb(**mapping)
 
     def __getattr__(self, key):
         """Retrieve the given field's value.
@@ -77,10 +77,8 @@ class Message(metaclass=meta.MessageMeta):
             mode details.
         """
         pb_type = self._meta.fields[key].pb_type
-        pb_value = getattr(self.pb, key)
-        return marshal.to_python(self, pb_type, pb_value,
-            absent=key not in self,
-        )
+        pb_value = getattr(self._pb, key)
+        return marshal.to_python(pb_type, pb_value, absent=key not in self)
 
     def __setattr__(self, key, value):
         """Set the value on the given field.
@@ -88,18 +86,20 @@ class Message(metaclass=meta.MessageMeta):
         For well-known protocol buffer types which are marshalled, either
         the protocol buffer object or the Python equivalent is accepted.
         """
+        if key.startswith('_'):
+            return super().__setattr__(key, value)
         pb_type = self._meta.fields[key].pb_type
-        pb_value = marshal.to_proto(self, pb_type, key, value)
+        pb_value = marshal.to_proto(pb_type, value)
         if pb_value is None:
-            self.pb.ClearField(key)
+            self._pb.ClearField(key)
         else:
-            self.pb.MergeFrom(self._desc(key=pb_value))
+            self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
 
     def __delattr__(self, key):
         """Delete the value on the given field.
 
         This is generally equivalent to setting a falsy value."""
-        self.pb.ClearField(key)
+        self._pb.ClearField(key)
 
     def __contains__(self, key):
         """Return True if this field was set to something non-zero on the wire.
@@ -126,4 +126,7 @@ class Message(metaclass=meta.MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
-        return self.pb.HasField(key)
+        pb_value = getattr(self._pb, key)
+        if hasattr(pb_value, 'SerializeToString'):
+            return bool(pb_value.SerializeToString())
+        return bool(pb_value)
