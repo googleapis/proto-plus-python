@@ -23,8 +23,6 @@ from google.protobuf import symbol_database
 
 from proto.fields import Field
 
-sym_db = symbol_database.Default()
-
 
 class MessageMeta(type):
     """A metaclass for building and registering Message subclasses."""
@@ -95,7 +93,7 @@ class MessageMeta(type):
         pb_message = reflection.GeneratedProtocolMessageType(
             name, (message.Message,), {'DESCRIPTOR': desc, '__module__': None},
         )
-        sym_db.RegisterMessage(pb_message)
+        symbol_database.Default().RegisterMessage(pb_message)
 
         # Create the MessageInfo instance to be attached to this message.
         attrs['_meta'] = MessageInfo(

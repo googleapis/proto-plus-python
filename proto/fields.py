@@ -47,6 +47,12 @@ class Field:
             if self.repeated:
                 default_value = []
 
+            # Resolve the message type, if any, to its underlying
+            # protobuf descriptor.
+            message_type = self.message
+            if self.message and hasattr(self.message, '_meta'):
+                message_type = self.message._meta.pb
+
             # Set the descriptor.
             self._descriptor = descriptor.FieldDescriptor(
                 name=self.mcls_data['name'],
@@ -59,7 +65,7 @@ class Field:
                     self.proto_type,
                 ),
                 default_value=default_value,
-                message_type=self.message._meta.pb if self.message else None,
+                message_type=message_type.DESCRIPTOR if message_type else None,
                 enum_type=self.enum,
                 containing_type=None,
                 is_extension=False,
@@ -75,5 +81,7 @@ class Field:
     @property
     def pb_type(self):
         if self.message:
-            return self.message.pb()
+            if hasattr(self.message, '_meta'):
+                return self.message.pb()
+            return self.message
         return None

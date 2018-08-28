@@ -50,6 +50,18 @@ class Message(metaclass=meta.MessageMeta):
         if mapping is None:
             mapping = {}
         mapping.update(kwargs)
+
+        # Update the mapping to address any values that need to be
+        # coerced.
+        for key, value in copy.copy(mapping).items():
+            pb_type = self._meta.fields[key].pb_type
+            pb_value = marshal.to_proto(pb_type, value)
+            if pb_value is None:
+                mapping.pop(key)
+            else:
+                mapping[key] = pb_value
+
+        # Create the internal protocol buffer.
         self._pb = self._meta.pb(**mapping)
 
     def __getattr__(self, key):
@@ -90,9 +102,14 @@ class Message(metaclass=meta.MessageMeta):
             return super().__setattr__(key, value)
         pb_type = self._meta.fields[key].pb_type
         pb_value = marshal.to_proto(pb_type, value)
-        if pb_value is None:
-            self._pb.ClearField(key)
-        else:
+
+        # We *always* clear the existing field.
+        # This is the only way to successfully write nested falsy values,
+        # because otherwise MergeFrom will no-op on them.
+        self._pb.ClearField(key)
+
+        # Merge in the value being set.
+        if pb_value is not None:
             self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
 
     def __delattr__(self, key):
@@ -127,6 +144,16 @@ class Message(metaclass=meta.MessageMeta):
                 wire serialization.
         """
         pb_value = getattr(self._pb, key)
-        if hasattr(pb_value, 'SerializeToString'):
-            return bool(pb_value.SerializeToString())
-        return bool(pb_value)
+        try:
+            # Protocol buffers "HasField" is unfriendly; it only works
+            # against composite, non-repeated fields, and raises ValueError
+            # against any repeated field or primitive.
+            #
+            # There is no good way to test whether it is valid to provide
+            # a field to this method, so sadly we are stuck with a
+            # somewhat inefficient try/except.
+            return self._pb.HasField(key)
+        except ValueError:
+            if hasattr(pb_value, 'SerializeToString'):
+                return bool(pb_value.SerializeToString())
+            return bool(pb_value)

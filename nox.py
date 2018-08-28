@@ -27,6 +27,7 @@ def unit(session):
 
     session.run(
         'py.test',
+        '-W=error',
         '--quiet',
         '--cov=proto',
         '--cov-config=.coveragerc',
