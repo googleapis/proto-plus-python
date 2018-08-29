@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
@@ -29,18 +31,18 @@ class TimestampMarshal:
     precision matters, it is recommended to interact with the internal
     proto directly.
     """
-    def to_python(self, value, *, absent: bool = None) -> datetime.datetime:
+    def to_python(self, value, *, absent: bool = None) -> datetime:
         if isinstance(value, timestamp_pb2.Timestamp):
             if absent:
                 return None
             return datetime.fromtimestamp(
                 value.seconds + value.nanos / 1e9,
-                tz=datetime.timezone.utc,
+                tz=timezone.utc,
             )
         return value
 
     def to_proto(self, value) -> timestamp_pb2.Timestamp:
-        if isinstance(value, datetime.datetime):
+        if isinstance(value, datetime):
             return timestamp_pb2.Timestamp(
                 seconds=int(value.strftime('%s')),
                 nanos=int(value.strftime('%f')) * 1000,
@@ -57,9 +59,9 @@ class DurationMarshal:
     precision matters, it is recommended to interact with the internal
     proto directly.
     """
-    def to_python(self, value, *, absent: bool = None) -> datetime.timedelta:
+    def to_python(self, value, *, absent: bool = None) -> timedelta:
         if isinstance(value, duration_pb2.Duration):
-            return datetime.timedelta(
+            return timedelta(
                 days=value.seconds // 86400,
                 seconds=value.seconds % 86400,
                 microseconds=value.nanos // 1000,
@@ -67,7 +69,7 @@ class DurationMarshal:
         return value
 
     def to_proto(self, value) -> duration_pb2.Duration:
-        if isinstance(value, datetime.timedelta):
+        if isinstance(value, timedelta):
             return duration_pb2.Duration(
                 seconds=value.days * 86400 + value.seconds,
                 nanos=value.microseconds * 1000,
