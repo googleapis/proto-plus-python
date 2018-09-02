@@ -28,3 +28,52 @@ def test_composite_init():
     assert spam.foo.bar == 'str'
     assert spam.foo.baz == 42
     assert spam.eggs is False
+
+
+def test_composite_inner_rmw():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.STRING, number=1)
+
+    class Spam(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    spam = Spam(foo=Foo(bar='str'))
+    spam.foo.bar = 'other str'
+    assert spam.foo.bar == 'other str'
+    assert Spam.pb(spam).foo.bar == 'other str'
+
+
+def test_composite_empty_inner_rmw():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Spam(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    spam = Spam()
+    spam.foo.bar = 42
+    assert spam.foo.bar == 42
+
+
+def test_composite_outer_rmw():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.FLOAT, number=1)
+
+    class Spam(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    spam = Spam(foo=Foo(bar=3.14159))
+    spam.foo = Foo(bar=2.71828)
+    assert spam.foo.bar == 2.71828
+
+
+def test_composite_dict_write():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.FLOAT, number=1)
+
+    class Spam(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    spam = Spam()
+    spam.foo = {'bar': 2.71828}
+    assert spam.foo.bar == 2.71828
