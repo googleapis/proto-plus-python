@@ -77,3 +77,17 @@ def test_composite_dict_write():
     spam = Spam()
     spam.foo = {'bar': 2.71828}
     assert spam.foo.bar == 2.71828
+
+
+def test_composite_del():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.STRING, number=1)
+
+    class Spam(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    spam = Spam(foo=Foo(bar='str'))
+    del spam.foo
+    assert not spam.foo
+    assert isinstance(spam.foo, Foo)
+    assert spam.foo.bar == ''

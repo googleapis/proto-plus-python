@@ -75,6 +75,10 @@ class Message(metaclass=meta.MessageMeta):
         # Create the internal protocol buffer.
         self._pb = self._meta.pb(**mapping)
 
+    def __bool__(self):
+        """Return True if any field is truthy, False otherwise."""
+        return any([getattr(self, k) for k in self._meta.fields.keys()])
+
     def __getattr__(self, key):
         """Retrieve the given field's value.
 
