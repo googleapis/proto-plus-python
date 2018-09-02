@@ -25,6 +25,7 @@ def test_bytes_init():
     foo = Foo(bar=b'spam')
     assert foo.bar == b'spam'
     assert foo.baz == b''
+    assert not foo.baz
     assert Foo.pb(foo).bar == b'spam'
     assert Foo.pb(foo).baz == b''
 
@@ -55,6 +56,7 @@ def test_bytes_del():
     assert foo.bar == b'spam'
     del foo.bar
     assert foo.bar == b''
+    assert not foo.bar
 
 
 def test_bytes_string_distinct():

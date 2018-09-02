@@ -25,6 +25,7 @@ def test_int_init():
     foo = Foo(bar=42)
     assert foo.bar == 42
     assert foo.baz == 0
+    assert not foo.baz
     assert Foo.pb(foo).bar == 42
     assert Foo.pb(foo).baz == 0
 
@@ -55,6 +56,7 @@ def test_int_del():
     assert foo.bar == 42
     del foo.bar
     assert foo.bar == 0
+    assert not foo.bar
 
 
 def test_int_size():

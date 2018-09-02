@@ -23,6 +23,7 @@ def test_string_init():
     foo = Foo(bar='spam')
     assert foo.bar == 'spam'
     assert foo.baz == ''
+    assert not foo.baz
     assert Foo.pb(foo).bar == 'spam'
     assert Foo.pb(foo).baz == ''
 
@@ -53,3 +54,4 @@ def test_string_del():
     assert foo.bar == 'spam'
     del foo.bar
     assert foo.bar == ''
+    assert not foo.bar
