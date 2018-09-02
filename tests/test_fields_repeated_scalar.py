@@ -17,25 +17,34 @@ import proto
 
 def test_repeated_scalar_init():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.INT32, repeated=True, number=1)
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
 
     foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
     assert foo.bar == [1, 1, 2, 3, 5, 8, 13]
 
 
-def test_repeated_scalar_rmw():
+def test_repeated_scalar_append():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.INT32, repeated=True, number=1)
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
 
     foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
     foo.bar.append(21)
-    foo.bar += [34, 55]
-    assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+    foo.bar.append(34)
+    assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+
+def test_repeated_scalar_overwrite():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    foo.bar = [1, 2, 4, 8, 16]
+    assert foo.bar == [1, 2, 4, 8, 16]
 
 
 def test_repeated_scalar_del():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.INT32, repeated=True, number=1)
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
 
     foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
     del foo.bar

@@ -19,7 +19,7 @@ import proto
 
 def test_bool_value_read():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.MESSAGE,
+        bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )
@@ -30,22 +30,22 @@ def test_bool_value_read():
 
 def test_bool_value_distinction_from_bool():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.MESSAGE,
+        bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )
-        baz = proto.Field(proto.ProtoType.BOOL, number=2)
+        baz = proto.Field(proto.BOOL, number=2)
     assert Foo().bar is None
     assert Foo().baz is False
 
 
 def test_bool_value_rmw():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.MESSAGE,
+        bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )
-        baz = proto.Field(proto.ProtoType.MESSAGE,
+        baz = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )
@@ -62,7 +62,7 @@ def test_bool_value_rmw():
 
 def test_bool_value_write_bool_value():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.MESSAGE,
+        bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )
@@ -73,7 +73,7 @@ def test_bool_value_write_bool_value():
 
 def test_bool_value_del():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.MESSAGE,
+        bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
             number=1,
         )

@@ -19,8 +19,8 @@ import proto
 
 def test_int_init():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.INT32, number=1)
-        baz = proto.Field(proto.ProtoType.INT32, number=2)
+        bar = proto.Field(proto.INT32, number=1)
+        baz = proto.Field(proto.INT32, number=2)
 
     foo = Foo(bar=42)
     assert foo.bar == 42
@@ -32,8 +32,8 @@ def test_int_init():
 
 def test_int_rmw():
     class Foo(proto.Message):
-        spam = proto.Field(proto.ProtoType.INT32, number=1)
-        eggs = proto.Field(proto.ProtoType.INT32, number=2)
+        spam = proto.Field(proto.INT32, number=1)
+        eggs = proto.Field(proto.INT32, number=2)
 
     foo = Foo(spam=42)
     foo.eggs = 76  # trombones led the big parade...
@@ -50,7 +50,7 @@ def test_int_rmw():
 
 def test_int_del():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.INT32, number=1)
+        bar = proto.Field(proto.INT32, number=1)
 
     foo = Foo(bar=42)
     assert foo.bar == 42
@@ -61,8 +61,8 @@ def test_int_del():
 
 def test_int_size():
     class Foo(proto.Message):
-        small = proto.Field(proto.ProtoType.INT32, number=1)
-        big = proto.Field(proto.ProtoType.INT64, number=2)
+        small = proto.Field(proto.INT32, number=1)
+        big = proto.Field(proto.INT64, number=2)
 
     foo = Foo()
     foo.big = 2 ** 40
@@ -75,8 +75,8 @@ def test_int_size():
 
 def test_int_unsigned():
     class Foo(proto.Message):
-        signed = proto.Field(proto.ProtoType.INT32, number=1)
-        unsigned = proto.Field(proto.ProtoType.UINT32, number=2)
+        signed = proto.Field(proto.INT32, number=1)
+        unsigned = proto.Field(proto.UINT32, number=2)
 
     foo = Foo()
     foo.signed = -10

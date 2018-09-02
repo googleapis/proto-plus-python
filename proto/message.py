@@ -39,7 +39,18 @@ class Message(metaclass=meta.MessageMeta):
         if isinstance(mapping, type(self)):
             mapping = mapping._pb
         if isinstance(mapping, self._meta.pb):
-            self._pb = copy.copy(mapping)
+            # Make a copy of the mapping.
+            # This is a constructor for a new object, so users will assume
+            # that it will not have side effects on the arguments being
+            # passed in.
+            #
+            # The `__wrap_original` argument is private API to override
+            # this behavior, because `MessageMarshal` actually does want to
+            # wrap the original argument it was given. The `wrap` method
+            # on the metaclass is the public API for this behavior.
+            if not kwargs.pop('__wrap_original', False):
+                mapping = copy.copy(mapping)
+            self._pb = mapping
             if kwargs:
                 self._pb.MergeFrom(self._meta.pb(**kwargs))
             return

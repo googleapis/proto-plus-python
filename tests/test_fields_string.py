@@ -17,8 +17,8 @@ import proto
 
 def test_string_init():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.STRING, number=1)
-        baz = proto.Field(proto.ProtoType.STRING, number=2)
+        bar = proto.Field(proto.STRING, number=1)
+        baz = proto.Field(proto.STRING, number=2)
 
     foo = Foo(bar='spam')
     assert foo.bar == 'spam'
@@ -30,8 +30,8 @@ def test_string_init():
 
 def test_string_rmw():
     class Foo(proto.Message):
-        spam = proto.Field(proto.ProtoType.STRING, number=1)
-        eggs = proto.Field(proto.ProtoType.STRING, number=2)
+        spam = proto.Field(proto.STRING, number=1)
+        eggs = proto.Field(proto.STRING, number=2)
 
     foo = Foo(spam='bar')
     foo.eggs = 'baz'
@@ -48,7 +48,7 @@ def test_string_rmw():
 
 def test_string_del():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.STRING, number=1)
+        bar = proto.Field(proto.STRING, number=1)
 
     foo = Foo(bar='spam')
     assert foo.bar == 'spam'

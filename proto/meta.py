@@ -22,6 +22,8 @@ from google.protobuf import reflection
 from google.protobuf import symbol_database
 
 from proto.fields import Field
+from proto.marshal import marshal
+from proto.marshal.types.message import MessageMarshal
 
 
 class MessageMeta(type):
@@ -106,6 +108,9 @@ class MessageMeta(type):
         # Run the superclass constructor.
         cls = super().__new__(mcls, name, bases, attrs)
 
+        # Register the new class with the marshal.
+        marshal.register(pb_message, MessageMarshal(pb_message, cls))
+
         # Done; return the message class.
         return cls
 
@@ -124,6 +129,15 @@ class MessageMeta(type):
         if not isinstance(obj, cls):
             raise TypeError('%r is not an instance of %s' % (obj, cls.__name__))
         return obj._pb
+
+    def wrap(cls, pb):
+        """Return a Message object that shallowly wraps the descriptor.
+
+        Args:
+            pb: A protocol buffer object, such as would be returned by
+                :meth:`pb`.
+        """
+        return cls(pb, __wrap_original=True)
 
     def serialize(cls, instance) -> bytes:
         """Return the serialized proto.

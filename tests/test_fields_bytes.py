@@ -19,8 +19,8 @@ import proto
 
 def test_bytes_init():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.BYTES, number=1)
-        baz = proto.Field(proto.ProtoType.BYTES, number=2)
+        bar = proto.Field(proto.BYTES, number=1)
+        baz = proto.Field(proto.BYTES, number=2)
 
     foo = Foo(bar=b'spam')
     assert foo.bar == b'spam'
@@ -32,8 +32,8 @@ def test_bytes_init():
 
 def test_bytes_rmw():
     class Foo(proto.Message):
-        spam = proto.Field(proto.ProtoType.BYTES, number=1)
-        eggs = proto.Field(proto.ProtoType.BYTES, number=2)
+        spam = proto.Field(proto.BYTES, number=1)
+        eggs = proto.Field(proto.BYTES, number=2)
 
     foo = Foo(spam=b'bar')
     foo.eggs = b'baz'
@@ -50,7 +50,7 @@ def test_bytes_rmw():
 
 def test_bytes_del():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.BYTES, number=1)
+        bar = proto.Field(proto.BYTES, number=1)
 
     foo = Foo(bar=b'spam')
     assert foo.bar == b'spam'
@@ -61,8 +61,8 @@ def test_bytes_del():
 
 def test_bytes_string_distinct():
     class Foo(proto.Message):
-        bar = proto.Field(proto.ProtoType.STRING, number=1)
-        baz = proto.Field(proto.ProtoType.BYTES, number=2)
+        bar = proto.Field(proto.STRING, number=1)
+        baz = proto.Field(proto.BYTES, number=2)
 
     foo = Foo()
     assert foo.bar != foo.baz

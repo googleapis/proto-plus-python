@@ -24,7 +24,7 @@ import proto
 
 def test_timestamp_read():
     class Foo(proto.Message):
-        event_time = proto.Field(proto.ProtoType.MESSAGE,
+        event_time = proto.Field(proto.MESSAGE,
             number=1,
             message_type=timestamp_pb2.Timestamp,
         )

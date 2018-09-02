@@ -12,7 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
+
 from google.protobuf import message
+
+
+class Rule(abc.ABC):
+    """Abstract class definition for marshal rules."""
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if hasattr(C, 'to_python') and hasattr(C, 'to_proto'):
+            return True
+        return NotImplemented
 
 
 class MarshalRegistry:
@@ -39,28 +51,37 @@ class MarshalRegistry:
         self._registry = {}
         self._noop = NoopMarshal()
 
-    def register(self, proto_type: type):
-        """Return a function that will register a rule against the given type.
+    def register(self, proto_type: type, rule: Rule = None):
+        """Register a rule against the given ``proto_type``.
 
-        This function is intended to be used as a decorator:
+        This function expects a ``proto_type`` (the descriptor class) and
+        a ``rule``; an object with a ``to_python`` and ``to_proto`` method.
+        Each method should return the appropriate Python or protocol buffer
+        type, and be idempotent (e.g. accept either type as input).
+
+        This function can also be used as a decorator::
 
             @marshal.register(timestamp_pb2.Timestamp)
             class TimestampMarshal:
                 ...
 
-        The individual marshal classes are expected to have a ``to_python``
-        and ``to_proto`` method. Each should return the appropriate Python
-        or protocol buffer type, and be idempotent (e.g. accept either type
-        as input).
+        In this case, the class will be initialized for you with zero
+        arguments.
 
         Args:
             proto_type (type): A protocol buffer message type.
+            rule: A marshal object
         """
         # Sanity check: Do not register anything to a class that is not
         # a protocol buffer message.
         if not issubclass(proto_type, message.Message):
             raise TypeError('Only protocol buffer messages may be registered '
                             'to the marshal.')
+
+        # If a rule was provided, register it and be done.
+        if rule:
+            self._registry[proto_type] = rule
+            return
 
         # Create an inner function that will register an instance of the
         # marshal class to this object's registry, and return it.

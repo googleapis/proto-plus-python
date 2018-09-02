@@ -17,7 +17,6 @@ from google.protobuf import wrappers_pb2
 from ..marshal import marshal
 
 
-@marshal.register(wrappers_pb2.BoolValue)
 class WrapperMarshal:
     """A marshal for converting the protobuf wrapper classes to Python.
 
@@ -35,7 +34,7 @@ class WrapperMarshal:
             return value.value
         return value
 
-    def to_proto(self, value) -> bool:
+    def to_proto(self, value):
         if isinstance(value, self._python_type):
             return self._proto_type(value=value)
         return value
