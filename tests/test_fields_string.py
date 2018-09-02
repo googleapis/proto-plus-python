@@ -43,3 +43,13 @@ def test_string_rmw():
     assert foo.eggs == 'baz'
     assert Foo.pb(foo).spam == 'bacon'
     assert Foo.pb(foo).eggs == 'baz'
+
+
+def test_string_del():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.ProtoType.STRING, number=1)
+
+    foo = Foo(bar='spam')
+    assert foo.bar == 'spam'
+    del foo.bar
+    assert foo.bar == ''
