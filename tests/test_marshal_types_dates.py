@@ -204,3 +204,25 @@ def test_duration_nanos_rmw():
     foo.ttl = timedelta(microseconds=25)
     assert Foo.pb(foo).ttl.nanos == 25000
     assert foo.ttl.microseconds == 25
+
+
+def test_timestamp_to_python_idempotent():
+    # This path can never run in the current configuration because proto
+    # values are the only thing ever saved, and `to_python` is a read method.
+    #
+    # However, we test idempotency for consistency with `to_proto` and
+    # general resiliency.
+    marshal = proto.marshal
+    py_value = datetime(2012, 4, 21, 15, tzinfo=timezone.utc)
+    assert marshal.to_python(timestamp_pb2.Timestamp, py_value) is py_value
+
+
+def test_duration_to_python_idempotent():
+    # This path can never run in the current configuration because proto
+    # values are the only thing ever saved, and `to_python` is a read method.
+    #
+    # However, we test idempotency for consistency with `to_proto` and
+    # general resiliency.
+    marshal = proto.marshal
+    py_value = timedelta(seconds=240)
+    assert marshal.to_python(duration_pb2.Duration, py_value) is py_value
