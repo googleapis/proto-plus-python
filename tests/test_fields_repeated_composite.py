@@ -20,12 +20,64 @@ def test_repeated_composite_init():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foo = proto.Field(proto.MESSAGE,
+        foos = proto.Field(proto.MESSAGE,
             message_type=Foo,
             number=1,
             repeated=True,
         )
 
-    baz = Baz(foo=[Foo(bar=42)])
-    assert len(baz.foo) == 1
-    assert baz.foo[0].bar == 42
+    baz = Baz(foos=[Foo(bar=42)])
+    assert len(baz.foos) == 1
+    assert baz.foos[0].bar == 42
+
+
+def test_repeated_composite_falsy_behavior():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz()
+    assert not baz.foos
+    assert len(baz.foos) == 0
+
+
+def test_repeated_composite_outer_write():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz()
+    baz.foos = [Foo(bar=96), Foo(bar=48)]
+    assert len(baz.foos) == 2
+    assert baz.foos[0].bar == 96
+    assert baz.foos[1].bar == 48
+
+
+def test_repeated_composite_append():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz()
+    import pdb ; pdb.set_trace()
+    baz.foos.append(Foo(bar=96))
+    assert len(baz.foos) == 1
+    assert baz.foos[0].bar == 96

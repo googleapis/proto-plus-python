@@ -15,6 +15,7 @@
 import abc
 
 from google.protobuf import message
+from google.protobuf.internal import containers
 
 
 class Rule(abc.ABC):
