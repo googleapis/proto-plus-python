@@ -15,17 +15,17 @@
 import proto
 
 
-# def test_repeated_composite_init():
-#     class Foo(proto.Message):
-#         bar = proto.Field(proto.INT32, number=1)
-#
-#     class Baz(proto.Message):
-#         foo = proto.Field(proto.MESSAGE,
-#             message_type=Foo,
-#             number=1,
-#             repeated=True,
-#         )
-#
-#     baz = Baz(foo=[Foo(bar=42)])
-#     assert len(baz.foo) == 1
-#     assert baz.foo[0].bar == 42
+def test_repeated_composite_init():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foo = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz(foo=[Foo(bar=42)])
+    assert len(baz.foo) == 1
+    assert baz.foo[0].bar == 42

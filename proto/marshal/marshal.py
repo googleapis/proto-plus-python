@@ -91,10 +91,19 @@ class MarshalRegistry:
         return register_rule_class
 
     def to_python(self, proto_type, value, *, absent: bool = None):
+        # Internal protobuf has its own special type for lists of composite
+        # values. Return a view around it that behaves like a list.
+
+        # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)
         return rule.to_python(value, absent=absent)
 
     def to_proto(self, proto_type, value):
+        # Convert lists and tuples recursively.
+        if isinstance(value, (list, tuple)):
+            return type(value)([self.to_proto(proto_type, i) for i in value])
+
+        # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)
         return rule.to_proto(value)
 
