@@ -22,6 +22,16 @@ def test_to_proto():
 
     message_marshal = MessageMarshal(Foo.pb(), Foo)
     foo_pb2_a = message_marshal.to_proto(Foo(bar=42))
-    foo_pb2_b = message_marshal.to_proto({'bar': 42})
-    foo_pb2_c = message_marshal.to_proto(Foo.pb()(bar=42))
+    foo_pb2_b = message_marshal.to_proto(Foo.pb()(bar=42))
+    foo_pb2_c = message_marshal.to_proto({'bar': 42})
     assert foo_pb2_a == foo_pb2_b == foo_pb2_c
+
+
+def test_to_python():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    message_marshal = MessageMarshal(Foo.pb(), Foo)
+    foo_a = message_marshal.to_python(Foo(bar=42))
+    foo_b = message_marshal.to_python(Foo.pb()(bar=42))
+    assert foo_a == foo_b

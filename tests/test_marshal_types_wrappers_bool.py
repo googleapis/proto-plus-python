@@ -81,3 +81,15 @@ def test_bool_value_del():
     assert foo.bar is False
     del foo.bar
     assert foo.bar is None
+
+
+def test_bool_value_to_python():
+    # This path can never run in the current configuration because proto
+    # values are the only thing ever saved, and `to_python` is a read method.
+    #
+    # However, we test idempotency for consistency with `to_proto` and
+    # general resiliency.
+    marshal = proto.marshal
+    assert marshal.to_python(wrappers_pb2.BoolValue, True) is True
+    assert marshal.to_python(wrappers_pb2.BoolValue, False) is False
+    assert marshal.to_python(wrappers_pb2.BoolValue, None) is None

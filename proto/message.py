@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections.abc
 import copy
 
 from proto import meta
@@ -34,7 +35,14 @@ class Message(metaclass=meta.MessageMeta):
         #   * A dict
         #   * Nothing (keyword arguments only).
         #
-        # To start, handle the first two cases: they both involve keeping
+        # Sanity check: Did we get something not on that list? Error if so.
+        if mapping and not isinstance(
+                mapping, (collections.abc.Mapping, type(self), self._meta.pb)):
+            raise TypeError('Invalid constructor input for %s: %r' % (
+                self.__class__.__name__, mapping,
+            ))
+
+        # Handle the first two cases: they both involve keeping
         # a copy of the underlying protobuf descriptor instance.
         if isinstance(mapping, type(self)):
             mapping = mapping._pb
@@ -79,60 +87,6 @@ class Message(metaclass=meta.MessageMeta):
         """Return True if any field is truthy, False otherwise."""
         return any([getattr(self, k) for k in self._meta.fields.keys()])
 
-    def __getattr__(self, key):
-        """Retrieve the given field's value.
-
-        In protocol buffers, the presence of a field on a message is
-        sufficient for it to always be "present".
-
-        For primitives, a value of the correct type will always be returned
-        (the "falsy" values in protocol buffers consistently match those
-        in Python). For repeated fields, the falsy value is always an empty
-        sequence.
-
-        For messages, protocol buffers does distinguish between an empty
-        message and absence, but this distinction is subtle and rarely
-        relevant. Therefore, this method always returns an empty message
-        (following the official implementation). To check for message
-        presence, use ``key in self`` (in other words, ``__contains__``).
-
-        .. note::
-
-            Some well-known protocol buffer types
-            (e.g. ``google.protobuf.Timestamp``) will be converted to
-            their Python equivalents. See the ``marshal`` module for
-            mode details.
-        """
-        pb_type = self._meta.fields[key].pb_type
-        pb_value = getattr(self._pb, key)
-        return marshal.to_python(pb_type, pb_value, absent=key not in self)
-
-    def __setattr__(self, key, value):
-        """Set the value on the given field.
-
-        For well-known protocol buffer types which are marshalled, either
-        the protocol buffer object or the Python equivalent is accepted.
-        """
-        if key.startswith('_'):
-            return super().__setattr__(key, value)
-        pb_type = self._meta.fields[key].pb_type
-        pb_value = marshal.to_proto(pb_type, value)
-
-        # We *always* clear the existing field.
-        # This is the only way to successfully write nested falsy values,
-        # because otherwise MergeFrom will no-op on them.
-        self._pb.ClearField(key)
-
-        # Merge in the value being set.
-        if pb_value is not None:
-            self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
-
-    def __delattr__(self, key):
-        """Delete the value on the given field.
-
-        This is generally equivalent to setting a falsy value."""
-        self._pb.ClearField(key)
-
     def __contains__(self, key):
         """Return True if this field was set to something non-zero on the wire.
 
@@ -142,8 +96,8 @@ class Message(metaclass=meta.MessageMeta):
 
         The exception case is empty messages explicitly set on the wire,
         which are falsy from ``__getattr__``. This method allows to
-        distinguish between an explcitly provided empty message and the
-        absence of that meessage, which is useful in some edge cases.
+        distinguish between an explicitly provided empty message and the
+        absence of that message, which is useful in some edge cases.
 
         The most common edge case is the use of ``google.protobuf.BoolValue``
         to get a boolean that distinguishes between ``False`` and ``None``
@@ -172,3 +126,75 @@ class Message(metaclass=meta.MessageMeta):
             if hasattr(pb_value, 'SerializeToString'):
                 return bool(pb_value.SerializeToString())
             return bool(pb_value)
+
+    def __delattr__(self, key):
+        """Delete the value on the given field.
+
+        This is generally equivalent to setting a falsy value.
+        """
+        self._pb.ClearField(key)
+
+    def __eq__(self, other):
+        """Return True if the messages are equal, False otherwise."""
+        # If these are the same type, use internal protobuf's equality check.
+        if isinstance(other, type(self)):
+            return self._pb == other._pb
+
+        # If the other type is the target protobuf object, honor that also.
+        if isinstance(other, self._meta.pb):
+            return self._pb == other
+
+        # Ask the other object.
+        return NotImplemented
+
+    def __getattr__(self, key):
+        """Retrieve the given field's value.
+
+        In protocol buffers, the presence of a field on a message is
+        sufficient for it to always be "present".
+
+        For primitives, a value of the correct type will always be returned
+        (the "falsy" values in protocol buffers consistently match those
+        in Python). For repeated fields, the falsy value is always an empty
+        sequence.
+
+        For messages, protocol buffers does distinguish between an empty
+        message and absence, but this distinction is subtle and rarely
+        relevant. Therefore, this method always returns an empty message
+        (following the official implementation). To check for message
+        presence, use ``key in self`` (in other words, ``__contains__``).
+
+        .. note::
+
+            Some well-known protocol buffer types
+            (e.g. ``google.protobuf.Timestamp``) will be converted to
+            their Python equivalents. See the ``marshal`` module for
+            mode details.
+        """
+        pb_type = self._meta.fields[key].pb_type
+        pb_value = getattr(self._pb, key)
+        return marshal.to_python(pb_type, pb_value, absent=key not in self)
+
+    def __ne__(self, other):
+        """Return True if the messages are unequal, False otherwise."""
+        return not self == other
+
+    def __setattr__(self, key, value):
+        """Set the value on the given field.
+
+        For well-known protocol buffer types which are marshalled, either
+        the protocol buffer object or the Python equivalent is accepted.
+        """
+        if key.startswith('_'):
+            return super().__setattr__(key, value)
+        pb_type = self._meta.fields[key].pb_type
+        pb_value = marshal.to_proto(pb_type, value)
+
+        # We *always* clear the existing field.
+        # This is the only way to successfully write nested falsy values,
+        # because otherwise MergeFrom will no-op on them.
+        self._pb.ClearField(key)
+
+        # Merge in the value being set.
+        if pb_value is not None:
+            self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
