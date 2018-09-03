@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import proto
 
 
@@ -49,6 +51,15 @@ def test_repeated_scalar_overwrite():
     foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
     foo.bar = [1, 2, 4, 8, 16]
     assert foo.bar == [1, 2, 4, 8, 16]
+
+
+def test_repeated_scalar_eq_ne():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    assert foo.bar == copy.copy(foo.bar)
+    assert foo.bar != [1, 2, 4, 8, 16]
 
 
 def test_repeated_scalar_del():
