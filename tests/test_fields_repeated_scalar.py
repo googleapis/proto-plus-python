@@ -14,6 +14,8 @@
 
 import copy
 
+import pytest
+
 import proto
 
 
@@ -44,6 +46,16 @@ def test_repeated_scalar_iadd():
     assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21, 34]
 
 
+def test_repeated_scalar_setitem():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    foo.bar[4] = 99
+    assert foo.bar == [1, 1, 2, 3, 99, 8, 13]
+    assert foo.bar[4] == 99
+
+
 def test_repeated_scalar_overwrite():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, repeated=True, number=1)
@@ -70,3 +82,33 @@ def test_repeated_scalar_del():
     del foo.bar
     assert foo.bar == []
     assert not foo.bar
+
+
+def test_repeated_scalar_delitem():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    del foo.bar[5]
+    del foo.bar[3]
+    assert foo.bar == [1, 1, 2, 5, 13]
+
+
+def test_repeated_scalar_sort():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[8, 1, 2, 1, 21, 3, 13, 5])
+    foo.bar.sort()
+    assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21]
+
+
+def test_repeated_scalar_wrong_type():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    with pytest.raises(TypeError):
+        foo.bar.append(21.0)
+    with pytest.raises(TypeError):
+        foo.bar.append('21')

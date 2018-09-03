@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+from datetime import timezone
+
+import pytest
+
+from google.protobuf import timestamp_pb2
+
 import proto
 
 
@@ -45,6 +52,31 @@ def test_repeated_composite_falsy_behavior():
     baz = Baz()
     assert not baz.foos
     assert len(baz.foos) == 0
+
+
+def test_repeated_composite_marshaled():
+    class Foo(proto.Message):
+        timestamps = proto.Field(proto.MESSAGE,
+            message_type=timestamp_pb2.Timestamp,
+            number=1,
+            repeated=True,
+        )
+
+    foo = Foo(timestamps=[datetime(2012, 4, 21, 15, tzinfo=timezone.utc)])
+    foo.timestamps.append(timestamp_pb2.Timestamp(seconds=86400 * 365))
+    foo.timestamps.append(datetime(2017, 10, 14, tzinfo=timezone.utc))
+    assert all([isinstance(i, datetime) for i in foo.timestamps])
+    assert all([isinstance(i, timestamp_pb2.Timestamp)
+                for i in Foo.pb(foo).timestamps])
+    assert foo.timestamps[0].year == 2012
+    assert foo.timestamps[0].month == 4
+    assert foo.timestamps[0].hour == 15
+    assert foo.timestamps[1].year == 1971
+    assert foo.timestamps[1].month == 1
+    assert foo.timestamps[1].hour == 0
+    assert foo.timestamps[2].year == 2017
+    assert foo.timestamps[2].month == 10
+    assert foo.timestamps[2].hour == 0
 
 
 def test_repeated_composite_outer_write():
@@ -117,3 +149,22 @@ def test_repeated_composite_set():
     baz.foos[1] = Foo(bar=55)
     assert baz.foos[0].bar == 96
     assert baz.foos[1].bar == 55
+
+
+def test_repeated_composite_set_wrong_type():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class NotFoo(proto.Message):
+        eggs = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz()
+    with pytest.raises(TypeError):
+        baz.foos.append(NotFoo(eggs=42))

@@ -44,8 +44,8 @@ class TimestampMarshal:
     def to_proto(self, value) -> timestamp_pb2.Timestamp:
         if isinstance(value, datetime):
             return timestamp_pb2.Timestamp(
-                seconds=int(value.strftime('%s')),
-                nanos=int(value.strftime('%f')) * 1000,
+                seconds=int(value.timestamp()),
+                nanos=value.microsecond * 1000,
             )
         return value
 
