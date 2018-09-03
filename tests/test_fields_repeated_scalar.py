@@ -33,6 +33,15 @@ def test_repeated_scalar_append():
     assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21, 34]
 
 
+def test_repeated_scalar_iadd():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, repeated=True, number=1)
+
+    foo = Foo(bar=[1, 1, 2, 3, 5, 8, 13])
+    foo.bar += [21, 34]
+    assert foo.bar == [1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+
 def test_repeated_scalar_overwrite():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, repeated=True, number=1)

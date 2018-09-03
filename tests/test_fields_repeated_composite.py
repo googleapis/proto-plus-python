@@ -77,7 +77,24 @@ def test_repeated_composite_append():
         )
 
     baz = Baz()
-    import pdb ; pdb.set_trace()
     baz.foos.append(Foo(bar=96))
     assert len(baz.foos) == 1
     assert baz.foos[0].bar == 96
+
+
+def test_repeated_composite_iadd():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz()
+    baz.foos += [Foo(bar=96), Foo(bar=48)]
+    assert len(baz.foos) == 2
+    assert baz.foos[0].bar == 96
+    assert baz.foos[1].bar == 48

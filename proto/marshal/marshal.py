@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import abc
+import collections
+import copy
 
 from google.protobuf import message
 from google.protobuf.internal import containers
@@ -92,21 +95,119 @@ class MarshalRegistry:
         return register_rule_class
 
     def to_python(self, proto_type, value, *, absent: bool = None):
-        # Internal protobuf has its own special type for lists of composite
-        # values. Return a view around it that behaves like a list.
+        # Internal protobuf has its own special type for lists of values.
+        # Return a view around it that implements MutableSequence.
+        if isinstance(value, containers.RepeatedCompositeFieldContainer):
+            return RepeatedComposite(value)
+        if isinstance(value, containers.RepeatedScalarFieldContainer):
+            return Repeated(value)
 
         # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)
         return rule.to_python(value, absent=absent)
 
-    def to_proto(self, proto_type, value):
+    def to_proto(self, proto_type, value, *, strict: bool = False):
+        # For our repeated view objects, simply return the underlying pb.
+        if isinstance(value, Repeated):
+            return value.pb
+
         # Convert lists and tuples recursively.
         if isinstance(value, (list, tuple)):
             return type(value)([self.to_proto(proto_type, i) for i in value])
 
         # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)
-        return rule.to_proto(value)
+        pb_value = rule.to_proto(value)
+
+        # Sanity check: If we are in strict mode, did we get the value we want?
+        if strict and not isinstance(pb_value, proto_type):
+            raise TypeError(
+                'Parameter must be instance of the same class; '
+                'expected {expected}, got {got}'.format(
+                    expected=proto_type.__name__,
+                    got=pb_value.__class__.__name__,
+                ),
+            )
+
+        # Return the final value.
+        return pb_value
+
+
+class Repeated(collections.MutableSequence):
+    """A view around a mutable sequence in protocol buffers.
+
+    This implements the full Python MutableSequence interface, but all methods
+    modify the underlying field container directly.
+    """
+    def __init__(self, sequence: containers.BaseContainer):
+        self._pb = sequence
+
+    def __copy__(self):
+        """Copy this object and return the copy."""
+        return type(self)(sequence=copy.copy(self.pb))
+
+    def __delitem__(self, key):
+        """Delete the given item."""
+        del self.pb[key]
+
+    def __eq__(self, other):
+        if hasattr(other, 'pb'):
+            return self.pb._values == other.pb._values
+        return self.pb._values == other
+
+    def __getitem__(self, key):
+        """Return the given item."""
+        return self.pb[key]
+
+    def __len__(self):
+        """Return the length of the sequence."""
+        return len(self.pb)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return repr(self.pb)
+
+    def __setitem__(self, key, value):
+        self.pb[key] = value
+
+    def insert(self, index: int, value):
+        """Insert ``value`` in the sequence before ``index``."""
+        self.pb.insert(index, value)
+
+    def sort(self, *, key: str = None, reverse: bool = False):
+        """Stable sort *IN PLACE*."""
+        self.pb.sort(key=key, reverse=reverse)
+
+    @property
+    def pb(self):
+        return self._pb
+
+
+class RepeatedComposite(Repeated):
+    """A view around a mutable sequence of messages in protocol buffers.
+
+    This implements the full Python MutableSequence interface, but all methods
+    modify the underlying field container directly.
+    """
+    @property
+    def _pb_type(self):
+        """Return the protocol buffer type for this sequence."""
+        return self.pb._message_descriptor._concrete_class
+
+    def __getitem__(self, key):
+        return marshal.to_python(self._pb_type, self.pb[key])
+
+    def __setitem__(self, key, value):
+        pb_value = marshal.to_proto(self._pb_type, value, strict=True)
+        self.pb.extend([pb_value])
+
+    def insert(self, index: int, value):
+        """Insert ``value`` in the sequence before ``index``."""
+        pb_value = marshal.to_proto(self._pb_type, value, strict=True)
+        self.pb._values.insert(index, pb_value)
+        self.pb._message_listener.Modified()
 
 
 class NoopMarshal:
