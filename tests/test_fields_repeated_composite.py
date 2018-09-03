@@ -28,7 +28,7 @@ def test_repeated_composite_init():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -44,7 +44,7 @@ def test_repeated_composite_falsy_behavior():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -57,7 +57,7 @@ def test_repeated_composite_falsy_behavior():
 def test_repeated_composite_marshaled():
     class Foo(proto.Message):
         timestamps = proto.Field(proto.MESSAGE,
-            message_type=timestamp_pb2.Timestamp,
+            message=timestamp_pb2.Timestamp,
             number=1,
             repeated=True,
         )
@@ -85,7 +85,7 @@ def test_repeated_composite_outer_write():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -103,7 +103,7 @@ def test_repeated_composite_append():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -122,7 +122,7 @@ def test_repeated_composite_iadd():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -140,7 +140,7 @@ def test_repeated_composite_set():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )
@@ -160,7 +160,7 @@ def test_repeated_composite_set_wrong_type():
 
     class Baz(proto.Message):
         foos = proto.Field(proto.MESSAGE,
-            message_type=Foo,
+            message=Foo,
             number=1,
             repeated=True,
         )

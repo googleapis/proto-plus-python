@@ -95,7 +95,7 @@ def test_message_contains_composite():
         bar = proto.Field(proto.INT64, number=1)
 
     class Baz(proto.Message):
-        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+        foo = proto.Field(proto.MESSAGE, number=1, message=Foo)
 
     assert 'foo' in Baz(foo=Foo(bar=42))
     assert 'foo' in Baz(foo=Foo())
@@ -117,7 +117,7 @@ def test_message_contains_repeated_composite():
         bar = proto.Field(proto.INT64, number=1)
 
     class Baz(proto.Message):
-        foo = proto.Field(proto.MESSAGE, repeated=True, number=1, message_type=Foo)
+        foo = proto.Field(proto.MESSAGE, repeated=True, number=1, message=Foo)
 
     assert 'foo' in Baz(foo=[Foo(bar=42)])
     assert 'foo' in Baz(foo=[Foo()])

@@ -21,7 +21,7 @@ class Field:
     """A representation of a type of field in protocol buffers."""
 
     def __init__(self, proto_type, *, number: int, repeated: bool = False,
-                 message_type=None, enum_type=None):
+                 message=None, enum=None):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
         self.mcls_data = {}
@@ -30,8 +30,8 @@ class Field:
         self.number = number
         self.repeated = repeated
         self.proto_type = proto_type
-        self.message = message_type
-        self.enum = enum_type
+        self.message = message
+        self.enum = enum
 
         # Once the descriptor is accessed the first time, cache it.
         # This is important because in rare cases the message or enum
