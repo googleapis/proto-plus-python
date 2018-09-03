@@ -74,3 +74,4 @@ class DurationMarshal:
                 seconds=value.days * 86400 + value.seconds,
                 nanos=value.microseconds * 1000,
             )
+        return value

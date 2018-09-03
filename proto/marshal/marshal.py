@@ -84,12 +84,24 @@ class MarshalRegistry:
 
         # If a rule was provided, register it and be done.
         if rule:
+            # Ensure the rule implements Rule.
+            if not isinstance(rule, Rule):
+                raise TypeError('Marshal rule instances must implement '
+                                '`to_proto` and `to_python` methods.')
+
+            # Register the rule.
             self._registry[proto_type] = rule
             return
 
         # Create an inner function that will register an instance of the
         # marshal class to this object's registry, and return it.
         def register_rule_class(rule_class: type):
+            # Ensure the rule class is a valid rule.
+            if not issubclass(rule_class, Rule):
+                raise TypeError('Marshal rule subclasses must implement '
+                                '`to_proto` and `to_python` methods.')
+
+            # Register the rule class.
             self._registry[proto_type] = rule_class()
             return rule_class
         return register_rule_class
