@@ -85,3 +85,11 @@ def test_int_unsigned():
         foo.unsigned = -10
     with pytest.raises(ValueError):
         Foo(unsigned=-10)
+
+
+def test_field_descriptor_idempotent():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    bar_field = Foo.meta.fields['bar']
+    assert bar_field.descriptor is bar_field.descriptor
