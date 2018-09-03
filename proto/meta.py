@@ -124,7 +124,7 @@ class MessageMeta(type):
 
     def pb(cls, obj=None):
         """Return the underlying protobuf Message class."""
-        if not obj:
+        if obj is None:
             return cls.meta.pb
         if not isinstance(obj, cls):
             raise TypeError('%r is not an instance of %s' % (obj, cls.__name__))

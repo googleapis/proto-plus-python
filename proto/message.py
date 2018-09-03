@@ -123,8 +123,6 @@ class Message(metaclass=meta.MessageMeta):
             # somewhat inefficient try/except.
             return self._pb.HasField(key)
         except ValueError:
-            if hasattr(pb_value, 'SerializeToString'):
-                return bool(pb_value.SerializeToString())
             return bool(pb_value)
 
     def __delattr__(self, key):

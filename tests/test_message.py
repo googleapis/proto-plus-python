@@ -80,3 +80,46 @@ def test_message_constructor_invalid():
         bar = proto.Field(proto.INT64, number=1)
     with pytest.raises(TypeError):
         Foo(object())
+
+
+def test_message_contains_primitive():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+    assert 'bar' in Foo(bar=42)
+    assert 'bar' not in Foo(bar=0)
+    assert 'bar' not in Foo()
+
+
+def test_message_contains_composite():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+
+    class Baz(proto.Message):
+        foo = proto.Field(proto.MESSAGE, number=1, message_type=Foo)
+
+    assert 'foo' in Baz(foo=Foo(bar=42))
+    assert 'foo' in Baz(foo=Foo())
+    assert 'foo' not in Baz()
+
+
+def test_message_contains_repeated_primitive():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, repeated=True, number=1)
+
+    assert 'bar' in Foo(bar=[1, 1, 2, 3, 5])
+    assert 'bar' in Foo(bar=[0])
+    assert 'bar' not in Foo(bar=[])
+    assert 'bar' not in Foo()
+
+
+def test_message_contains_repeated_composite():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+
+    class Baz(proto.Message):
+        foo = proto.Field(proto.MESSAGE, repeated=True, number=1, message_type=Foo)
+
+    assert 'foo' in Baz(foo=[Foo(bar=42)])
+    assert 'foo' in Baz(foo=[Foo()])
+    assert 'foo' not in Baz(foo=[])
+    assert 'foo' not in Baz()
