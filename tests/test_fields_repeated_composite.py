@@ -98,3 +98,20 @@ def test_repeated_composite_iadd():
     assert len(baz.foos) == 2
     assert baz.foos[0].bar == 96
     assert baz.foos[1].bar == 48
+
+
+def test_repeated_composite_set():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.Field(proto.MESSAGE,
+            message_type=Foo,
+            number=1,
+            repeated=True,
+        )
+
+    baz = Baz(foos=[{'bar': 96}, {'bar': 48}])
+    baz.foos[1] = Foo(bar=55)
+    assert baz.foos[0].bar == 96
+    assert baz.foos[1].bar == 55
