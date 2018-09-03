@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import proto
 
 
@@ -33,5 +35,48 @@ def test_message_constructor_underlying_pb2():
         bar = proto.Field(proto.INT64, number=1)
     foo_pb2 = Foo.pb()(bar=42)
     foo = Foo(foo_pb2)
-    assert foo.bar == foo_pb2.bar == 42
-    assert foo == foo_pb2
+    assert foo.bar == Foo.pb(foo).bar == foo_pb2.bar == 42
+    assert foo == foo_pb2  # Not communitive. Nothing we can do about that.
+    assert foo_pb2 == Foo.pb(foo)
+    assert foo_pb2 is not Foo.pb(foo)
+    assert isinstance(foo, Foo)
+    assert isinstance(Foo.pb(foo), Foo.pb())
+    assert isinstance(foo_pb2, Foo.pb())
+
+
+def test_message_constructor_underlying_pb2_and_kwargs():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+    foo_pb2 = Foo.pb()(bar=42)
+    foo = Foo(foo_pb2, bar=99)
+    assert foo.bar == Foo.pb(foo).bar == 99
+    assert foo_pb2.bar == 42
+    assert isinstance(foo, Foo)
+    assert isinstance(Foo.pb(foo), Foo.pb())
+    assert isinstance(foo_pb2, Foo.pb())
+
+
+def test_message_constructor_dict():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+    foo = Foo({'bar': 42})
+    assert foo.bar == Foo.pb(foo).bar == 42
+    assert foo != {'bar': 42}
+    assert isinstance(foo, Foo)
+    assert isinstance(Foo.pb(foo), Foo.pb())
+
+
+def test_message_constructor_kwargs():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+    foo = Foo(bar=42)
+    assert foo.bar == Foo.pb(foo).bar == 42
+    assert isinstance(foo, Foo)
+    assert isinstance(Foo.pb(foo), Foo.pb())
+
+
+def test_message_constructor_invalid():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+    with pytest.raises(TypeError):
+        Foo(object())

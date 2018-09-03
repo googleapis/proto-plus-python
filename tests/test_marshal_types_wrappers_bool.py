@@ -17,7 +17,7 @@ from google.protobuf import wrappers_pb2
 import proto
 
 
-def test_bool_value_read():
+def test_bool_value_init():
     class Foo(proto.Message):
         bar = proto.Field(proto.MESSAGE,
             message_type=wrappers_pb2.BoolValue,
@@ -26,6 +26,17 @@ def test_bool_value_read():
     assert Foo(bar=True).bar is True
     assert Foo(bar=False).bar is False
     assert Foo().bar is None
+
+
+def test_bool_value_init_dict():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.MESSAGE,
+            message_type=wrappers_pb2.BoolValue,
+            number=1,
+        )
+    assert Foo({'bar': True}).bar is True
+    assert Foo({'bar': False}).bar is False
+    assert Foo({'bar': None}).bar is None
 
 
 def test_bool_value_distinction_from_bool():
