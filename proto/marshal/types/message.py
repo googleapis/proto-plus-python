@@ -30,4 +30,6 @@ class MessageMarshal:
     def to_proto(self, value):
         if isinstance(value, self._wrapper):
             return self._wrapper.pb(value)
+        if isinstance(value, dict):
+            return self._descriptor(**value)
         return value

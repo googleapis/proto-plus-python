@@ -201,7 +201,8 @@ class RepeatedComposite(Repeated):
 
     def __setitem__(self, key, value):
         pb_value = marshal.to_proto(self._pb_type, value, strict=True)
-        self.pb.extend([pb_value])
+        self.pb._values[key] = pb_value
+        self.pb._message_listener.Modified()
 
     def insert(self, index: int, value):
         """Insert ``value`` in the sequence before ``index``."""

@@ -78,8 +78,10 @@ def test_repeated_composite_append():
 
     baz = Baz()
     baz.foos.append(Foo(bar=96))
-    assert len(baz.foos) == 1
+    baz.foos.append({'bar': 72})
+    assert len(baz.foos) == 2
     assert baz.foos[0].bar == 96
+    assert baz.foos[1].bar == 72
 
 
 def test_repeated_composite_iadd():
