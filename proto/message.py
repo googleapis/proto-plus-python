@@ -12,14 +12,207 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import collections.abc
 import copy
+import re
+from typing import List, Type
 
-from proto import meta
+from google.protobuf import descriptor
+from google.protobuf.descriptor_pb2 import MessageOptions
+from google.protobuf import message
+from google.protobuf import reflection
+from google.protobuf import symbol_database
+
+from proto.fields import Field
+from proto.fields import MapField
+from proto.fields import RepeatedField
 from proto.marshal import marshal
+from proto.marshal.types.message import MessageMarshal
+from proto.primitives import ProtoType
 
 
-class Message(metaclass=meta.MessageMeta):
+class MessageMeta(type):
+    """A metaclass for building and registering Message subclasses."""
+
+    def __new__(mcls, name, bases, attrs):
+        # Do not do any special behavior for Message itself.
+        if not bases:
+            return super().__new__(mcls, name, bases, attrs)
+
+        # Pop metadata off the attrs.
+        Meta = attrs.pop('Meta', object())
+
+        # A package and full name should be present.
+        package = getattr(Meta, 'package', '')
+        full_name = getattr(Meta, 'full_name', name)
+
+        # Special case: Maps. Map fields are special; they are essentially
+        # shorthand for a nested message and a repeated field of that message.
+        # Decompose each map into its constituent form.
+        # https://developers.google.com/protocol-buffers/docs/proto3#maps
+        for key, field in copy.copy(attrs).items():
+            if not isinstance(field, MapField):
+                continue
+
+            # Determine the name of the entry message.
+            message_name = '{pascal_key}Entry'.format(
+                pascal_key=re.sub(
+                    r'_[\w]',
+                    lambda m: m.group().upper(),
+                    key,
+                ).capitalize(),
+            )
+
+            # Create the "entry" message (with the key and value fields).
+            attrs[message_name] = MessageMeta(message_name, (Message,), {
+                'key': Field(field.map_key_type, number=1),
+                'value': Field(field.proto_type, number=2),
+                'Meta': type('Meta', (object,), {
+                    'full_name': '{0}.{1}'.format(full_name, message_name),
+                    'options': MessageOptions(map_entry=True),
+                    'package': package,
+                }),
+            })
+
+            # Create the repeated field for the entry message.
+            attrs[key] = RepeatedField(ProtoType.MESSAGE,
+                number=field.number,
+                message=attrs[message_name],
+            )
+
+        # Okay, now we deal with all the rest of the fields.
+        # Iterate over all the attributes and separate the fields into
+        # their own sequence.
+        fields = []
+        index = 0
+        for key, field in copy.copy(attrs).items():
+            # Sanity check: If this is not a field, do nothing.
+            if not isinstance(field, Field):
+                continue
+
+            # Remove the field from the attrs dictionary; the field objects
+            # themselves should not valuebe direct attributes.
+            attrs.pop(key)
+
+            # Add data that the field requires that we do not take in the
+            # constructor because we can derive it from the metaclass.
+            # (The goal is to make the declaration syntax as nice as possible.)
+            field.mcls_data = {
+                'name': key,
+                'full_name': '{0}.{1}'.format(full_name, key),
+                'index': index,
+            }
+
+            # Add a tuple with the field's declaration order, name, and
+            # the field itself, in that order.
+            fields.append(field)
+
+            # Increment the field index counter.
+            index += 1
+
+        # Get a file descriptor object.
+        module = attrs.get('__module__', name.lower()).replace('.', '/')
+        if module not in _file_descriptor_registry:
+            _file_descriptor_registry[module] = descriptor.FileDescriptor(
+                name='%s.proto' % module,
+                package=package,
+                syntax='proto3',
+            )
+
+        # Retrieve any message options.
+        opts = getattr(Meta, 'options', MessageOptions())
+
+        # Create the underlying proto descriptor.
+        # This programatically duplicates the default code generated
+        # by protoc.
+        desc = descriptor.Descriptor(
+            name=name, full_name=full_name,
+            file=_file_descriptor_registry[module],
+            filename=None, containing_type=None,
+            fields=[i.descriptor for i in fields],
+            nested_types=[], enum_types=[], extensions=[], oneofs=[],
+            serialized_options=opts.SerializeToString(),
+            syntax='proto3',
+        )
+        _file_descriptor_registry[module].message_types_by_name[name] = desc
+
+        # Create the stock protobuf Message.
+        pb_message = reflection.GeneratedProtocolMessageType(
+            name, (message.Message,), {'DESCRIPTOR': desc, '__module__': None},
+        )
+        symbol_database.Default().RegisterMessage(pb_message)
+
+        # Create the MessageInfo instance to be attached to this message.
+        attrs['_meta'] = MessageInfo(
+            pb=pb_message,
+            fields=fields,
+            full_name=full_name,
+            package=package,
+            options=opts,
+        )
+
+        # Run the superclass constructor.
+        cls = super().__new__(mcls, name, bases, attrs)
+
+        # Register the new class with the marshal.
+        marshal.register(pb_message, MessageMarshal(pb_message, cls))
+
+        # Done; return the message class.
+        return cls
+
+    @classmethod
+    def __prepare__(mcls, name, bases, **kwargs):
+        return collections.OrderedDict()
+
+    @property
+    def meta(cls):
+        return cls._meta
+
+    def pb(cls, obj=None):
+        """Return the underlying protobuf Message class."""
+        if obj is None:
+            return cls.meta.pb
+        if not isinstance(obj, cls):
+            raise TypeError('%r is not an instance of %s' % (
+                obj, cls.__name__,
+            ))
+        return obj._pb
+
+    def wrap(cls, pb):
+        """Return a Message object that shallowly wraps the descriptor.
+
+        Args:
+            pb: A protocol buffer object, such as would be returned by
+                :meth:`pb`.
+        """
+        return cls(pb, __wrap_original=True)
+
+    def serialize(cls, instance) -> bytes:
+        """Return the serialized proto.
+
+        Args:
+            instance: An instance of this message type.
+
+        Returns:
+            bytes: The serialized representation of the protocol buffer.
+        """
+        return cls.pb(instance).SerializeToString()
+
+    def deserialize(cls, payload: bytes):
+        """Given a serialized proto, deserialize it into a Message instance.
+
+        Args:
+            payload (bytes): The serialized proto.
+
+        Returns
+            cls: An instance of the message class against which this
+                method was called.
+        """
+        return cls(cls.pb().FromString(payload))
+
+
+class Message(metaclass=MessageMeta):
     """The abstract base class for a message.
 
     Args:
@@ -196,3 +389,32 @@ class Message(metaclass=meta.MessageMeta):
         # Merge in the value being set.
         if pb_value is not None:
             self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
+
+
+class MessageInfo:
+    """Metadata about a message.
+
+    Args:
+        pb (type): The underlying protobuf message.
+        fields (Tuple[~.fields.Field]): The fields declared on the message.
+        package (str): The proto package
+        full_name (str): The full name of the message.
+        options (~.descriptor_pb2.MessageOptions): Any options that were
+            set on the message.
+    """
+    def __init__(self, *, pb: Type[message.Message], fields: List[Field],
+                 package: str, full_name: str,
+                 options: MessageOptions) -> None:
+        self.pb = pb
+        self.package = package
+        self.full_name = full_name
+        self.options = options
+        self.fields = collections.OrderedDict([
+            (i.name, i) for i in fields
+        ])
+        self.fields_by_number = collections.OrderedDict([
+            (i.number, i) for i in fields
+        ])
+
+
+_file_descriptor_registry = {}

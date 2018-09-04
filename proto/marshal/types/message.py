@@ -28,6 +28,12 @@ class MessageMarshal:
     def to_proto(self, value):
         if isinstance(value, self._wrapper):
             return self._wrapper.pb(value)
-        if isinstance(value, dict):
+        if isinstance(value, dict) and not self.is_map:
             return self._descriptor(**value)
         return value
+
+    @property
+    def is_map(self):
+        """Return True if the descriptor is a map entry, False otherwise."""
+        desc = self._descriptor.DESCRIPTOR
+        return desc.has_options and desc.GetOptions().map_entry

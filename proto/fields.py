@@ -28,10 +28,14 @@ class Field:
 
         # Save the direct arguments.
         self.number = number
-        self.repeated = False
         self.proto_type = proto_type
         self.message = message
         self.enum = enum
+
+        # Fields are neither repeated nor maps.
+        # The RepeatedField and MapField subclasses override these values
+        # in their initializers.
+        self.repeated = False
 
         # Once the descriptor is accessed the first time, cache it.
         # This is important because in rare cases the message or enum
@@ -94,3 +98,12 @@ class RepeatedField(Field):
                  message=None, enum=None):
         super().__init__(proto_type, number=number, message=message, enum=enum)
         self.repeated = True
+
+
+class MapField(Field):
+    """A representation of a map field in protocol buffers."""
+
+    def __init__(self, key_type, value_type, *, number: int,
+                 message=None, enum=None):
+        super().__init__(value_type, number=number, message=message, enum=enum)
+        self.map_key_type = key_type
