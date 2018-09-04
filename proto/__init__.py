@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from .fields import Field
+from .fields import RepeatedField
 from .marshal import marshal
 from .message import Message
 from .primitives import ProtoType
@@ -39,6 +40,7 @@ SINT64 = ProtoType.SINT64
 
 __all__ = (
     'Field',
+    'RepeatedField',
     'marshal',
     'Message',
 

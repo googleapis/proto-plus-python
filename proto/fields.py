@@ -20,7 +20,7 @@ from proto.primitives import get_default_value
 class Field:
     """A representation of a type of field in protocol buffers."""
 
-    def __init__(self, proto_type, *, number: int, repeated: bool = False,
+    def __init__(self, proto_type, *, number: int,
                  message=None, enum=None):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
@@ -28,7 +28,7 @@ class Field:
 
         # Save the direct arguments.
         self.number = number
-        self.repeated = repeated
+        self.repeated = False
         self.proto_type = proto_type
         self.message = message
         self.enum = enum
@@ -85,3 +85,12 @@ class Field:
                 return self.message.pb()
             return self.message
         return None
+
+
+class RepeatedField(Field):
+    """A representation of a repeated field in protocol buffers."""
+
+    def __init__(self, proto_type, *, number: int,
+                 message=None, enum=None):
+        super().__init__(proto_type, number=number, message=message, enum=enum)
+        self.repeated = True

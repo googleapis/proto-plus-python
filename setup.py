@@ -24,12 +24,12 @@ with io.open(os.path.join(PACKAGE_ROOT, 'README.rst')) as file_obj:
     README = file_obj.read()
 
 setup(
-    name='proto-python',
+    name='protobuf.py',
     version='0.0.1',
     license='Apache 2.0',
     author='Luke Sneeringer',
     author_email='lukesneeringer@google.com',
-    url='https://github.com/googleapis/proto-python.git',
+    url='https://github.com/googleapis/protobuf.py.git',
     packages=find_packages(exclude=['docs', 'tests']),
     description='Beautiful, Pythonic protocol buffers.',
     long_description=README,

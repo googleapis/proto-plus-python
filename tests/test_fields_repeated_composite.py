@@ -27,11 +27,7 @@ def test_repeated_composite_init():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz(foos=[Foo(bar=42)])
     assert len(baz.foos) == 1
@@ -43,11 +39,7 @@ def test_repeated_composite_falsy_behavior():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
     assert not baz.foos
@@ -56,10 +48,9 @@ def test_repeated_composite_falsy_behavior():
 
 def test_repeated_composite_marshaled():
     class Foo(proto.Message):
-        timestamps = proto.Field(proto.MESSAGE,
+        timestamps = proto.RepeatedField(proto.MESSAGE,
             message=timestamp_pb2.Timestamp,
             number=1,
-            repeated=True,
         )
 
     foo = Foo(timestamps=[datetime(2012, 4, 21, 15, tzinfo=timezone.utc)])
@@ -84,11 +75,7 @@ def test_repeated_composite_outer_write():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
     baz.foos = [Foo(bar=96), Foo(bar=48)]
@@ -102,11 +89,7 @@ def test_repeated_composite_append():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
     baz.foos.append(Foo(bar=96))
@@ -121,11 +104,7 @@ def test_repeated_composite_iadd():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
     baz.foos += [Foo(bar=96), Foo(bar=48)]
@@ -139,11 +118,7 @@ def test_repeated_composite_set():
         bar = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz(foos=[{'bar': 96}, {'bar': 48}])
     baz.foos[1] = Foo(bar=55)
@@ -159,11 +134,7 @@ def test_repeated_composite_set_wrong_type():
         eggs = proto.Field(proto.INT32, number=1)
 
     class Baz(proto.Message):
-        foos = proto.Field(proto.MESSAGE,
-            message=Foo,
-            number=1,
-            repeated=True,
-        )
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
     with pytest.raises(TypeError):
