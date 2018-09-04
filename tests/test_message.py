@@ -123,3 +123,55 @@ def test_message_contains_repeated_composite():
     assert 'foo' in Baz(foo=[Foo()])
     assert 'foo' not in Baz(foo=[])
     assert 'foo' not in Baz()
+
+
+def test_message_eq_primitives():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+        baz = proto.Field(proto.STRING, number=2)
+        bacon = proto.Field(proto.BOOL, number=3)
+
+    assert Foo() == Foo()
+    assert Foo(bar=42, baz='42') == Foo(bar=42, baz='42')
+    assert Foo(bar=42, baz='42') != Foo(baz='42')
+    assert Foo(bar=42, bacon=True) == Foo(bar=42, bacon=True)
+    assert Foo(bar=42, bacon=True) != Foo(bar=42)
+    assert Foo(bar=42, baz='42', bacon=True) != Foo(bar=42, bacon=True)
+    assert Foo(bacon=False) == Foo()
+    assert Foo(bacon=True) != Foo(bacon=False)
+    assert Foo(bar=21 * 2) == Foo(bar=42)
+    assert Foo() == Foo(bar=0)
+    assert Foo() == Foo(bar=0, baz='', bacon=False)
+    assert Foo() != Foo(bar=0, baz='0', bacon=False)
+
+
+def test_message_serialize():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+        baz = proto.Field(proto.STRING, number=2)
+        bacon = proto.Field(proto.BOOL, number=3)
+
+    foo = Foo(bar=42, bacon=True)
+    assert Foo.serialize(foo) == Foo.pb(foo).SerializeToString()
+
+
+def test_message_deserialize():
+    class OldFoo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class NewFoo(proto.Message):
+        bar = proto.Field(proto.INT64, number=1)
+
+    serialized = OldFoo.serialize(OldFoo(bar=42))
+    new_foo = NewFoo.deserialize(serialized)
+    assert isinstance(new_foo, NewFoo)
+    assert new_foo.bar == 42
+
+
+def test_message_pb():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    assert isinstance(Foo.pb(Foo()), Foo.pb())
+    with pytest.raises(TypeError):
+        Foo.pb(object())
