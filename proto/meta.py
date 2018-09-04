@@ -127,7 +127,9 @@ class MessageMeta(type):
         if obj is None:
             return cls.meta.pb
         if not isinstance(obj, cls):
-            raise TypeError('%r is not an instance of %s' % (obj, cls.__name__))
+            raise TypeError('%r is not an instance of %s' % (
+                obj, cls.__name__,
+            ))
         return obj._pb
 
     def wrap(cls, pb):
