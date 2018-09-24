@@ -21,7 +21,7 @@ class Field:
     """A representation of a type of field in protocol buffers."""
 
     def __init__(self, proto_type, *, number: int,
-                 message=None, enum=None):
+                 message=None, enum=None, oneof: str = None):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
         self.mcls_data = {}
@@ -31,6 +31,7 @@ class Field:
         self.proto_type = proto_type
         self.message = message
         self.enum = enum
+        self.oneof = oneof
 
         # Fields are neither repeated nor maps.
         # The RepeatedField and MapField subclasses override these values

@@ -85,6 +85,7 @@ class MessageMeta(type):
         # Iterate over all the attributes and separate the fields into
         # their own sequence.
         fields = []
+        oneofs = collections.OrderedDict()
         index = 0
         for key, field in copy.copy(attrs).items():
             # Sanity check: If this is not a field, do nothing.
@@ -107,6 +108,28 @@ class MessageMeta(type):
             # Add a tuple with the field's declaration order, name, and
             # the field itself, in that order.
             fields.append(field)
+
+            # If this field is part of a "oneof", ensure the oneof itself
+            # is represented.
+            if field.oneof:
+                # In theory, most oneofs will be encountered more than once.
+                if field.oneof in oneofs:
+                    # Since the oneof exists, simply add this field to it.
+                    oneofs[field.oneof].fields.append(field.descriptor)
+                else:
+                    # Create the oneof descriptor, and add it to the running
+                    # dictionary of oneofs.
+                    oneofs.setdefault(field.oneof, descriptor.OneofDescriptor(
+                        containing_type=None,
+                        fields=[field.descriptor],
+                        full_name='{0}.{1}'.format(full_name, field.oneof),
+                        index=len(oneofs),
+                        name=field.oneof,
+                    ))
+
+                # The field's descriptor itself also must be given a reference
+                # to the oneof that contains it.
+                field.descriptor.containing_oneof = oneofs[field.oneof]
 
             # Increment the field index counter.
             index += 1
@@ -131,7 +154,8 @@ class MessageMeta(type):
             file=_file_descriptor_registry[module],
             filename=None, containing_type=None,
             fields=[i.descriptor for i in fields],
-            nested_types=[], enum_types=[], extensions=[], oneofs=[],
+            nested_types=[], enum_types=[], extensions=[],
+            oneofs=[i for i in oneofs.values()],
             serialized_options=opts.SerializeToString(),
             syntax='proto3',
         )
