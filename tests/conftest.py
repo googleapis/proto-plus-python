@@ -17,10 +17,13 @@ from unittest import mock
 from google.protobuf import descriptor_pool
 from google.protobuf import symbol_database
 
+from proto import message
+
 
 def pytest_runtest_setup(item):
     pool = descriptor_pool.DescriptorPool()
     sym_db = symbol_database.SymbolDatabase(pool=pool)
+    message.registry.clear()
     item._mocks = (
         mock.patch.object(descriptor_pool, 'Default', return_value=pool),
         mock.patch.object(symbol_database, 'Default', return_value=sym_db),

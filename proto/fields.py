@@ -57,6 +57,11 @@ class Field:
             message_type = self.message
             if self.message and hasattr(self.message, '_meta'):
                 message_type = self.message._meta.pb
+            elif isinstance(self.message, str):
+                # If the message was specified as a string, skip passing it to
+                # the descriptor for the moment (when the field is added to a
+                # message in `MessageMeta`, it will be resolved).
+                message_type = None
 
             # Set the descriptor.
             self._descriptor = descriptor.FieldDescriptor(
@@ -90,6 +95,10 @@ class Field:
                 return self.message.pb()
             return self.message
         return None
+
+    @property
+    def ready(self):
+        return not isinstance(self.message, str)
 
 
 class RepeatedField(Field):
