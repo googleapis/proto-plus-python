@@ -168,6 +168,16 @@ def test_message_deserialize():
     assert new_foo.bar == 42
 
 
+def test_message_generate_pb_idempotent():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    Foo._meta.generate_pb()
+    pb = Foo.pb()
+    Foo._meta.generate_pb()
+    assert pb is Foo.pb()
+
+
 def test_message_pb():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, number=1)

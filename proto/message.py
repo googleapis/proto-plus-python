@@ -315,7 +315,8 @@ class Message(metaclass=MessageMeta):
 
     def __bool__(self):
         """Return True if any field is truthy, False otherwise."""
-        return any([getattr(self, k) for k in self._meta.fields.keys()])
+        return any([k in self and getattr(self, k)
+                    for k in self._meta.fields.keys()])
 
     def __contains__(self, key):
         """Return True if this field was set to something non-zero on the wire.
