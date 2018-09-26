@@ -16,7 +16,7 @@ import collections
 import collections.abc
 import copy
 import re
-from typing import Callable, List, Type
+from typing import List, Type
 
 from google.protobuf import descriptor
 from google.protobuf.descriptor_pb2 import MessageOptions
