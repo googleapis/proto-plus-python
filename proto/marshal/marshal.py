@@ -76,7 +76,6 @@ class MarshalRegistry:
         self.register(wrappers_pb2.UInt32Value, wrappers.UInt32ValueMarshal())
         self.register(wrappers_pb2.UInt64Value, wrappers.UInt64ValueMarshal())
 
-
     def register(self, proto_type: type, rule: Rule = None):
         """Register a rule against the given ``proto_type``.
 
