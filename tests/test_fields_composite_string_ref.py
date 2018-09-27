@@ -21,6 +21,7 @@ def test_composite_forward_ref():
         eggs = proto.Field(proto.BOOL, number=2)
 
     class Foo(proto.Message):
+        __qualname__ = 'Foo'
         bar = proto.Field(proto.STRING, number=1)
         baz = proto.Field(proto.INT64, number=2)
 
@@ -32,6 +33,7 @@ def test_composite_forward_ref():
 
 def test_composite_backward_ref():
     class Foo(proto.Message):
+        __qualname__ = 'Foo'
         bar = proto.Field(proto.STRING, number=1)
         baz = proto.Field(proto.INT64, number=2)
 
@@ -51,6 +53,7 @@ def test_composite_multi_ref():
         eggs = proto.Field(proto.BOOL, number=2)
 
     class Foo(proto.Message):
+        __qualname__ = 'Foo'
         bar = proto.Field(proto.STRING, number=1)
         baz = proto.Field(proto.INT64, number=2)
 
@@ -67,6 +70,7 @@ def test_composite_multi_ref():
 
 def test_composite_self_ref():
     class Spam(proto.Message):
+        __qualname__ = 'Spam'
         spam = proto.Field(proto.MESSAGE, number=1, message='Spam')
         eggs = proto.Field(proto.BOOL, number=2)
 
