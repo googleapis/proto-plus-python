@@ -45,7 +45,7 @@ class MessageMeta(type):
 
         # A package and full name should be present.
         package = getattr(Meta, 'package', '')
-        full_name = getattr(Meta, 'full_name', name)
+        full_name = getattr(Meta, 'full_name', attrs.get('__qualname__', name))
 
         # Special case: Maps. Map fields are special; they are essentially
         # shorthand for a nested message and a repeated field of that message.
