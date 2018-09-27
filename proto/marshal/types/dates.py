@@ -19,10 +19,7 @@ from datetime import timezone
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
 
-from ..marshal import marshal
 
-
-@marshal.register(timestamp_pb2.Timestamp)
 class TimestampMarshal:
     """A marshal between Python datetimes and protobuf timestamps.
 
@@ -50,7 +47,6 @@ class TimestampMarshal:
         return value
 
 
-@marshal.register(duration_pb2.Duration)
 class DurationMarshal:
     """A marshal between Python timedeltas and protobuf durations.
 

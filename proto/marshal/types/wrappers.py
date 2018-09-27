@@ -14,8 +14,6 @@
 
 from google.protobuf import wrappers_pb2
 
-from ..marshal import marshal
-
 
 class WrapperMarshal:
     """A marshal for converting the protobuf wrapper classes to Python.
@@ -40,55 +38,46 @@ class WrapperMarshal:
         return value
 
 
-@marshal.register(wrappers_pb2.DoubleValue)
 class DoubleValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.DoubleValue
     _python_type = float
 
 
-@marshal.register(wrappers_pb2.FloatValue)
 class FloatValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.FloatValue
     _python_type = float
 
 
-@marshal.register(wrappers_pb2.Int64Value)
 class Int64ValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.Int64Value
     _python_type = int
 
 
-@marshal.register(wrappers_pb2.UInt64Value)
 class UInt64ValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.UInt64Value
     _python_type = int
 
 
-@marshal.register(wrappers_pb2.Int32Value)
 class Int32ValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.Int32Value
     _python_type = int
 
 
-@marshal.register(wrappers_pb2.UInt32Value)
 class UInt32ValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.UInt32Value
     _python_type = int
 
 
-@marshal.register(wrappers_pb2.BoolValue)
 class BoolValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.BoolValue
     _python_type = bool
 
 
-@marshal.register(wrappers_pb2.StringValue)
 class StringValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.StringValue
     _python_type = str
 
 
-@marshal.register(wrappers_pb2.BytesValue)
 class BytesValueMarshal(WrapperMarshal):
     _proto_type = wrappers_pb2.BytesValue
     _python_type = bytes
