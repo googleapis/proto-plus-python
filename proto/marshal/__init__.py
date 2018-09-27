@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# We actually want to import the individual marshals even though
-# they are unused, because that is how they are registered to the
-# marshal singleton.
-from .types import dates  # noqa: F401
-from .types import wrappers  # noqa: F401
-
 from .marshal import marshal
 
 
