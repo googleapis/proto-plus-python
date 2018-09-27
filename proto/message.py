@@ -553,7 +553,7 @@ class MessageRegistry:
 
     def register(self, message: Type[Message]):
         """Register a message with the registry."""
-        key = (message._meta.package, message.__name__)
+        key = (message._meta.package, message.__qualname__)
         self._registry[key] = message
 
         # If any fields are expecting this message, attach the message
