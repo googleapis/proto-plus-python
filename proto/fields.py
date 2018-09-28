@@ -13,8 +13,10 @@
 # limitations under the License.
 
 from google.protobuf import descriptor
+from google.protobuf import message as pb_message
 
 from proto.primitives import get_default_value
+from proto.primitives import ProtoType
 
 
 class Field:
@@ -98,7 +100,27 @@ class Field:
 
     @property
     def ready(self):
-        return not isinstance(self.message, str)
+        # All non-message fields are ready.
+        # We do not have to check readiness on enums because we process
+        # all enums ahead of all messages, thus guaranteeing that they must
+        # be processed first.
+        if self.proto_type != ProtoType.MESSAGE:
+            return True
+
+        # This field may rely on an instantiated stock protobuf message.
+        # These are ready.
+        if (isinstance(self.message, type) and
+                issubclass(self.message, pb_message.Message)):
+            return True
+
+        # This field is ready if the underlying message is.
+        # That means the message is a message object (not a string) and that
+        # the referenced message is also ready.
+        # We use the `.pb` property rather than `.ready` here to avoid
+        # infinite recursion corner cases (e.g. self-referencing messages).
+        if isinstance(self.message, str):
+            return False
+        return self.message._meta.pb
 
 
 class RepeatedField(Field):

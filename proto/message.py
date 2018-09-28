@@ -178,20 +178,17 @@ class MessageMeta(type):
         # Attempt to generate the message type.
         cls._meta.generate_pb()
 
-        # Register this class with the message registry.
-        # This handles forward references in the event that a message needs
-        # to reference a message defined later in the file.
-        registry.register(cls)
-
         # Iterate over each field, if the field has any messages which
         # have not been instantiated, register them against the MessageRegistry
         # to eventually save the instantiated type.
         for field in cls._meta.fields.values():
             field.parent = cls
-            if isinstance(field.message, str):
+            if not field.ready:
                 registry.expect(
                     field=field,
-                    message_name=field.message,
+                    message_name=field.message
+                        if isinstance(field.message, str)
+                        else field.message.__qualname__,
                     package=package,
                 )
 
@@ -498,14 +495,19 @@ class MessageInfo:
             )
             symbol_database.Default().RegisterMessage(pb_message)
 
+            # Save the message.
+            self._pb = pb_message
+
+            # Register this class with the message registry.
+            # This handles forward references in the event that a message needs
+            # to reference a message defined later in the file.
+            registry.register(self.parent)
+
             # Register the new class with the marshal.
             marshal.register(
                 pb_message,
                 MessageMarshal(pb_message, self.parent),
             )
-
-            # Save the message.
-            self._pb = pb_message
 
     @property
     def ready(self):
@@ -560,6 +562,11 @@ class MessageRegistry:
         # to them.
         for field in self._expecting.pop(key, ()):
             self._attach(field, message)
+
+        # A expects B
+        # B is instantiated, but expects C
+        # C is instantiated, fulfills B
+        #   ...which must notify A.
 
     def _attach(self, field, message):
         # Add the instantiated message to the field.
