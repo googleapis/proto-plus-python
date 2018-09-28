@@ -172,8 +172,10 @@ class MessageMeta(type):
         # Run the superclass constructor.
         cls = super().__new__(mcls, name, bases, attrs)
 
-        # The info class needs a reference to the class just created.
+        # The info class and fields need a reference to the class just created.
         cls._meta.parent = cls
+        for field in cls._meta.fields.values():
+            field.parent = cls
 
         # Attempt to generate the message type.
         cls._meta.generate_pb()
@@ -182,7 +184,6 @@ class MessageMeta(type):
         # have not been instantiated, register them against the MessageRegistry
         # to eventually save the instantiated type.
         for field in cls._meta.fields.values():
-            field.parent = cls
             if not field.ready:
                 registry.expect(
                     field=field,
@@ -476,7 +477,7 @@ class MessageInfo:
         # Corner case: Self-referential messages.
         # In this case, assign the newly-created message up front.
         for field in self.fields.values():
-            if field.message == self.full_name.split('.')[-1]:
+            if field.message == self.parent.__qualname__:
                 field.message = self.parent
                 desc.fields_by_name[field.name].message_type = desc
 

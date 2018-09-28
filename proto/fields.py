@@ -27,6 +27,7 @@ class Field:
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
         self.mcls_data = {}
+        self.parent = None
 
         # Save the direct arguments.
         self.number = number
@@ -113,6 +114,11 @@ class Field:
                 issubclass(self.message, pb_message.Message)):
             return True
 
+        # Corner case: Self-referential messages.
+        # Explicitly declare these to be ready.
+        if self.parent is self.message:
+            return True
+
         # This field is ready if the underlying message is.
         # That means the message is a message object (not a string) and that
         # the referenced message is also ready.
@@ -120,7 +126,7 @@ class Field:
         # infinite recursion corner cases (e.g. self-referencing messages).
         if isinstance(self.message, str):
             return False
-        return self.message._meta.pb
+        return bool(self.message._meta.pb)
 
 
 class RepeatedField(Field):
