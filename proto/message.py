@@ -406,6 +406,9 @@ class Message(metaclass=MessageMeta):
         """Return True if the messages are unequal, False otherwise."""
         return not self == other
 
+    def __repr__(self):
+        return repr(self._pb)
+
     def __setattr__(self, key, value):
         """Set the value on the given field.
 
