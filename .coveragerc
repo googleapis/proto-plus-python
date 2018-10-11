@@ -1,7 +1,5 @@
 [run]
 branch = True
-omit =
-  *_pb2.py
 
 [report]
 fail_under = 100
