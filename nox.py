@@ -37,14 +37,14 @@ def unit(session):
     )
 
 
-# @nox.session(python='3.6')
-# def docs(session):
-#     """Build the docs."""
-#
-#     session.install('sphinx', 'sphinx_rtd_theme')
-#     session.install('.')
-#
-#     # Build the docs!
-#     session.run('rm', '-rf', 'docs/_build/')
-#     session.run('sphinx-build', '-W', '-b', 'html', '-d',
-#                 'docs/_build/doctrees', 'docs/', 'docs/_build/html/')
+@nox.session(python='3.6')
+def docs(session):
+    """Build the docs."""
+
+    session.install('sphinx', 'sphinx_rtd_theme')
+    session.install('.')
+
+    # Build the docs!
+    session.run('rm', '-rf', 'docs/_build/')
+    session.run('sphinx-build', '-W', '-b', 'html', '-d',
+                'docs/_build/doctrees', 'docs/', 'docs/_build/html/')

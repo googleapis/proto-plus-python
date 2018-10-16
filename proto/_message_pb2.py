@@ -208,7 +208,12 @@ class MessageMeta(type):
         return cls._meta
 
     def pb(cls, obj=None):
-        """Return the underlying protobuf Message class."""
+        """Return the underlying protobuf Message class or instance.
+
+        Args:
+            obj: If provided, and an instance of ``cls``, return the
+                underlying protobuf instance.
+        """
         if obj is None:
             return cls.meta.pb
         if not isinstance(obj, cls):
@@ -237,15 +242,15 @@ class MessageMeta(type):
         """
         return cls.pb(instance).SerializeToString()
 
-    def deserialize(cls, payload: bytes):
+    def deserialize(cls, payload: bytes) -> 'Message':
         """Given a serialized proto, deserialize it into a Message instance.
 
         Args:
             payload (bytes): The serialized proto.
 
-        Returns
-            cls: An instance of the message class against which this
-                method was called.
+        Returns:
+            ~.Message: An instance of the message class against which this
+            method was called.
         """
         return cls(cls.pb().FromString(payload))
 
