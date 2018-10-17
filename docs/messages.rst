@@ -24,8 +24,12 @@ other messages.
 
 The most common use case for protocol buffers is to write a ``.proto`` file,
 and then use the protocol buffer compiler to generate code for it.
-However, it is possible to declare messages directly.
 
+
+Declaring messages
+------------------
+
+However, it is possible to declare messages directly.
 This is the equivalent message declaration in Python, using this library:
 
 .. code-block:: python
@@ -54,3 +58,42 @@ A few things to note:
 
 Messages are fundamentally made up of :doc:`fields`. Most messages are nothing
 more than a name and their set of fields.
+
+
+Usage
+-----
+
+Instantiate messages using either keyword arguments or a :class:`dict`
+(and mix and matching is acceptable):
+
+.. code-block:: python
+
+    >>> song = Song(
+    ...     composer={'given_name': 'Johann', 'family_name': 'Pachelbel'},
+    ...     title='Canon in D',
+    ...     year=1680,
+    ... )
+    >>> song.composer.family_name
+    'Pachelbel'
+    >>> song.title
+    'Canon in D'
+
+Serialization
+-------------
+
+Serialization and deserialization is available through the
+:meth:`~.Message.serialize` and :meth:`~.Message.deserialize` class methods.
+
+The :meth:`~.Message.serialize` method is available on the message *classes*
+only, and accepts an instance:
+
+.. code-block:: python
+
+    serialized_song = Song.serialize(song)
+
+The :meth:`~.Message.deserialize` method accepts a :class:`bytes`, and
+returns an instance of the message:
+
+.. code-block:: python
+
+    song = Song.deserialize(serialized_song)
