@@ -149,9 +149,22 @@ class MarshalRegistry:
         if isinstance(value, (Repeated, MapComposite)):
             return value.pb
 
-        # Convert lists, tuples, and dicts recursively.
+        # Convert lists and tuples recursively.
         if isinstance(value, (list, tuple)):
             return type(value)([self.to_proto(proto_type, i) for i in value])
+
+        # Convert dictionaries recursively when the proto type is a map.
+        # This is slightly more complicated than converting a list or tuple
+        # because we have to step through the magic that protocol buffers does.
+        #
+        # Essentially, a type of map<string, Foo> will show up here as
+        # a FoosEntry with a `key` field, `value` field, and a `map_entry`
+        # annotation. We need to do the conversion based on the `value`
+        # field's type.
+        if isinstance(value, dict) and (proto_type.DESCRIPTOR.has_options and
+                proto_type.DESCRIPTOR.GetOptions().map_entry):
+            return {k: self.to_proto(type(proto_type().value), v)
+                    for k, v in value.items()}
 
         # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)

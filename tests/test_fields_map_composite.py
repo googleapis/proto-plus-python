@@ -15,6 +15,38 @@
 import proto
 
 
+def test_composite_map():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.MapField(proto.STRING, proto.MESSAGE, number=1,
+            message=Foo,
+        )
+
+    baz = Baz(foos={'i': Foo(bar=42), 'j': Foo(bar=24)})
+    assert len(baz.foos) == 2
+    assert baz.foos['i'].bar == 42
+    assert baz.foos['j'].bar == 24
+    assert 'k' not in baz.foos
+
+
+def test_composite_map_dict():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.MapField(proto.STRING, proto.MESSAGE, number=1,
+            message=Foo,
+        )
+
+    baz = Baz(foos={'i': {'bar': 42}, 'j': {'bar': 24}})
+    assert len(baz.foos) == 2
+    assert baz.foos['i'].bar == 42
+    assert baz.foos['j'].bar == 24
+    assert 'k' not in baz.foos
+
+
 def test_composite_map_set():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, number=1)
