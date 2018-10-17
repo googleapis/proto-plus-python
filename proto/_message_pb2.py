@@ -67,7 +67,10 @@ class MessageMeta(type):
             # Create the "entry" message (with the key and value fields).
             attrs[message_name] = MessageMeta(message_name, (Message,), {
                 'key': Field(field.map_key_type, number=1),
-                'value': Field(field.proto_type, number=2),
+                'value': Field(field.proto_type, number=2,
+                    enum=field.enum,
+                    message=field.message,
+                ),
                 'Meta': type('Meta', (object,), {
                     'full_name': '{0}.{1}'.format(full_name, message_name),
                     'options': MessageOptions(map_entry=True),

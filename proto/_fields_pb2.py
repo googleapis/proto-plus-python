@@ -145,6 +145,7 @@ class MapField(Field):
                  message=None, enum=None):
         super().__init__(value_type, number=number, message=message, enum=enum)
         self.map_key_type = key_type
+        print(message)
 
 
 __all__ = (

@@ -33,3 +33,26 @@ def test_basic_map_with_underscore_field_name():
     assert foo.tag_labels['a'] == 'foo'
     assert foo.tag_labels['b'] == 'bar'
     assert 'c' not in foo.tag_labels
+
+
+def test_basic_map_assignment():
+    class Foo(proto.Message):
+        tags = proto.MapField(proto.STRING, proto.STRING, number=1)
+
+    foo = Foo(tags={'a': 'foo'})
+    foo.tags['b'] = 'bar'
+    assert len(foo.tags) == 2
+    assert foo.tags['a'] == 'foo'
+    assert foo.tags['b'] == 'bar'
+    assert 'c' not in foo.tags
+
+
+def test_basic_map_deletion():
+    class Foo(proto.Message):
+        tags = proto.MapField(proto.STRING, proto.STRING, number=1)
+
+    foo = Foo(tags={'a': 'foo', 'b': 'bar'})
+    del foo.tags['b']
+    assert len(foo.tags) == 1
+    assert foo.tags['a'] == 'foo'
+    assert 'b' not in foo.tags

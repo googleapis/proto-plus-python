@@ -135,16 +135,21 @@ class MarshalRegistry:
         if isinstance(value, containers.RepeatedScalarFieldContainer):
             return Repeated(value)
 
+        # Same thing for maps of messages.
+        if isinstance(value, containers.MessageMap):
+            return MapComposite(value)
+
         # Convert ordinary values.
         rule = self._registry.get(proto_type, self._noop)
         return rule.to_python(value, absent=absent)
 
     def to_proto(self, proto_type, value, *, strict: bool = False):
-        # For our repeated view objects, simply return the underlying pb.
-        if isinstance(value, Repeated):
+        # For our repeated and map view objects, simply return the
+        # underlying pb.
+        if isinstance(value, (Repeated, MapComposite)):
             return value.pb
 
-        # Convert lists and tuples recursively.
+        # Convert lists, tuples, and dicts recursively.
         if isinstance(value, (list, tuple)):
             return type(value)([self.to_proto(proto_type, i) for i in value])
 
@@ -242,6 +247,51 @@ class RepeatedComposite(Repeated):
         pb_value = marshal.to_proto(self._pb_type, value, strict=True)
         self.pb._values.insert(index, pb_value)
         self.pb._message_listener.Modified()
+
+
+class MapComposite(collections.MutableMapping):
+    """A view around a mutable sequence in protocol buffers.
+
+    This implements the full Python MutableMapping interface, but all methods
+    modify the underlying field container directly.
+    """
+    @property
+    def _pb_type(self):
+        """Return the protocol buffer type for this sequence."""
+        return self.pb._message_descriptor._concrete_class
+
+    def __init__(self, sequence: containers.BaseContainer):
+        self._pb = sequence
+
+    def __contains__(self, key):
+        # Protocol buffers is so permissive that querying for the existence
+        # of a key will in of itself create it.
+        #
+        # By taking a tuple of the keys and querying that, we avoid sending
+        # the lookup to protocol buffers and therefore avoid creating the key.
+        return key in tuple(self.keys())
+
+    def __getitem__(self, key):
+        return marshal.to_python(self._pb_type, self.pb[key])
+
+    def __setitem__(self, key, value):
+        pb_value = marshal.to_proto(self._pb_type, value, strict=True)
+        self.pb._values[key] = pb_value
+        self.pb._message_listener.Modified()
+
+    def __delitem__(self, key):
+        del self.pb._values[key]
+        self.pb._message_listener.Modified()
+
+    def __len__(self):
+        return len(self.pb)
+
+    def __iter__(self):
+        return iter(self.pb)
+
+    @property
+    def pb(self):
+        return self._pb
 
 
 class NoopMarshal:
