@@ -25,12 +25,13 @@ with io.open(os.path.join(PACKAGE_ROOT, 'README.rst')) as file_obj:
 
 setup(
     name='proto-plus',
-    version='0.1.0a3',
+    version='0.1.0a4',
     license='Apache 2.0',
     author='Luke Sneeringer',
     author_email='lukesneeringer@google.com',
     url='https://github.com/googleapis/proto-plus-python.git',
     packages=find_packages(exclude=['docs', 'tests']),
+    namespace_packages=['google', 'google.protobuf'],
     description='Beautiful, Pythonic protocol buffers.',
     long_description=README,
     platforms='Posix; MacOS X',
@@ -38,7 +39,7 @@ setup(
     install_requires=(
         'protobuf >= 3.5.1',
     ),
-    classifiers=(
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Developers',
@@ -49,6 +50,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Code Generators',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ),
+    ],
     zip_safe=False,
 )
