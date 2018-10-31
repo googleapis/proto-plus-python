@@ -31,7 +31,6 @@ setup(
     author_email='lukesneeringer@google.com',
     url='https://github.com/googleapis/proto-plus-python.git',
     packages=find_packages(exclude=['docs', 'tests']),
-    namespace_packages=['google', 'google.protobuf'],
     description='Beautiful, Pythonic protocol buffers.',
     long_description=README,
     platforms='Posix; MacOS X',
