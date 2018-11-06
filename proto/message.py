@@ -19,7 +19,7 @@ import re
 from typing import List, Type
 
 from google.protobuf import descriptor
-from google.protobuf.descriptor_pb2 import MessageOptions
+from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf import reflection
 from google.protobuf import symbol_database
@@ -75,7 +75,7 @@ class MessageMeta(type):
                 ),
                 'Meta': type('Meta', (object,), {
                     'full_name': '{0}.{1}'.format(full_name, message_name),
-                    'options': MessageOptions(map_entry=True),
+                    'options': descriptor_pb2.MessageOptions(map_entry=True),
                     'package': package,
                 }),
             })
@@ -140,30 +140,35 @@ class MessageMeta(type):
 
         # Get a file descriptor object.
         module = attrs.get('__module__', name.lower()).replace('.', '/')
-        if module not in _file_descriptor_registry:
-            _file_descriptor_registry[module] = descriptor.FileDescriptor(
+        if module not in _file_descriptors:
+            _file_descriptors[module] = descriptor_pb2.FileDescriptorProto(
                 name='%s.proto' % module,
                 package=package,
                 syntax='proto3',
             )
 
         # Retrieve any message options.
-        opts = getattr(Meta, 'options', MessageOptions())
+        opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
 
         # Create the underlying proto descriptor.
-        # This programatically duplicates the default code generated
-        # by protoc.
-        desc = descriptor.Descriptor(
-            name=name, full_name=full_name,
-            file=_file_descriptor_registry[module],
-            filename=None, containing_type=None,
-            fields=[i.descriptor for i in fields],
-            nested_types=[], enum_types=[], extensions=[],
-            oneofs=[i for i in oneofs.values()],
-            serialized_options=opts.SerializeToString(),
-            syntax='proto3',
+        desc = descriptor_pb2.DescriptorProto(
+            name=name,
+            field=[i.descriptor for i in fields],
+            oneof_decl=[i for i in oneofs.values()],
+            options=opts,
         )
-        _file_descriptor_registry[module].message_types_by_name[name] = desc
+
+        # desc = descriptor.Descriptor(
+        #     name=name, full_name=full_name,
+        #     file=_file_descriptor_registry[module],
+        #     filename=None, containing_type=None,
+        #     fields=[i.descriptor for i in fields],
+        #     nested_types=[], enum_types=[], extensions=[],
+        #     oneofs=[i for i in oneofs.values()],
+        #     serialized_options=opts.SerializeToString(),
+        #     syntax='proto3',
+        # )
+        # _file_descriptor_registry[module].message_types_by_name[name] = desc
 
         # Create the MessageInfo instance to be attached to this message.
         attrs['_meta'] = MessageInfo(
@@ -454,7 +459,7 @@ class MessageInfo:
     def __init__(self, *, descriptor: descriptor.Descriptor,
                  fields: List[Field],
                  package: str, full_name: str,
-                 options: MessageOptions) -> None:
+                 options: descriptor_pb2.MessageOptions) -> None:
         self.descriptor = descriptor
         self.package = package
         self.full_name = full_name
@@ -595,7 +600,7 @@ class MessageRegistry:
 registry = MessageRegistry()
 
 
-_file_descriptor_registry = {}
+_file_descriptors = {}
 
 
 __all__ = (

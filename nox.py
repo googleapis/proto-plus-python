@@ -19,9 +19,10 @@ import nox
 
 
 @nox.session(python=['3.5', '3.6', '3.7'])
-def unit(session):
+def unit(session, proto='python'):
     """Run the unit test suite."""
 
+    session.env['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = proto
     session.install('coverage', 'pytest', 'pytest-cov')
     session.install('-e', '.')
 
@@ -35,6 +36,11 @@ def unit(session):
         '--cov-report=html',
         os.path.join('tests', ''),
     )
+
+
+@nox.session(python=['3.5', '3.6', '3.7'])
+def unitcpp(session):
+    return unit(session, proto='cpp')
 
 
 @nox.session(python='3.6')
