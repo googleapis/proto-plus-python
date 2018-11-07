@@ -15,6 +15,7 @@
 import collections
 import collections.abc
 import copy
+import inspect
 import re
 from typing import List, Type
 
@@ -106,8 +107,9 @@ class MessageMeta(type):
             # (The goal is to make the declaration syntax as nice as possible.)
             field.mcls_data = {
                 'name': key,
-                'full_name': '{0}.{1}'.format(full_name, key),
+                'parent_name': full_name,
                 'index': index,
+                'package': package,
             }
 
             # Add the field to the list of fields.
@@ -116,33 +118,22 @@ class MessageMeta(type):
             # If this field is part of a "oneof", ensure the oneof itself
             # is represented.
             if field.oneof:
-                # In theory, most oneofs will be encountered more than once.
-                if field.oneof in oneofs:
-                    # Since the oneof exists, simply add this field to it.
-                    oneofs[field.oneof].fields.append(field.descriptor)
-                else:
-                    # Create the oneof descriptor, and add it to the running
-                    # dictionary of oneofs.
-                    oneofs.setdefault(field.oneof, descriptor.OneofDescriptor(
-                        containing_type=None,
-                        fields=[field.descriptor],
-                        full_name='{0}.{1}'.format(full_name, field.oneof),
-                        index=len(oneofs),
-                        name=field.oneof,
-                    ))
-
-                # The field's descriptor itself also must be given a reference
-                # to the oneof that contains it.
-                field.descriptor.containing_oneof = oneofs[field.oneof]
+                # Keep a running tally of the length of each oneof,
+                # and assign the index to the field's descriptor.
+                oneofs.setdefault(field.oneof, 0)
+                field.descriptor.oneof_index = oneofs[field.oneof]
+                oneofs[field.oneof] += 1
 
             # Increment the field index counter.
             index += 1
 
         # Get a file descriptor object.
-        module = attrs.get('__module__', name.lower()).replace('.', '/')
-        if module not in _file_descriptors:
-            _file_descriptors[module] = descriptor_pb2.FileDescriptorProto(
-                name='%s.proto' % module,
+        filename = '{0}.proto'.format(
+            attrs.get('__module__', name.lower()).replace('.', '/')
+        )
+        if filename not in _file_descriptors:
+            _file_descriptors[filename] = descriptor_pb2.FileDescriptorProto(
+                name=filename,
                 package=package,
                 syntax='proto3',
             )
@@ -151,28 +142,18 @@ class MessageMeta(type):
         opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
 
         # Create the underlying proto descriptor.
-        desc = descriptor_pb2.DescriptorProto(
+        desc = _file_descriptors[filename].message_type.add(
             name=name,
             field=[i.descriptor for i in fields],
-            oneof_decl=[i for i in oneofs.values()],
+            oneof_decl=[descriptor_pb2.OneofDescriptorProto(name=i)
+                        for i in oneofs.keys()],
             options=opts,
         )
-
-        # desc = descriptor.Descriptor(
-        #     name=name, full_name=full_name,
-        #     file=_file_descriptor_registry[module],
-        #     filename=None, containing_type=None,
-        #     fields=[i.descriptor for i in fields],
-        #     nested_types=[], enum_types=[], extensions=[],
-        #     oneofs=[i for i in oneofs.values()],
-        #     serialized_options=opts.SerializeToString(),
-        #     syntax='proto3',
-        # )
-        # _file_descriptor_registry[module].message_types_by_name[name] = desc
 
         # Create the MessageInfo instance to be attached to this message.
         attrs['_meta'] = MessageInfo(
             descriptor=desc,
+            file_descriptor=_file_descriptors[filename],
             fields=fields,
             full_name=full_name,
             options=opts,
@@ -187,23 +168,21 @@ class MessageMeta(type):
         for field in cls._meta.fields.values():
             field.parent = cls
 
-        # Attempt to generate the message type.
+        # Determine if all the messages that we plan to create have been
+        # created. If so, build the descriptors.
+        #
+        # Since messages depend on one another, we create descriptor protos
+        # (which reference each other using strings) and wait until we have
+        # built everything that is going to be in the module, and then
+        # use the descriptor protos to instantiate the actual descriptors in
+        # one fell swoop.
+        module = inspect.getmodule(cls)
+        manifest = getattr(module, '__all__', ())
+        if not all([hasattr(module, i) for i in manifest]):
+            return cls
         cls._meta.generate_pb()
 
-        # Iterate over each field, if the field has any messages which
-        # have not been instantiated, register them against the MessageRegistry
-        # to eventually save the instantiated type.
-        for field in cls._meta.fields.values():
-            if not field.ready:
-                registry.expect(
-                    field=field,
-                    message_name=field.message
-                        if isinstance(field.message, str)
-                        else field.message.__qualname__,
-                    package=package,
-                )
-
-        # Done; return the message class.
+        # Done; return the class.
         return cls
 
     @classmethod
@@ -411,7 +390,7 @@ class Message(metaclass=MessageMeta):
             Some well-known protocol buffer types
             (e.g. ``google.protobuf.Timestamp``) will be converted to
             their Python equivalents. See the ``marshal`` module for
-            mode details.
+            more details.
         """
         pb_type = self._meta.fields[key].pb_type
         pb_value = getattr(self._pb, key)
@@ -456,7 +435,7 @@ class MessageInfo:
         options (~.descriptor_pb2.MessageOptions): Any options that were
             set on the message.
     """
-    def __init__(self, *, descriptor: descriptor.Descriptor,
+    def __init__(self, *, descriptor: descriptor_pb2.DescriptorProto,
                  fields: List[Field],
                  package: str, full_name: str,
                  options: descriptor_pb2.MessageOptions) -> None:
@@ -481,123 +460,11 @@ class MessageInfo:
         """
         return self._pb
 
-    def generate_pb(self):
-        """Return the protobuf message type for this descriptor.
-
-        If a field on the message references another message which has not
-        loaded, then this method returns None.
-
-        Once this method attaches a value once, the return value is
-        cached and returned from subsequent calls.
-        """
-        desc = self.descriptor
-
-        # Corner case: Self-referential messages.
-        # In this case, assign the newly-created message up front.
-        for field in self.fields.values():
-            if field.message == self.parent.__qualname__:
-                field.message = self.parent
-                desc.fields_by_name[field.name].message_type = desc
-
-        # If this message is not ready, hold off.
-        if not self.ready:
-            return
-
-        # Only make a new descriptor if we do not already have one.
-        if not self._pb:
-            # Create the stock protobuf Message.
-            pb_message = reflection.GeneratedProtocolMessageType(
-                self.full_name.split('.')[-1], (message.Message,), {
-                    'DESCRIPTOR': desc,
-                    '__module__': None,
-                },
-            )
-            symbol_database.Default().RegisterMessage(pb_message)
-
-            # Save the message.
-            self._pb = pb_message
-
-            # Register this class with the message registry.
-            # This handles forward references in the event that a message needs
-            # to reference a message defined later in the file.
-            registry.register(self.parent)
-
-            # Register the new class with the marshal.
-            marshal.register(
-                pb_message,
-                MessageMarshal(pb_message, self.parent),
-            )
-
-    @property
-    def ready(self):
-        return all([i.ready for i in self.fields.values()])
-
-
-class MessageRegistry:
-    """An overall registry of messages.
-
-    Protocol buffers allows referencing messages earlier in the file than
-    they are declared, and we wish to preserve declaration order.
-
-    This registry allows fields to register themselves as placeholders,
-    and they are given message references once those messages are
-    instantiated.
-    """
-    def __init__(self):
-        self._registry = {}
-        self._expecting = {}
-
-    def clear(self):
-        """Clear the registry."""
-        self._registry.clear()
-        self._expecting.clear()
-
-    def expect(self, *, package: str, message_name: str, field: Field):
-        """Register a field as expecting a message.
-
-        Args:
-            package (str): The proto package (or empty string if there is no
-                proto package).
-            message_name (str): The name of the message.
-            field (~.Field): The field which should reference the message.
-        """
-        key = (package, message_name)
-
-        # Sanity check: If we already instantiated this message, then
-        # fulfill the expectation immediately.
-        if key in self._registry:
-            self._attach(field, self._registry[key])
-
-        # Store that this field is expecting instantiation of this message.
-        self._expecting.setdefault(key, [])
-        self._expecting[key].append(field)
-
-    def register(self, message: Type[Message]):
-        """Register a message with the registry."""
-        key = (message._meta.package, message.__qualname__)
-        self._registry[key] = message
-
-        # If any fields are expecting this message, attach the message
-        # to them.
-        for field in self._expecting.pop(key, ()):
-            self._attach(field, message)
-
-        # A expects B
-        # B is instantiated, but expects C
-        # C is instantiated, fulfills B
-        #   ...which must notify A.
-
-    def _attach(self, field, message):
-        # Add the instantiated message to the field.
-        field.message = message
-        field.descriptor.message_type = message._meta.pb.DESCRIPTOR
-
-        # The field's containing message *may* (or may not) now have all of
-        # its fields become concrete. Attempt to populate its message type.
-        field.parent._meta.generate_pb()
-
-
-registry = MessageRegistry()
+        # Register the new class with the marshal.
+        # marshal.register(
+        #     pb_message,
+        #     MessageMarshal(pb_message, self.parent),
+        # )
 
 
 _file_descriptors = {}
