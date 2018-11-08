@@ -17,13 +17,11 @@ import collections.abc
 import copy
 import inspect
 import re
-from typing import List, Type
+from typing import List, Mapping, Type
 
-from google.protobuf import descriptor
 from google.protobuf import descriptor_pb2
+from google.protobuf import descriptor_pool
 from google.protobuf import message
-from google.protobuf import reflection
-from google.protobuf import symbol_database
 
 from proto.fields import Field
 from proto.fields import MapField
@@ -131,18 +129,21 @@ class MessageMeta(type):
         filename = '{0}.proto'.format(
             attrs.get('__module__', name.lower()).replace('.', '/')
         )
-        if filename not in _file_descriptors:
-            _file_descriptors[filename] = descriptor_pb2.FileDescriptorProto(
+        file_info = _file_info_registry.setdefault(filename, _FileInfo(
+            descriptor=descriptor_pb2.FileDescriptorProto(
                 name=filename,
                 package=package,
                 syntax='proto3',
-            )
+            ),
+            messages=collections.OrderedDict(),
+            name=filename,
+        ))
 
         # Retrieve any message options.
         opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
 
         # Create the underlying proto descriptor.
-        desc = _file_descriptors[filename].message_type.add(
+        desc = file_info.descriptor.message_type.add(
             name=name,
             field=[i.descriptor for i in fields],
             oneof_decl=[descriptor_pb2.OneofDescriptorProto(name=i)
@@ -151,9 +152,8 @@ class MessageMeta(type):
         )
 
         # Create the MessageInfo instance to be attached to this message.
-        attrs['_meta'] = MessageInfo(
-            descriptor=desc,
-            file_descriptor=_file_descriptors[filename],
+        attrs['_meta'] = _MessageInfo(
+            file_info=file_info,
             fields=fields,
             full_name=full_name,
             options=opts,
@@ -167,6 +167,11 @@ class MessageMeta(type):
         cls._meta.parent = cls
         for field in cls._meta.fields.values():
             field.parent = cls
+
+        # Add this message to the _FileInfo instance; this allows us to
+        # associate the descriptor with the message once the descriptor
+        # is generated.
+        file_info.messages[full_name] = cls
 
         # Determine if all the messages that we plan to create have been
         # created. If so, build the descriptors.
@@ -424,22 +429,29 @@ class Message(metaclass=MessageMeta):
             self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
 
 
-class MessageInfo:
+_FileInfo = collections.namedtuple(
+    'FileInfo',
+    ['descriptor', 'messages', 'name'],
+)
+_file_info_registry: Mapping[str, _FileInfo] = {}
+
+
+class _MessageInfo:
     """Metadata about a message.
 
     Args:
-        pb (type): The underlying protobuf message.
         fields (Tuple[~.fields.Field]): The fields declared on the message.
-        package (str): The proto package
+        package (str): The proto package.
         full_name (str): The full name of the message.
+        file_info (~._FileInfo): The file descriptor and messages for the
+            file containing this message.
         options (~.descriptor_pb2.MessageOptions): Any options that were
             set on the message.
     """
-    def __init__(self, *, descriptor: descriptor_pb2.DescriptorProto,
-                 fields: List[Field],
-                 package: str, full_name: str,
+    def __init__(self, *, fields: List[Field], package: str, full_name: str,
+                 file_info: _FileInfo,
                  options: descriptor_pb2.MessageOptions) -> None:
-        self.descriptor = descriptor
+        self.file_info = file_info
         self.package = package
         self.full_name = full_name
         self.options = options
@@ -460,14 +472,39 @@ class MessageInfo:
         """
         return self._pb
 
-        # Register the new class with the marshal.
-        # marshal.register(
-        #     pb_message,
-        #     MessageMarshal(pb_message, self.parent),
-        # )
+    def _generate_file_pb(self):
+        """Generate the descriptors for all protos in the **file**.
 
+        This method takes the file descriptor attached to the parent
+        message and generates the immutable descriptors for all of the
+        messages in the file descriptor. (This must be done in one fell
+        swoop for immutability and to resolve proto cross-referencing.)
 
-_file_descriptors = {}
+        This is run automatically when the last proto in the file is
+        generated, as determined by the module's __all__ tuple.
+        """
+        pool = descriptor_pool.Default()
+
+        # Add the file descriptor.
+        pool.Add(self.file_info.descriptor)
+
+        # Adding the file descriptor to the pool created a descriptor for
+        # each message; go back through our wrapper messages and associate
+        # them with the internal protobuf version.
+        for full_name, proto_plus_message in self.file_info.messages.items():
+            # Register the message with the marshal so it is wrapped
+            # appropriately.
+            pb_message = pool.FindMessageTypeByName(full_name)
+            proto_plus_message._meta._pb = pb_message
+            marshal.register(
+                pb_message,
+                MessageMarshal(pb_message, proto_plus_message)
+            )
+
+        # We no longer need to track this file's info; remove it from
+        # the module's registry and from this object.
+        _file_info_registry.pop(self.file_info.name)
+        del self.file_info
 
 
 __all__ = (
