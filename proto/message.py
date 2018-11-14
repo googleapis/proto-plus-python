@@ -143,7 +143,7 @@ class MessageMeta(type):
         opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
 
         # Create the underlying proto descriptor.
-        desc = file_info.descriptor.message_type.add(
+        file_info.descriptor.message_type.add(
             name=name,
             field=[i.descriptor for i in fields],
             oneof_decl=[descriptor_pb2.OneofDescriptorProto(name=i)
