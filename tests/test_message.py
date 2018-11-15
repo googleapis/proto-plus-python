@@ -82,6 +82,20 @@ def test_message_constructor_invalid():
         Foo(object())
 
 
+def test_message_constructor_explicit_qualname():
+    class Foo(proto.Message):
+        __qualname__ = 'Foo'
+        bar = proto.Field(proto.INT64, number=1)
+    foo_original = Foo(bar=42)
+    foo_copy = Foo(foo_original)
+    assert foo_original.bar == foo_copy.bar == 42
+    assert foo_original == foo_copy
+    assert foo_original is not foo_copy
+    assert isinstance(foo_original, Foo)
+    assert isinstance(foo_copy, Foo)
+    assert isinstance(Foo.pb(foo_copy), Foo.pb())
+
+
 def test_message_contains_primitive():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT64, number=1)
@@ -166,16 +180,6 @@ def test_message_deserialize():
     new_foo = NewFoo.deserialize(serialized)
     assert isinstance(new_foo, NewFoo)
     assert new_foo.bar == 42
-
-
-def test_message_generate_pb_idempotent():
-    class Foo(proto.Message):
-        bar = proto.Field(proto.INT32, number=1)
-
-    Foo._meta.generate_pb()
-    pb = Foo.pb()
-    Foo._meta.generate_pb()
-    assert pb is Foo.pb()
 
 
 def test_message_pb():

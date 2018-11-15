@@ -22,6 +22,7 @@ from typing import List, Mapping, Type
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
+from google.protobuf import reflection
 
 from proto.fields import Field
 from proto.fields import MapField
@@ -47,6 +48,13 @@ class MessageMeta(type):
         full_name = getattr(Meta, 'full_name',
             '.'.join((package, attrs.get('__qualname__', name))).lstrip('.'),
         )
+
+        # Sanity check: We get the wrong full name if a class is declared
+        # inside a function local scope; correct this.
+        if '.<locals>.' in full_name:
+            full_name = full_name.split('.')
+            ix = full_name.index('<locals>')
+            full_name = '.'.join(full_name[:ix - 1] + full_name[ix + 1:])
 
         # Special case: Maps. Map fields are special; they are essentially
         # shorthand for a nested message and a repeated field of that message.
@@ -129,7 +137,7 @@ class MessageMeta(type):
         filename = '{0}.proto'.format(
             attrs.get('__module__', name.lower()).replace('.', '/')
         )
-        file_info = _file_info_registry.setdefault(filename, _FileInfo(
+        file_info = _FileInfo.registry.setdefault(filename, _FileInfo(
             descriptor=descriptor_pb2.FileDescriptorProto(
                 name=filename,
                 package=package,
@@ -153,7 +161,6 @@ class MessageMeta(type):
 
         # Create the MessageInfo instance to be attached to this message.
         attrs['_meta'] = _MessageInfo(
-            file_info=file_info,
             fields=fields,
             full_name=full_name,
             options=opts,
@@ -185,7 +192,7 @@ class MessageMeta(type):
         manifest = getattr(module, '__all__', ())
         if not all([hasattr(module, i) for i in manifest]):
             return cls
-        cls._meta.generate_pb()
+        file_info.generate_file_pb()
 
         # Done; return the class.
         return cls
@@ -429,13 +436,6 @@ class Message(metaclass=MessageMeta):
             self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
 
 
-_FileInfo = collections.namedtuple(
-    'FileInfo',
-    ['descriptor', 'messages', 'name'],
-)
-_file_info_registry: Mapping[str, _FileInfo] = {}
-
-
 class _MessageInfo:
     """Metadata about a message.
 
@@ -449,9 +449,7 @@ class _MessageInfo:
             set on the message.
     """
     def __init__(self, *, fields: List[Field], package: str, full_name: str,
-                 file_info: _FileInfo,
                  options: descriptor_pb2.MessageOptions) -> None:
-        self.file_info = file_info
         self.package = package
         self.full_name = full_name
         self.options = options
@@ -472,8 +470,13 @@ class _MessageInfo:
         """
         return self._pb
 
-    def _generate_file_pb(self):
-        """Generate the descriptors for all protos in the **file**.
+
+class _FileInfo(collections.namedtuple(
+        '_FileInfo', ['descriptor', 'messages', 'name'])):
+    registry: Mapping[str, '_FileInfo'] = {}
+
+    def generate_file_pb(self):
+        """Generate the descriptors for all protos in the file.
 
         This method takes the file descriptor attached to the parent
         message and generates the immutable descriptors for all of the
@@ -486,15 +489,23 @@ class _MessageInfo:
         pool = descriptor_pool.Default()
 
         # Add the file descriptor.
-        pool.Add(self.file_info.descriptor)
+        pool.Add(self.descriptor)
 
         # Adding the file descriptor to the pool created a descriptor for
         # each message; go back through our wrapper messages and associate
         # them with the internal protobuf version.
-        for full_name, proto_plus_message in self.file_info.messages.items():
+        for full_name, proto_plus_message in self.messages.items():
+            # Get the descriptor from the pool, and create the protobuf
+            # message based on it.
+            descriptor = pool.FindMessageTypeByName(full_name)
+            pb_message = reflection.GeneratedProtocolMessageType(
+                descriptor.name,
+                (message.Message,),
+                {'DESCRIPTOR': descriptor, '__module__': None},
+            )
+
             # Register the message with the marshal so it is wrapped
             # appropriately.
-            pb_message = pool.FindMessageTypeByName(full_name)
             proto_plus_message._meta._pb = pb_message
             marshal.register(
                 pb_message,
@@ -503,11 +514,9 @@ class _MessageInfo:
 
         # We no longer need to track this file's info; remove it from
         # the module's registry and from this object.
-        _file_info_registry.pop(self.file_info.name)
-        del self.file_info
+        self.registry.pop(self.name)
 
 
 __all__ = (
     'Message',
-    'registry',
 )
