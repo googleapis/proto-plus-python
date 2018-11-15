@@ -61,7 +61,10 @@ class Field:
                         name=self.message,
                     )
             elif self.message:
-                type_name = self.message.full_name
+                if hasattr(self.message, 'DESCRIPTOR'):
+                    type_name = self.message.DESCRIPTOR.full_name
+                else:
+                    type_name = self.message.meta.full_name
             elif self.enum:
                 type_name = '{package}.{name}'.format(
                     package=self.package,

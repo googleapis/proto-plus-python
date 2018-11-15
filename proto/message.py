@@ -17,6 +17,7 @@ import collections.abc
 import copy
 import inspect
 import re
+import uuid
 from typing import List, Mapping, Type
 
 from google.protobuf import descriptor_pb2
@@ -98,6 +99,7 @@ class MessageMeta(type):
         # their own sequence.
         fields = []
         oneofs = collections.OrderedDict()
+        proto_imports = set()
         index = 0
         for key, field in copy.copy(attrs).items():
             # Sanity check: If this is not a field, do nothing.
@@ -130,13 +132,32 @@ class MessageMeta(type):
                 field.descriptor.oneof_index = oneofs[field.oneof]
                 oneofs[field.oneof] += 1
 
+            # If this field references a message, it may be from another
+            # proto file; ensure we know about the import (to faithfully
+            # construct our file descriptor proto).
+            if field.message and not isinstance(field.message, str):
+                field_type_desc = field.message.DESCRIPTOR
+                if field_type_desc:
+                    proto_imports.add(field_type_desc.file.name)
+
             # Increment the field index counter.
             index += 1
 
-        # Get a file descriptor object.
+        # Determine the filename.
+        # We determine an appropriate proto filename based on the
+        # Python module. If the filename has already been used (which would
+        # cause collisions in the descriptor pool), we salt it.
         filename = '{0}.proto'.format(
             attrs.get('__module__', name.lower()).replace('.', '/')
         )
+        if _FileInfo.registry.get(filename, None) is _FileInfo.TOMBSTONE:
+            filename = '{prefix}_{salt}.proto'.format(
+                prefix=filename[:-6],
+                salt=str(uuid.uuid4())[0:8],
+            )
+
+        # Get or create the information about the file, including the
+        # descriptor to which the new message descriptor shall be added.
         file_info = _FileInfo.registry.setdefault(filename, _FileInfo(
             descriptor=descriptor_pb2.FileDescriptorProto(
                 name=filename,
@@ -146,6 +167,12 @@ class MessageMeta(type):
             messages=collections.OrderedDict(),
             name=filename,
         ))
+
+        # Ensure any imports that would be necessary are assigned to the file
+        # descriptor proto being created.
+        for proto_import in proto_imports:
+            if proto_import not in file_info.descriptor.dependency:
+                file_info.descriptor.dependency.append(proto_import)
 
         # Retrieve any message options.
         opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
@@ -200,6 +227,16 @@ class MessageMeta(type):
     @classmethod
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
+
+    @property
+    def DESCRIPTOR(cls):
+        """Return the underlying protobuf descriptor.
+
+        This property is provided for duck-type compatibility with
+        protobuf's Message class.
+        """
+        if cls.pb():
+            return cls.pb().DESCRIPTOR
 
     @property
     def meta(cls):
@@ -474,6 +511,7 @@ class _MessageInfo:
 class _FileInfo(collections.namedtuple(
         '_FileInfo', ['descriptor', 'messages', 'name'])):
     registry: Mapping[str, '_FileInfo'] = {}
+    TOMBSTONE = object()
 
     def generate_file_pb(self):
         """Generate the descriptors for all protos in the file.
@@ -514,7 +552,7 @@ class _FileInfo(collections.namedtuple(
 
         # We no longer need to track this file's info; remove it from
         # the module's registry and from this object.
-        self.registry.pop(self.name)
+        self.registry[self.name] = self.TOMBSTONE
 
 
 __all__ = (
