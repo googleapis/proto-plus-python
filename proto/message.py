@@ -24,6 +24,7 @@ from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
 from google.protobuf import message
 from google.protobuf import reflection
+from google.protobuf import symbol_database
 
 from proto.fields import Field
 from proto.fields import MapField
@@ -136,9 +137,19 @@ class MessageMeta(type):
             # proto file; ensure we know about the import (to faithfully
             # construct our file descriptor proto).
             if field.message and not isinstance(field.message, str):
-                field_type_desc = field.message.DESCRIPTOR
-                if field_type_desc:
-                    proto_imports.add(field_type_desc.file.name)
+                field_msg = field.message
+                if hasattr(field_msg, 'pb') and callable(field_msg.pb):
+                    field_msg = field_msg.pb()
+
+                # Sanity check: The field's message may not yet be defined if
+                # it was a Message defined in the same file, and the file
+                # descriptor proto has not yet been generated.
+                #
+                # We do nothing in this situation; everything will be handled
+                # correctly when the file descriptor is created later.
+                if field_msg:
+                    proto_imports.add(field_msg.DESCRIPTOR.file.name)
+                    symbol_database.Default().RegisterMessage(field_msg)
 
             # Increment the field index counter.
             index += 1
@@ -227,16 +238,6 @@ class MessageMeta(type):
     @classmethod
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
-
-    @property
-    def DESCRIPTOR(cls):
-        """Return the underlying protobuf descriptor.
-
-        This property is provided for duck-type compatibility with
-        protobuf's Message class.
-        """
-        if cls.pb():
-            return cls.pb().DESCRIPTOR
 
     @property
     def meta(cls):
