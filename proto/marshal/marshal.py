@@ -60,21 +60,7 @@ class MarshalRegistry:
     def __init__(self):
         self._registry = {}
         self._noop = NoopMarshal()
-
-        # Register date and time wrappers.
-        self.register(timestamp_pb2.Timestamp, dates.TimestampMarshal())
-        self.register(duration_pb2.Duration, dates.DurationMarshal())
-
-        # Register nullable primitive wrappers.
-        self.register(wrappers_pb2.BoolValue, wrappers.BoolValueMarshal())
-        self.register(wrappers_pb2.BytesValue, wrappers.BytesValueMarshal())
-        self.register(wrappers_pb2.DoubleValue, wrappers.DoubleValueMarshal())
-        self.register(wrappers_pb2.FloatValue, wrappers.FloatValueMarshal())
-        self.register(wrappers_pb2.Int32Value, wrappers.Int32ValueMarshal())
-        self.register(wrappers_pb2.Int64Value, wrappers.Int64ValueMarshal())
-        self.register(wrappers_pb2.StringValue, wrappers.StringValueMarshal())
-        self.register(wrappers_pb2.UInt32Value, wrappers.UInt32ValueMarshal())
-        self.register(wrappers_pb2.UInt64Value, wrappers.UInt64ValueMarshal())
+        self.reset()
 
     def register(self, proto_type: type, rule: Rule = None):
         """Register a rule against the given ``proto_type``.
@@ -126,6 +112,25 @@ class MarshalRegistry:
             self._registry[proto_type] = rule_class()
             return rule_class
         return register_rule_class
+
+    def reset(self):
+        """Reset the registry to its initial state."""
+        self._registry.clear()
+
+        # Register date and time wrappers.
+        self.register(timestamp_pb2.Timestamp, dates.TimestampMarshal())
+        self.register(duration_pb2.Duration, dates.DurationMarshal())
+
+        # Register nullable primitive wrappers.
+        self.register(wrappers_pb2.BoolValue, wrappers.BoolValueMarshal())
+        self.register(wrappers_pb2.BytesValue, wrappers.BytesValueMarshal())
+        self.register(wrappers_pb2.DoubleValue, wrappers.DoubleValueMarshal())
+        self.register(wrappers_pb2.FloatValue, wrappers.FloatValueMarshal())
+        self.register(wrappers_pb2.Int32Value, wrappers.Int32ValueMarshal())
+        self.register(wrappers_pb2.Int64Value, wrappers.Int64ValueMarshal())
+        self.register(wrappers_pb2.StringValue, wrappers.StringValueMarshal())
+        self.register(wrappers_pb2.UInt32Value, wrappers.UInt32ValueMarshal())
+        self.register(wrappers_pb2.UInt64Value, wrappers.UInt64ValueMarshal())
 
     def to_python(self, proto_type, value, *, absent: bool = None):
         # Internal protobuf has its own special type for lists of values.

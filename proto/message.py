@@ -29,7 +29,7 @@ from google.protobuf import symbol_database
 from proto.fields import Field
 from proto.fields import MapField
 from proto.fields import RepeatedField
-from proto.marshal import marshal
+from proto.marshal.marshal import marshal
 from proto.marshal.types.message import MessageMarshal
 from proto.primitives import ProtoType
 
@@ -127,11 +127,10 @@ class MessageMeta(type):
             # If this field is part of a "oneof", ensure the oneof itself
             # is represented.
             if field.oneof:
-                # Keep a running tally of the length of each oneof,
-                # and assign the index to the field's descriptor.
-                oneofs.setdefault(field.oneof, 0)
+                # Keep a running tally of the index of each oneof, and assign
+                # that index to the field's descriptor.
+                oneofs.setdefault(field.oneof, len(oneofs))
                 field.descriptor.oneof_index = oneofs[field.oneof]
-                oneofs[field.oneof] += 1
 
             # If this field references a message, it may be from another
             # proto file; ensure we know about the import (to faithfully
