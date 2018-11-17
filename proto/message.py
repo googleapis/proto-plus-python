@@ -77,13 +77,17 @@ class MessageMeta(type):
 
             # Create the "entry" message (with the key and value fields).
             attrs[message_name] = MessageMeta(message_name, (Message,), {
+                '__module__': attrs.get('__module__', None),
+                '__qualname__': '{prefix}.{name}'.format(
+                    prefix=attrs.get('__qualname__', name),
+                    name=message_name,
+                ),
                 'key': Field(field.map_key_type, number=1),
                 'value': Field(field.proto_type, number=2,
                     enum=field.enum,
                     message=field.message,
                 ),
                 'Meta': type('Meta', (object,), {
-                    'full_name': '{0}.{1}'.format(full_name, message_name),
                     'options': descriptor_pb2.MessageOptions(map_entry=True),
                     'package': package,
                 }),
@@ -225,6 +229,8 @@ class MessageMeta(type):
         # built everything that is going to be in the module, and then
         # use the descriptor protos to instantiate the actual descriptors in
         # one fell swoop.
+        if cls._meta.options.map_entry:
+            return cls
         module = inspect.getmodule(cls)
         manifest = getattr(module, '__all__', ())
         if not all([hasattr(module, i) for i in manifest]):
