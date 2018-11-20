@@ -114,7 +114,7 @@ class MessageMeta(type):
                 continue
 
             # Remove the field from the attrs dictionary; the field objects
-            # themselves should not valuebe direct attributes.
+            # themselves should not be direct attributes.
             attrs.pop(key)
 
             # Add data that the field requires that we do not take in the
@@ -600,7 +600,7 @@ class _FileInfo(collections.namedtuple(
         # declared.
         for field in self.unresolved_fields:
             if field.message not in self.messages:
-                return True
+                return False
 
         # If the module in which this class is defined provides an __all__,
         # do not generate the file descriptor until every member of __all__

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from google.protobuf import descriptor_pb2
-from google.protobuf import message as pb_message
 
 from proto.primitives import ProtoType
 
