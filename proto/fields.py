@@ -66,10 +66,10 @@ class Field:
                 else:
                     type_name = self.message.meta.full_name
             elif self.enum:
-                type_name = '{package}.{name}'.format(
-                    package=self.package,
-                    name=self.enum.__qualname__,
-                )
+                # FIXME: This is obviously wrong (however, it does *work*).
+                # We need to set the enum type name and add the enum to
+                # the descriptor (like with messages above).
+                self.proto_type = ProtoType.INT32
 
             # Set the descriptor.
             self._descriptor = descriptor_pb2.FieldDescriptorProto(
@@ -90,44 +90,21 @@ class Field:
         return self.mcls_data['name']
 
     @property
-    def pb_type(self):
-        if self.message:
-            if hasattr(self.message, '_meta'):
-                return self.message.pb()
-            return self.message
-        return None
+    def package(self) -> str:
+        """Return the package of the field."""
+        return self.mcls_data['package']
 
     @property
-    def ready(self) -> bool:
-        """Return True if this field is ready, False otherwise."""
+    def pb_type(self):
+        """Return the composite type of the field, or None for primitives."""
+        # For primitives, return None.
+        if not self.message:
+            return None
 
-        # All non-message fields are ready.
-        # We do not have to check readiness on enums because we process
-        # all enums ahead of all messages, thus guaranteeing that they must
-        # be processed first.
-        if self.proto_type != ProtoType.MESSAGE:
-            return True
-
-        # This field may rely on an instantiated stock protobuf message.
-        # These are ready.
-        if (isinstance(self.message, type) and
-                issubclass(self.message, pb_message.Message)):
-            return True
-
-        # Corner case: Self-referential messages.
-        # Explicitly declare these to be ready.
-        if self.parent is self.message:
-            return True
-
-        # This field is ready if the underlying message is.
-        # That means the message is a message object (not a string) and that
-        # the referenced message is also ready.
-        #
-        # We use the `.pb` property rather than `.ready` here to avoid
-        # infinite recursion corner cases (e.g. self-referencing messages).
-        if isinstance(self.message, str):
-            return False
-        return bool(self.message._meta.pb)
+        # Return the internal protobuf message.
+        if hasattr(self.message, '_meta'):
+            return self.message.pb()
+        return self.message
 
 
 class RepeatedField(Field):

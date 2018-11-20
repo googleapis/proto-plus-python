@@ -234,21 +234,9 @@ class MessageMeta(type):
         # is generated.
         file_info.messages[full_name] = cls
 
-        # Determine if all the messages that we plan to create have been
-        # created. If so, build the descriptors.
-        #
-        # Since messages depend on one another, we create descriptor protos
-        # (which reference each other using strings) and wait until we have
-        # built everything that is going to be in the module, and then
-        # use the descriptor protos to instantiate the actual descriptors in
-        # one fell swoop.
-        if len(file_info.nested):
-            return cls
-        module = inspect.getmodule(cls)
-        manifest = set(getattr(module, '__all__', ())).difference({name})
-        if not all([hasattr(module, i) for i in manifest]):
-            return cls
-        file_info.generate_file_pb()
+        # Generate the descriptor for the file if it is ready.
+        if file_info.ready(new_class=cls):
+            file_info.generate_file_pb()
 
         # Done; return the class.
         return cls
@@ -576,9 +564,64 @@ class _FileInfo(collections.namedtuple(
                 MessageMarshal(pb_message, proto_plus_message)
             )
 
+            # Iterate over any fields on the message and, if their type
+            # is a message still referenced as a string, resolve the reference.
+            for field in proto_plus_message._meta.fields.values():
+                if field.message and isinstance(field.message, str):
+                    field.message = self.messages[field.message]
+
         # We no longer need to track this file's info; remove it from
         # the module's registry and from this object.
         self.registry.pop(self.name)
+
+    def ready(self, new_class):
+        """Return True if a file descriptor may added, False otherwise.
+
+        This determine if all the messages that we plan to create have been
+        created, as best as we are able.
+
+        Since messages depend on one another, we create descriptor protos
+        (which reference each other using strings) and wait until we have
+        built everything that is going to be in the module, and then
+        use the descriptor protos to instantiate the actual descriptors in
+        one fell swoop.
+
+        Args:
+            new_class (~.MessageMeta): The new class currently undergoing
+                creation.
+        """
+        # If there are any nested descriptors that have not been assigned to
+        # the descriptors that should contain them, then we are not ready.
+        if len(self.nested):
+            return False
+
+        # If there are any unresolved fields (fields with a composite message
+        # declared as a string), ensure that the corresponding message is
+        # declared.
+        for field in self.unresolved_fields:
+            if field.message not in self.messages:
+                return True
+
+        # If the module in which this class is defined provides an __all__,
+        # do not generate the file descriptor until every member of __all__
+        # has been populated.
+        module = inspect.getmodule(new_class)
+        manifest = set(getattr(module, '__all__', ())).difference(
+            {new_class.__name__},
+        )
+        if not all([hasattr(module, i) for i in manifest]):
+            return False
+
+        # Okay, we are ready.
+        return True
+
+    @property
+    def unresolved_fields(self):
+        """Return fields with referencing message types as strings."""
+        for proto_plus_message in self.messages.values():
+            for field in proto_plus_message._meta.fields.values():
+                if field.message and isinstance(field.message, str):
+                    yield field
 
 
 __all__ = (

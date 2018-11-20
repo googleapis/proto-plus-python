@@ -70,7 +70,6 @@ def test_composite_multi_ref():
 
 def test_composite_self_ref():
     class Spam(proto.Message):
-        __qualname__ = 'Spam'
         spam = proto.Field(proto.MESSAGE, number=1, message='Spam')
         eggs = proto.Field(proto.BOOL, number=2)
 
