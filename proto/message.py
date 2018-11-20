@@ -201,7 +201,7 @@ class MessageMeta(type):
         # If any descriptors were nested under this one, they need to be
         # attached as nested types here.
         for child_path in copy.copy(file_info.nested).keys():
-            if local_path == child_path[:len(local_path)]:
+            if local_path == child_path[:-1]:
                 desc.nested_type.add().MergeFrom(
                     file_info.nested.pop(child_path),
                 )
