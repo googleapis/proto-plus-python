@@ -47,16 +47,18 @@ class MessageMeta(type):
 
         # A package and full name should be present.
         package = getattr(Meta, 'package', '')
-        full_name = getattr(Meta, 'full_name',
-            '.'.join((package, attrs.get('__qualname__', name))).lstrip('.'),
-        )
+        local_path = tuple(attrs.get('__qualname__', name).split('.'))
 
         # Sanity check: We get the wrong full name if a class is declared
         # inside a function local scope; correct this.
-        if '.<locals>.' in full_name:
-            full_name = full_name.split('.')
-            ix = full_name.index('<locals>')
-            full_name = '.'.join(full_name[:ix - 1] + full_name[ix + 1:])
+        if '<locals>' in local_path:
+            ix = local_path.index('<locals>')
+            local_path = local_path[:ix - 1] + local_path[ix + 1:]
+
+        # Determine the full name in protocol buffers.
+        full_name = getattr(Meta, 'full_name',
+            '.'.join((package,) + local_path).lstrip('.'),
+        )
 
         # Special case: Maps. Map fields are special; they are essentially
         # shorthand for a nested message and a repeated field of that message.
@@ -164,11 +166,6 @@ class MessageMeta(type):
         filename = '{0}.proto'.format(
             attrs.get('__module__', name.lower()).replace('.', '/')
         )
-        if _FileInfo.registry.get(filename, None) is _FileInfo.TOMBSTONE:
-            filename = '{prefix}_{salt}.proto'.format(
-                prefix=filename[:-6],
-                salt=str(uuid.uuid4())[0:8],
-            )
 
         # Get or create the information about the file, including the
         # descriptor to which the new message descriptor shall be added.
@@ -180,6 +177,7 @@ class MessageMeta(type):
             ),
             messages=collections.OrderedDict(),
             name=filename,
+            nested={},
         ))
 
         # Ensure any imports that would be necessary are assigned to the file
@@ -192,13 +190,28 @@ class MessageMeta(type):
         opts = getattr(Meta, 'options', descriptor_pb2.MessageOptions())
 
         # Create the underlying proto descriptor.
-        file_info.descriptor.message_type.add(
+        desc = descriptor_pb2.DescriptorProto(
             name=name,
             field=[i.descriptor for i in fields],
             oneof_decl=[descriptor_pb2.OneofDescriptorProto(name=i)
                         for i in oneofs.keys()],
             options=opts,
         )
+
+        # If any descriptors were nested under this one, they need to be
+        # attached as nested types here.
+        for child_path in copy.copy(file_info.nested).keys():
+            if local_path == child_path[:len(local_path)]:
+                desc.nested_type.add().MergeFrom(
+                    file_info.nested.pop(child_path),
+                )
+
+        # Add the descriptor to the file if it is a top-level descriptor,
+        # or to a "holding area" for nested messages otherwise.
+        if len(local_path) == 1:
+            file_info.descriptor.message_type.add().MergeFrom(desc)
+        else:
+            file_info.nested[tuple(full_name.split('.'))] = desc
 
         # Create the MessageInfo instance to be attached to this message.
         attrs['_meta'] = _MessageInfo(
@@ -229,10 +242,10 @@ class MessageMeta(type):
         # built everything that is going to be in the module, and then
         # use the descriptor protos to instantiate the actual descriptors in
         # one fell swoop.
-        if cls._meta.options.map_entry:
+        if len(file_info.nested):
             return cls
         module = inspect.getmodule(cls)
-        manifest = getattr(module, '__all__', ())
+        manifest = set(getattr(module, '__all__', ())).difference({name})
         if not all([hasattr(module, i) for i in manifest]):
             return cls
         file_info.generate_file_pb()
@@ -515,9 +528,8 @@ class _MessageInfo:
 
 
 class _FileInfo(collections.namedtuple(
-        '_FileInfo', ['descriptor', 'messages', 'name'])):
+        '_FileInfo', ['descriptor', 'messages', 'name', 'nested'])):
     registry: Mapping[str, '_FileInfo'] = {}
-    TOMBSTONE = object()
 
     def generate_file_pb(self):
         """Generate the descriptors for all protos in the file.
@@ -531,6 +543,14 @@ class _FileInfo(collections.namedtuple(
         generated, as determined by the module's __all__ tuple.
         """
         pool = descriptor_pool.Default()
+
+        # Salt the filename in the descriptor.
+        # This allows re-use of the filename by other proto messages if
+        # needed (e.g. if __all__ is not used).
+        self.descriptor.name = '{prefix}_{salt}.proto'.format(
+            prefix=self.descriptor.name[:-6],
+            salt=str(uuid.uuid4())[0:8],
+        )
 
         # Add the file descriptor.
         pool.Add(self.descriptor)
@@ -558,7 +578,7 @@ class _FileInfo(collections.namedtuple(
 
         # We no longer need to track this file's info; remove it from
         # the module's registry and from this object.
-        self.registry[self.name] = self.TOMBSTONE
+        self.registry.pop(self.name)
 
 
 __all__ = (
