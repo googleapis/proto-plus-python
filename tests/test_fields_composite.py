@@ -64,7 +64,7 @@ def test_composite_outer_rmw():
 
     spam = Spam(foo=Foo(bar=3.14159))
     spam.foo = Foo(bar=2.71828)
-    assert spam.foo.bar == 2.71828
+    assert abs(spam.foo.bar - 2.71828) < 1e-7
 
 
 def test_composite_dict_write():
@@ -76,7 +76,7 @@ def test_composite_dict_write():
 
     spam = Spam()
     spam.foo = {'bar': 2.71828}
-    assert spam.foo.bar == 2.71828
+    assert abs(spam.foo.bar - 2.71828) < 1e-7
 
 
 def test_composite_del():
