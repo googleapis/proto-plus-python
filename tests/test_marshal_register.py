@@ -14,33 +14,40 @@
 
 import pytest
 
-from google.protobuf import descriptor_pb2
+from google.protobuf import empty_pb2
 
 import proto
 
 
 def test_registration():
-    FileDescriptor = descriptor_pb2.FileDescriptorProto
-    try:
-        @proto.marshal.register(FileDescriptor)
+    @proto.marshal.register(empty_pb2.Empty)
+    class Marshal:
+        def to_proto(self, value):
+            return value
+
+        def to_python(self, value, *, absent=None):
+            return value
+    assert isinstance(proto.marshal._registry[empty_pb2.Empty], Marshal)
+
+
+def test_invalid_target_registration():
+    with pytest.raises(TypeError):
+        @proto.marshal.register(object)
         class Marshal:
             def to_proto(self, value):
                 return value
 
             def to_python(self, value, *, absent=None):
                 return value
-        assert isinstance(proto.marshal._registry[FileDescriptor], Marshal)
-    finally:
-        proto.marshal._registry.pop(FileDescriptor, None)
 
 
 def test_invalid_marshal_class():
     with pytest.raises(TypeError):
-        @proto.marshal.register(descriptor_pb2.FileDescriptorProto)
+        @proto.marshal.register(empty_pb2.Empty)
         class Marshal:
             pass
 
 
 def test_invalid_marshal_rule():
     with pytest.raises(TypeError):
-        proto.marshal.register(descriptor_pb2.DescriptorProto, rule=object())
+        proto.marshal.register(empty_pb2.Empty, rule=object())
