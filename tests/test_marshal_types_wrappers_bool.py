@@ -52,14 +52,8 @@ def test_bool_value_distinction_from_bool():
 
 def test_bool_value_rmw():
     class Foo(proto.Message):
-        bar = proto.Field(proto.MESSAGE,
-            message=wrappers_pb2.BoolValue,
-            number=1,
-        )
-        baz = proto.Field(proto.MESSAGE,
-            message=wrappers_pb2.BoolValue,
-            number=1,
-        )
+        bar = proto.Field(wrappers_pb2.BoolValue, number=1)
+        baz = proto.Field(wrappers_pb2.BoolValue, number=2)
     foo = Foo(bar=False)
     assert foo.bar is False
     assert foo.baz is None
