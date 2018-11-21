@@ -71,11 +71,11 @@ class MessageMeta(type):
             # Determine the name of the entry message.
             message_name = '{pascal_key}Entry'.format(
                 pascal_key=re.sub(
-                    r'_[\w]',
-                    lambda m: m.group().upper(),
+                    r'_\w',
+                    lambda m: m.group()[1:].upper(),
                     key,
-                ).capitalize(),
-            )
+                )
+            ).replace(key[0], key[0].upper(), 1)
 
             # Create the "entry" message (with the key and value fields).
             attrs[message_name] = MessageMeta(message_name, (Message,), {
