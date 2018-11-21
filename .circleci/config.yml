@@ -20,7 +20,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unit-3.5
@@ -36,7 +37,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unit-3.6
@@ -52,7 +54,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unit-3.7
@@ -68,7 +71,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unitcpp-3.5
@@ -84,7 +88,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unitcpp-3.6
@@ -100,7 +105,8 @@ jobs:
       - run:
           name: Install nox and codecov.
           command: |
-            pip install codecov nox-automation
+            pip install --pre nox-automation
+            pip install codecov
       - run:
           name: Run unit tests.
           command: nox -s unitcpp-3.7
@@ -115,7 +121,7 @@ jobs:
       - checkout
       - run:
           name: Install nox.
-          command: pip install nox-automation
+          command: pip install --pre nox-automation
       - run:
           name: Build the documentation.
           command: nox -s docs
