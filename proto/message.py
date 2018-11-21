@@ -517,7 +517,7 @@ class _MessageInfo:
 
 class _FileInfo(collections.namedtuple(
         '_FileInfo', ['descriptor', 'messages', 'name', 'nested'])):
-    registry: Mapping[str, '_FileInfo'] = {}
+    registry = {}  # Mapping[str, '_FileInfo']
 
     def generate_file_pb(self):
         """Generate the descriptors for all protos in the file.
