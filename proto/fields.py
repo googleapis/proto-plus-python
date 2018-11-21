@@ -28,6 +28,12 @@ class Field:
         self.mcls_data = {}
         self.parent = None
 
+        # If the proto type sent is an object or a string, it is really
+        # a message or enum.
+        if not isinstance(proto_type, int):
+            message = proto_type
+            proto_type = ProtoType.MESSAGE
+
         # Save the direct arguments.
         self.number = number
         self.proto_type = proto_type
@@ -53,12 +59,12 @@ class Field:
             # Resolve the message type, if any, to a string.
             type_name = None
             if isinstance(self.message, str):
-                type_name = self.message
                 if not self.message.startswith(self.package):
-                    type_name = '{package}.{name}'.format(
+                    self.message = '{package}.{name}'.format(
                         package=self.package,
                         name=self.message,
                     )
+                type_name = self.message
             elif self.message:
                 if hasattr(self.message, 'DESCRIPTOR'):
                     type_name = self.message.DESCRIPTOR.full_name

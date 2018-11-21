@@ -94,6 +94,15 @@ def test_bool_value_del():
     assert foo.bar is None
 
 
+def test_multiple_types():
+    class Foo(proto.Message):
+        bar = proto.Field(wrappers_pb2.BoolValue, number=1)
+        baz = proto.Field(wrappers_pb2.Int32Value, number=2)
+    foo = Foo(bar=True, baz=42)
+    assert foo.bar is True
+    assert foo.baz == 42
+
+
 def test_bool_value_to_python():
     # This path can never run in the current configuration because proto
     # values are the only thing ever saved, and `to_python` is a read method.
