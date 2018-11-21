@@ -111,6 +111,21 @@ def test_repeated_composite_append():
     assert baz.foos[1].bar == 72
 
 
+def test_repeated_composite_insert():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
+
+    baz = Baz()
+    baz.foos.insert(0, {'bar': 72})
+    baz.foos.insert(0, Foo(bar=96))
+    assert len(baz.foos) == 2
+    assert baz.foos[0].bar == 96
+    assert baz.foos[1].bar == 72
+
+
 def test_repeated_composite_iadd():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, number=1)

@@ -52,14 +52,8 @@ def test_bool_value_distinction_from_bool():
 
 def test_bool_value_rmw():
     class Foo(proto.Message):
-        bar = proto.Field(proto.MESSAGE,
-            message=wrappers_pb2.BoolValue,
-            number=1,
-        )
-        baz = proto.Field(proto.MESSAGE,
-            message=wrappers_pb2.BoolValue,
-            number=1,
-        )
+        bar = proto.Field(wrappers_pb2.BoolValue, number=1)
+        baz = proto.Field(wrappers_pb2.BoolValue, number=2)
     foo = Foo(bar=False)
     assert foo.bar is False
     assert foo.baz is None
@@ -92,6 +86,15 @@ def test_bool_value_del():
     assert foo.bar is False
     del foo.bar
     assert foo.bar is None
+
+
+def test_multiple_types():
+    class Foo(proto.Message):
+        bar = proto.Field(wrappers_pb2.BoolValue, number=1)
+        baz = proto.Field(wrappers_pb2.Int32Value, number=2)
+    foo = Foo(bar=True, baz=42)
+    assert foo.bar is True
+    assert foo.baz == 42
 
 
 def test_bool_value_to_python():

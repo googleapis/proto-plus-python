@@ -41,7 +41,7 @@ This is the equivalent message declaration in Python, using this library:
         family_name = proto.Field(proto.STRING, number=2)
 
     class Song(proto.Message):
-        composer = proto.Field(proto.MESSAGE, message=Composer, number=1)
+        composer = proto.Field(Composer, number=1)
         title = proto.Field(proto.STRING, number=2)
         lyrics = proto.Field(proto.STRING, number=3)
         year = proto.Field(proto.INT32, number=4)

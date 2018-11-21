@@ -4,6 +4,8 @@ branch = True
 [report]
 fail_under = 100
 show_missing = True
+omit =
+    proto/marshal/containers.py
 exclude_lines =
     # Re-enable the standard pragma
     pragma: NO COVER

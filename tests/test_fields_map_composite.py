@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import proto
 
 
@@ -45,6 +47,8 @@ def test_composite_map_dict():
     assert baz.foos['i'].bar == 42
     assert baz.foos['j'].bar == 24
     assert 'k' not in baz.foos
+    with pytest.raises(KeyError):
+        baz.foos['k']
 
 
 def test_composite_map_set():

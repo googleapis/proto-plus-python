@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from google.protobuf import descriptor
-from google.protobuf import message as pb_message
+from google.protobuf import descriptor_pb2
 
-from proto.primitives import get_default_value
 from proto.primitives import ProtoType
 
 
@@ -23,11 +21,18 @@ class Field:
     """A representation of a type of field in protocol buffers."""
 
     def __init__(self, proto_type, *, number: int,
-                 message=None, enum=None, oneof: str = None):
+                 message=None, enum=None, oneof: str = None,
+                 json_name: str = None):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
         self.mcls_data = {}
         self.parent = None
+
+        # If the proto type sent is an object or a string, it is really
+        # a message or enum.
+        if not isinstance(proto_type, int):
+            message = proto_type
+            proto_type = ProtoType.MESSAGE
 
         # Save the direct arguments.
         self.number = number
@@ -35,6 +40,7 @@ class Field:
         self.message = message
         self.enum = enum
         self.oneof = oneof
+        self.json_name = json_name
 
         # Fields are neither repeated nor maps.
         # The RepeatedField and MapField subclasses override these values
@@ -50,83 +56,60 @@ class Field:
     def descriptor(self):
         """Return the descriptor for the field."""
         if not self._descriptor:
-            # Determine the default value.
-            default_value = get_default_value(self.proto_type)
-            if self.repeated:
-                default_value = []
-
-            # Resolve the message type, if any, to its underlying
-            # protobuf descriptor.
-            message_type = self.message
-            if self.message and hasattr(self.message, '_meta'):
-                message_type = self.message._meta.pb
-            elif isinstance(self.message, str):
-                # If the message was specified as a string, skip passing it to
-                # the descriptor for the moment (when the field is added to a
-                # message in `MessageMeta`, it will be resolved).
-                message_type = None
+            # Resolve the message type, if any, to a string.
+            type_name = None
+            if isinstance(self.message, str):
+                if not self.message.startswith(self.package):
+                    self.message = '{package}.{name}'.format(
+                        package=self.package,
+                        name=self.message,
+                    )
+                type_name = self.message
+            elif self.message:
+                if hasattr(self.message, 'DESCRIPTOR'):
+                    type_name = self.message.DESCRIPTOR.full_name
+                else:
+                    type_name = self.message.meta.full_name
+            elif self.enum:
+                # FIXME: This is obviously wrong (however, it does *work*).
+                # We need to set the enum type name and add the enum to
+                # the descriptor (like with messages above).
+                self.proto_type = ProtoType.INT32
 
             # Set the descriptor.
-            self._descriptor = descriptor.FieldDescriptor(
-                name=self.mcls_data['name'],
-                full_name=self.mcls_data['full_name'],
-                index=self.mcls_data['index'],
+            self._descriptor = descriptor_pb2.FieldDescriptorProto(
+                name=self.name,
                 number=self.number,
                 label=3 if self.repeated else 1,
                 type=self.proto_type,
-                cpp_type=descriptor.FieldDescriptor.ProtoTypeToCppProtoType(
-                    self.proto_type,
-                ),
-                default_value=default_value,
-                message_type=message_type.DESCRIPTOR if message_type else None,
-                enum_type=self.enum,
-                containing_type=None,
-                is_extension=False,
-                extension_scope=None,
+                type_name=type_name,
+                json_name=self.json_name,
             )
+
+        # Return the descriptor.
         return self._descriptor
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the field."""
         return self.mcls_data['name']
 
     @property
-    def pb_type(self):
-        if self.message:
-            if hasattr(self.message, '_meta'):
-                return self.message.pb()
-            return self.message
-        return None
+    def package(self) -> str:
+        """Return the package of the field."""
+        return self.mcls_data['package']
 
     @property
-    def ready(self):
-        # All non-message fields are ready.
-        # We do not have to check readiness on enums because we process
-        # all enums ahead of all messages, thus guaranteeing that they must
-        # be processed first.
-        if self.proto_type != ProtoType.MESSAGE:
-            return True
+    def pb_type(self):
+        """Return the composite type of the field, or None for primitives."""
+        # For primitives, return None.
+        if not self.message:
+            return None
 
-        # This field may rely on an instantiated stock protobuf message.
-        # These are ready.
-        if (isinstance(self.message, type) and
-                issubclass(self.message, pb_message.Message)):
-            return True
-
-        # Corner case: Self-referential messages.
-        # Explicitly declare these to be ready.
-        if self.parent is self.message:
-            return True
-
-        # This field is ready if the underlying message is.
-        # That means the message is a message object (not a string) and that
-        # the referenced message is also ready.
-        # We use the `.pb` property rather than `.ready` here to avoid
-        # infinite recursion corner cases (e.g. self-referencing messages).
-        if isinstance(self.message, str):
-            return False
-        return bool(self.message._meta.pb)
+        # Return the internal protobuf message.
+        if hasattr(self.message, '_meta'):
+            return self.message.pb()
+        return self.message
 
 
 class RepeatedField(Field):

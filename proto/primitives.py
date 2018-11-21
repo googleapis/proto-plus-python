@@ -35,26 +35,3 @@ class ProtoType(enum.IntEnum):
     SFIXED64 = 16
     SINT32 = 17
     SINT64 = 18
-
-
-# The default values for each type.
-def get_default_value(proto_type):
-    return {
-        ProtoType.DOUBLE: 0.0,
-        ProtoType.FLOAT: 0.0,
-        ProtoType.INT64: 0,
-        ProtoType.UINT64: 0,
-        ProtoType.INT32: 0,
-        ProtoType.FIXED64: 0,
-        ProtoType.FIXED32: 0,
-        ProtoType.BOOL: False,
-        ProtoType.STRING: '',
-        ProtoType.MESSAGE: None,
-        ProtoType.BYTES: b'',
-        ProtoType.UINT32: 0,
-        ProtoType.ENUM: 0,
-        ProtoType.SFIXED32: 0,
-        ProtoType.SFIXED64: 0,
-        ProtoType.SINT32: 0,
-        ProtoType.SINT64: 0,
-    }[proto_type]
