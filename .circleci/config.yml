@@ -5,11 +5,11 @@ workflows:
   tests:
     jobs:
       - unit-3.5
-      - unitcpp-3.5
+      - unit-cpp-3.5
       - unit-3.6
-      - unitcpp-3.6
+      - unit-cpp-3.6
       - unit-3.7
-      - unitcpp-3.7
+      - unit-cpp-3.7
       - docs
 jobs:
   unit-3.5:
