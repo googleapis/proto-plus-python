@@ -18,7 +18,7 @@ import copy
 import inspect
 import re
 import uuid
-from typing import List, Mapping, Type
+from typing import List, Type
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import descriptor_pool
@@ -74,8 +74,8 @@ class MessageMeta(type):
                     r'_\w',
                     lambda m: m.group()[1:].upper(),
                     key,
-                )
-            ).replace(key[0], key[0].upper(), 1)
+                ).replace(key[0], key[0].upper(), 1),
+            )
 
             # Create the "entry" message (with the key and value fields).
             attrs[message_name] = MessageMeta(message_name, (Message,), {
