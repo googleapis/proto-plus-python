@@ -69,7 +69,7 @@ class MessageMeta(type):
                 continue
 
             # Determine the name of the entry message.
-            message_name = '{pascal_key}Entry'.format(
+            msg_name = '{pascal_key}Entry'.format(
                 pascal_key=re.sub(
                     r'_\w',
                     lambda m: m.group()[1:].upper(),
@@ -78,27 +78,35 @@ class MessageMeta(type):
             )
 
             # Create the "entry" message (with the key and value fields).
-            attrs[message_name] = MessageMeta(message_name, (Message,), {
+            #
+            # Note: We instantiate an ordered dictionary here and then
+            # attach key and value in order to ensure that the fields are
+            # iterated in the correct order when the class is created.
+            # This is only an issue in Python 3.5, where the order is
+            # random (and the wrong order causes the pool to refuse to add
+            # the descriptor because reasons).
+            entry_attrs = collections.OrderedDict({
                 '__module__': attrs.get('__module__', None),
                 '__qualname__': '{prefix}.{name}'.format(
                     prefix=attrs.get('__qualname__', name),
-                    name=message_name,
-                ),
-                'key': Field(field.map_key_type, number=1),
-                'value': Field(field.proto_type, number=2,
-                    enum=field.enum,
-                    message=field.message,
+                    name=msg_name,
                 ),
                 'Meta': type('Meta', (object,), {
                     'options': descriptor_pb2.MessageOptions(map_entry=True),
                     'package': package,
                 }),
             })
+            entry_attrs['key'] = Field(field.map_key_type, number=1)
+            entry_attrs['value'] = Field(field.proto_type, number=2,
+                enum=field.enum,
+                message=field.message,
+            )
+            attrs[msg_name] = MessageMeta(msg_name, (Message,), entry_attrs)
 
             # Create the repeated field for the entry message.
             attrs[key] = RepeatedField(ProtoType.MESSAGE,
                 number=field.number,
-                message=attrs[message_name],
+                message=attrs[msg_name],
             )
 
         # Okay, now we deal with all the rest of the fields.
