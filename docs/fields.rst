@@ -2,16 +2,36 @@ Fields
 ======
 
 Fields are assigned using the :class:`~.Field` class, instantiated within a
-:class:`~.Message` declaraction.
+:class:`~.Message` declaration.
 
 Fields always have a type (either a primitive, a message, or an enum) and a
-``number``. Additionally, if the type is ``MESSAGE`` or ``ENUM``, then they
-have an additional keyword argument declaring what the type is.
+``number``.
+
+.. code-block:: python
+
+    import proto
+
+    class Composer(proto.Message):
+        given_name = proto.Field(proto.STRING, number=1)
+        family_name = proto.Field(proto.STRING, number=2)
+
+    class Song(proto.Message):
+        composer = proto.Field(Composer, number=1)
+        title = proto.Field(proto.STRING, number=2)
+        lyrics = proto.Field(proto.STRING, number=3)
+        year = proto.Field(proto.INT32, number=4)
+
+
 
 For messages and enums, assign the message or enum class directly (as shown
-in the example above). For messages declared in the same module, it is also
-possible to use a string with the message class' name, which allows for
-declaring messages out of order or with circular references.
+in the example above).
+
+.. note::
+
+    For messages declared in the same module, it is also possible to use a
+    string with the message class' name *if* the class is not
+    yet declared, which allows for declaring messages out of order or with
+    circular references.
 
 Repeated fields
 ---------------
@@ -32,7 +52,7 @@ Declare them in Python using the :class:`~.RepeatedField` class:
 .. code-block:: python
 
     class Album(proto.Message):
-        songs = proto.RepeatedField(proto.MESSAGE, message=Song, number=1)
+        songs = proto.RepeatedField(Song, number=1)
         publisher = proto.Field(proto.STRING, number=2)
 
 
@@ -56,9 +76,7 @@ Declare them in Python using the :class:`~.MapField` class:
 .. code-block:: python
 
     class Album(proto.Message):
-        track_list = proto.MapField(proto.INT32, proto.MESSAGE, number=1,
-            message=Song,
-        )
+        track_list = proto.MapField(proto.UINT32, Song, number=1)
         publisher = proto.Field(proto.STRING, number=2)
 
 
@@ -92,7 +110,13 @@ a string (which should match for all fields within the oneof):
     from google.type.postal_address import PostalAddress
 
     class AlbumPurchase(proto.Message):
-        album = proto.Field(proto.MESSAGE, message=Album, number=1)
-        postal_address = proto.Field(proto.MESSAGE, number=2,
-            message=PostalAddress, oneof='delivery')
+        album = proto.Field(Album, number=1)
+        postal_address = proto.Field(PostalAddress, number=2, oneof='delivery')
         download_uri = proto.Field(proto.STRING, number=3, oneof='delivery')
+
+.. warning::
+
+    ``oneof`` fields **must** be declared consecutively, otherwise the C
+    implementation of protocol buffers will reject the message. They need not
+    have consecutive field numbers, but they must be declared in consecutive
+    order.

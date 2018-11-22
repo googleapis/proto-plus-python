@@ -14,4 +14,7 @@ Nice things this library does:
 Upcoming work
 -------------
 
-- Specilized behavior for ``google.protobuf.FieldMask`` objects.
+- Improved enum support.
+- Specialized behavior for ``google.protobuf.Value`` and
+  ``google.protobuf.Struct`` objects.
+- Specialized behavior for ``google.protobuf.FieldMask`` objects.
