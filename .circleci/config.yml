@@ -11,10 +11,24 @@ workflows:
       - unit-3.7
       - unit-cpp-3.7
       - docs
+      - publish:
+          requires:
+            - unit-3.5
+            - unit-cpp-3.5
+            - unit-3.6
+            - unit-cpp-3.6
+            - unit-3.7
+            - unit-cpp-3.7
+            - docs
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+((a|b|rc)\d+)?$/
 jobs:
   unit-3.5:
     docker:
-      - image: 'python:3.5'
+      - image: python:3.5
     steps:
       - checkout
       - run:
@@ -31,7 +45,7 @@ jobs:
           when: always
   unit-3.6:
     docker:
-      - image: 'python:3.6'
+      - image: python:3.6
     steps:
       - checkout
       - run:
@@ -48,7 +62,7 @@ jobs:
           when: always
   unit-3.7:
     docker:
-      - image: 'python:3.7'
+      - image: python:3.7
     steps:
       - checkout
       - run:
@@ -65,7 +79,7 @@ jobs:
           when: always
   unit-cpp-3.5:
     docker:
-      - image: 'python:3.5'
+      - image: python:3.5
     steps:
       - checkout
       - run:
@@ -82,7 +96,7 @@ jobs:
           when: always
   unit-cpp-3.6:
     docker:
-      - image: 'python:3.6'
+      - image: python:3.6
     steps:
       - checkout
       - run:
@@ -99,7 +113,7 @@ jobs:
           when: always
   unit-cpp-3.7:
     docker:
-      - image: 'python:3.7'
+      - image: python:3.7
     steps:
       - checkout
       - run:
@@ -116,7 +130,7 @@ jobs:
           when: always
   docs:
     docker:
-      - image: 'python:3.6'
+      - image: python:3.6
     steps:
       - checkout
       - run:
@@ -125,3 +139,14 @@ jobs:
       - run:
           name: Build the documentation.
           command: nox -s docs
+  publish:
+    docker:
+      - image: python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Decrypt the PyPI key.
+          command: openssl aes-256-cbc -d -k "${PYPIRC_ENCRYPTION_KEY}" < .circleci/.pypirc.enc > ~/.pypirc
+      - run:
+          name: Publish to PyPI.
+          command: python setup.py sdist upload
