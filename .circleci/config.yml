@@ -167,7 +167,11 @@ jobs:
       - checkout
       - run:
           name: Decrypt the PyPI key.
-          command: openssl aes-256-cbc -d -k "${PYPIRC_ENCRYPTION_KEY}" < .circleci/.pypirc.enc > ~/.pypirc
+          command: |
+            openssl aes-256-cbc -d \
+              -in .circleci/.pypirc.enc \
+              -out ~/.pypirc \
+              -k "${PYPIRC_ENCRYPTION_KEY}"
       - run:
           name: Publish to PyPI.
           command: python setup.py sdist upload
