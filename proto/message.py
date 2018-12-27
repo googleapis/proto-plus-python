@@ -515,7 +515,7 @@ class _MessageInfo:
     """
     def __init__(self, *,
             fields: List[Field], package: str, full_name: str,
-            marshal: Marshal, options: descriptor_pb2.MessageOptions,
+            marshal: Marshal, options: descriptor_pb2.MessageOptions
             ) -> None:
         self.package = package
         self.full_name = full_name
