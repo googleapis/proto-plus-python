@@ -45,6 +45,9 @@ htmlcov
 # JetBrains
 .idea
 
+# pyenv
+.python-version
+
 # Built documentation
 docs/_build
 docs/_build_doc2dash
