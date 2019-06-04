@@ -56,6 +56,9 @@ coverage.xml
 # System test environment variables.
 system_tests/local_test_setup
 
+# MyPy
+.mypy_cache
+
 # Make sure a generated file isn't accidentally committed.
 pylintrc
 pylintrc.test
