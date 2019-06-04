@@ -15,6 +15,7 @@
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from typing import Optional
 
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
@@ -28,7 +29,7 @@ class TimestampRule:
     precision matters, it is recommended to interact with the internal
     proto directly.
     """
-    def to_python(self, value, *, absent: bool = None) -> datetime:
+    def to_python(self, value, *, absent: bool = None) -> Optional[datetime]:
         if isinstance(value, timestamp_pb2.Timestamp):
             if absent:
                 return None

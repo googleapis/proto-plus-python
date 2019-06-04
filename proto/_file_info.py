@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict, FrozenSet
 import collections
 import collections.abc
 import inspect
@@ -26,7 +27,7 @@ from proto.marshal.rules.message import MessageRule
 
 class _FileInfo(collections.namedtuple(
         '_FileInfo', ['descriptor', 'messages', 'enums', 'name', 'nested'])):
-    registry = {}  # Mapping[str, '_FileInfo']
+    registry = {}  # type: Dict[str, '_FileInfo']
 
     def generate_file_pb(self):
         """Generate the descriptors for all protos in the file.
@@ -121,9 +122,9 @@ class _FileInfo(collections.namedtuple(
         # Do not generate the file descriptor until every member of the
         # manifest has been populated.
         module = inspect.getmodule(new_class)
-        manifest = frozenset()
+        manifest = frozenset()  # type: FrozenSet[str]
         if hasattr(module, '__protobuf__'):
-            manifest = module.__protobuf__.manifest.difference(
+            manifest = module.__protobuf__.manifest.difference(  # type: ignore
                 {new_class.__name__},
             )
         if not all([hasattr(module, i) for i in manifest]):

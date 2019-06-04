@@ -16,7 +16,7 @@ import collections
 import collections.abc
 import copy
 import re
-from typing import List, Type
+from typing import Dict, List, Type
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
@@ -105,7 +105,7 @@ class MessageMeta(type):
         # Iterate over all the attributes and separate the fields into
         # their own sequence.
         fields = []
-        oneofs = collections.OrderedDict()
+        oneofs = collections.OrderedDict()  # type: Dict[str, int]
         proto_imports = set()
         index = 0
         for key, field in copy.copy(attrs).items():
@@ -216,21 +216,21 @@ class MessageMeta(type):
         else:
             file_info.nested[local_path] = desc
 
+        # Run the superclass constructor.
+        cls = super().__new__(mcls, name, bases, attrs)
+
         # Create the MessageInfo instance to be attached to this message.
-        attrs['_meta'] = _MessageInfo(
+        cls._meta = meta = _MessageInfo(
             fields=fields,
             full_name=full_name,
             marshal=marshal,
             options=opts,
             package=package,
+            parent=cls,
         )
 
-        # Run the superclass constructor.
-        cls = super().__new__(mcls, name, bases, attrs)
-
         # The info class and fields need a reference to the class just created.
-        cls._meta.parent = cls
-        for field in cls._meta.fields.values():
+        for field in meta.fields.values():
             field.parent = cls
 
         # Add this message to the _FileInfo instance; this allows us to

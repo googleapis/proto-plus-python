@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 import os
 
-import nox
+import nox  # type: ignore
 
 
 @nox.session(python=['3.5', '3.6', '3.7'])

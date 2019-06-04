@@ -20,7 +20,7 @@
 
 from google.protobuf.internal import containers
 try:
-    from google.protobuf.pyext import _message
+    from google.protobuf.pyext import _message  # type: ignore
 except ImportError:
     _message = None
 

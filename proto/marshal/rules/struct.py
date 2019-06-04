@@ -60,7 +60,9 @@ class ValueRule:
         if isinstance(value, struct_pb2.Value):
             return value
         if value is None:
-            return struct_pb2.Value(null_value=0)
+            return struct_pb2.Value(
+                null_value=struct_pb2.NullValue.Value(b'NULL_VALUE'),
+            )
         if isinstance(value, bool):
             return struct_pb2.Value(bool_value=value)
         if isinstance(value, (int, float)):

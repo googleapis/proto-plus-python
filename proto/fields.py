@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from enum import EnumMeta
+from typing import Any, Dict
 
 from google.protobuf import descriptor_pb2
 
@@ -27,7 +28,7 @@ class Field:
                  json_name: str = None):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
-        self.mcls_data = {}
+        self.mcls_data = {}  # type: Dict[str, Any]
         self.parent = None
 
         # If the proto type sent is an object or a string, it is really
@@ -95,10 +96,12 @@ class Field:
                 proto_type = ProtoType.INT32
 
             # Set the descriptor.
-            self._descriptor = descriptor_pb2.FieldDescriptorProto(
+            FieldDesc = descriptor_pb2.FieldDescriptorProto
+            self._descriptor = FieldDesc(
                 name=self.name,
                 number=self.number,
-                label=3 if self.repeated else 1,
+                label=FieldDesc.Label.Value(b'LABEL_REPEATED') if self.repeated
+                    else FieldDesc.Label.Value(b'LABEL_OPTIONAL'),
                 type=proto_type,
                 type_name=type_name,
                 json_name=self.json_name,

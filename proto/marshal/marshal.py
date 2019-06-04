@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict, Type, Union
 import abc
 import enum
 
@@ -30,6 +31,9 @@ from proto.marshal.rules import struct
 from proto.marshal.rules import wrappers
 
 
+ProtoType = Type[Union[message.Message, enum.IntEnum]]
+
+
 class Rule(abc.ABC):
     """Abstract class definition for marshal rules."""
 
@@ -38,6 +42,14 @@ class Rule(abc.ABC):
         if hasattr(C, 'to_python') and hasattr(C, 'to_proto'):
             return True
         return NotImplemented
+
+    @abc.abstractmethod
+    def to_python(self, value, *, absent: bool = None):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def to_proto(self, value, *, strict: bool = None):
+        raise NotImplementedError
 
 
 class BaseMarshal:
@@ -59,11 +71,11 @@ class BaseMarshal:
     usually be used instead of this class directly.
     """
     def __init__(self):
-        self._rules = {}
+        self._rules = {}  # type: Dict[ProtoType, Rule]
         self._noop = NoopRule()
         self.reset()
 
-    def register(self, proto_type: type, rule: Rule = None):
+    def register(self, proto_type: ProtoType, rule: Rule = None):
         """Register a rule against the given ``proto_type``.
 
         This function expects a ``proto_type`` (the descriptor class) and
@@ -213,7 +225,7 @@ class Marshal(BaseMarshal):
     adds identity tracking: multiple instantiations of :class:`Marshal` with
     the same name will provide the same instance.
     """
-    _instances = {}
+    _instances = {}  # type: Dict[str, Marshal]
 
     def __new__(cls, *, name: str):
         """Create a marshal instance.

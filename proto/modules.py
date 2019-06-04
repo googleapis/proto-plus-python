@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Set
+from typing import FrozenSet
 import collections
 
 
@@ -22,7 +22,7 @@ _ProtoModule = collections.namedtuple('ProtoModule',
 
 
 def define_module(*, package: str, marshal: str = None,
-            manifest: Set[str] = frozenset()) -> _ProtoModule:
+            manifest: FrozenSet[str] = frozenset()) -> _ProtoModule:
     """Define a protocol buffers module.
 
     The settings defined here are used for all protobuf messages
