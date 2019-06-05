@@ -12,11 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import typing
+
+if getattr(typing, 'TYPE_CHECKING', False):
+    from google.protobuf import message
+    import proto
+
 
 class MessageRule:
     """A marshal for converting between a descriptor and proto.Message."""
 
-    def __init__(self, descriptor: type, wrapper: type):
+    def __init__(self,
+            descriptor: typing.Type[message.Message],
+            wrapper: typing.Type[proto.Message]):
         self._descriptor = descriptor
         self._wrapper = wrapper
 

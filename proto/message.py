@@ -16,7 +16,7 @@ import collections
 import collections.abc
 import copy
 import re
-from typing import Dict, List, Type
+from typing import cast, Dict, List, Optional, Type
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
@@ -216,20 +216,21 @@ class MessageMeta(type):
         else:
             file_info.nested[local_path] = desc
 
-        # Run the superclass constructor.
-        cls = super().__new__(mcls, name, bases, attrs)
-
         # Create the MessageInfo instance to be attached to this message.
-        cls._meta = meta = _MessageInfo(
+        meta = _MessageInfo(
             fields=fields,
             full_name=full_name,
             marshal=marshal,
             options=opts,
             package=package,
-            parent=cls,
         )
+        attrs['_meta'] = meta
+
+        # Run the superclass constructor.
+        cls = super().__new__(mcls, name, bases, attrs)
 
         # The info class and fields need a reference to the class just created.
+        meta.parent = cls
         for field in meta.fields.values():
             field.parent = cls
 
@@ -521,6 +522,7 @@ class _MessageInfo:
             (i.number, i) for i in fields
         ])
         self.marshal = marshal
+        self.parent = None  # type: Optional[Type[message.Message]]
         self._pb = None
 
     @property
@@ -530,7 +532,7 @@ class _MessageInfo:
         If a field on the message references another message which has not
         loaded, then this method returns None.
         """
-        return self._pb
+        return cast(Type[message.Message], self._pb)
 
 
 __all__ = (
