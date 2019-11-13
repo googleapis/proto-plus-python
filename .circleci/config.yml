@@ -49,7 +49,7 @@ workflows:
 jobs:
   unit-3.5:
     docker:
-      - image: python:3.5
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -66,7 +66,7 @@ jobs:
           when: always
   unit-3.6:
     docker:
-      - image: python:3.6
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -83,7 +83,7 @@ jobs:
           when: always
   unit-3.7:
     docker:
-      - image: python:3.7
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -100,7 +100,7 @@ jobs:
           when: always
   unit-cpp-3.5:
     docker:
-      - image: python:3.5
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -117,7 +117,7 @@ jobs:
           when: always
   unit-cpp-3.6:
     docker:
-      - image: python:3.6
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -134,7 +134,7 @@ jobs:
           when: always
   unit-cpp-3.7:
     docker:
-      - image: python:3.7
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -151,7 +151,7 @@ jobs:
           when: always
   docs:
     docker:
-      - image: python:3.6
+      - image: python:3.8
     steps:
       - checkout
       - run:
@@ -162,7 +162,7 @@ jobs:
           command: nox -s docs
   publish:
     docker:
-      - image: python:3.7
+      - image: python:3.8
     steps:
       - checkout
       - run:
