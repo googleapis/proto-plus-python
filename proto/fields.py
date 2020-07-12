@@ -24,7 +24,7 @@ class Field:
 
     def __init__(self, proto_type, *, number: int,
                  message=None, enum=None, oneof: str = None,
-                 json_name: str = None):
+                 json_name: str = None, optional: bool = False):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
         self.mcls_data = {}
@@ -49,6 +49,7 @@ class Field:
         self.enum = enum
         self.oneof = oneof
         self.json_name = json_name
+        self.optional = optional
 
         # Fields are neither repeated nor maps.
         # The RepeatedField and MapField subclasses override these values
@@ -102,6 +103,7 @@ class Field:
                 type=proto_type,
                 type_name=type_name,
                 json_name=self.json_name,
+                proto3_optional=self.optional,
             )
 
         # Return the descriptor.
