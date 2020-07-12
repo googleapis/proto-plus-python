@@ -129,7 +129,6 @@ class MessageMeta(type):
 
             # Add the field to the list of fields.
             fields.append(field)
-
             # If this field is part of a "oneof", ensure the oneof itself
             # is represented.
             if field.oneof:
@@ -158,6 +157,15 @@ class MessageMeta(type):
 
             # Increment the field index counter.
             index += 1
+
+        # As per descriptor.proto, all synthetic oneofs must be ordered after
+        # 'real' oneofs.
+        for field in fields:
+            if field.optional:
+                field.oneof = "_{field.name}"
+                field.descriptor.oneof_index = oneofs[field.oneof] = len(oneofs)
+                # fget = lambda self: 
+                # attrs[f'_Has_{field.name}']
 
         # Determine the filename.
         # We determine an appropriate proto filename based on the
@@ -374,8 +382,8 @@ class Message(metaclass=MessageMeta):
 
     def __bool__(self):
         """Return True if any field is truthy, False otherwise."""
-        return any([k in self and getattr(self, k)
-                    for k in self._meta.fields.keys()])
+        return any(k in self and getattr(self, k)
+                   for k in self._meta.fields.keys())
 
     def __contains__(self, key):
         """Return True if this field was set to something non-zero on the wire.

@@ -23,3 +23,6 @@ def test_optional_init():
 
     massive_squid = Squid(mass_kg=20)
     massless_squid = Squid()
+
+    assert massive_squid.Hasmass_kg
+    assert not massless_squid.Hasmass_kg

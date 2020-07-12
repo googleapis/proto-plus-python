@@ -47,9 +47,9 @@ class Field:
         self.proto_type = proto_type
         self.message = message
         self.enum = enum
-        self.oneof = oneof
         self.json_name = json_name
         self.optional = optional
+        self.oneof = oneof
 
         # Fields are neither repeated nor maps.
         # The RepeatedField and MapField subclasses override these values
@@ -94,6 +94,9 @@ class Field:
                 # FIXME: Eventually, come back and put in the actual enum
                 # descriptors.
                 proto_type = ProtoType.INT32
+
+            if self.optional:
+                self.oneof = f'_{self.name}'
 
             # Set the descriptor.
             self._descriptor = descriptor_pb2.FieldDescriptorProto(
