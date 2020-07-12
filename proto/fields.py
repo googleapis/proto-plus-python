@@ -95,9 +95,6 @@ class Field:
                 # descriptors.
                 proto_type = ProtoType.INT32
 
-            if self.optional:
-                self.oneof = f'_{self.name}'
-
             # Set the descriptor.
             self._descriptor = descriptor_pb2.FieldDescriptorProto(
                 name=self.name,

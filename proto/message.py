@@ -162,10 +162,10 @@ class MessageMeta(type):
         # 'real' oneofs.
         for field in fields:
             if field.optional:
-                field.oneof = "_{field.name}"
+                field.oneof = "_{}".format(field.name)
                 field.descriptor.oneof_index = oneofs[field.oneof] = len(oneofs)
-                # fget = lambda self: 
-                # attrs[f'_Has_{field.name}']
+                fget = lambda self: self.__class__.pb(self).HasField(field.name)
+                attrs['Has_{}'.format(field.name)] = property(fget, None)
 
         # Determine the filename.
         # We determine an appropriate proto filename based on the

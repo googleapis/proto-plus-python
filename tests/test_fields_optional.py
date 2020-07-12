@@ -21,8 +21,64 @@ def test_optional_init():
     class Squid(proto.Message):
         mass_kg = proto.Field(proto.INT32, number=1, optional=True)
 
-    massive_squid = Squid(mass_kg=20)
-    massless_squid = Squid()
+    squid_1 = Squid(mass_kg=20)
+    squid_2 = Squid()
 
-    assert massive_squid.Hasmass_kg
-    assert not massless_squid.Hasmass_kg
+    assert squid_1.Has_mass_kg
+    assert squid_1.mass_kg == 20
+    assert not squid_2.Has_mass_kg
+
+    squid_2.mass_kg = 30
+    assert squid_2.mass_kg == 30
+    assert squid_2.Has_mass_kg
+
+    del squid_1.mass_kg
+    assert not squid_1.Has_mass_kg
+
+
+def test_optional_and_oneof():
+    # This test is a defensive check that synthetic oneofs
+    # don't interfere with user defined oneofs.
+
+    # Oneof defined before an optional
+    class Squid(proto.Message):
+        mass_kg = proto.Field(proto.INT32, number=1, oneof='mass')
+        mass_lbs = proto.Field(proto.INT32, number=2, oneof='mass')
+
+        iridiphore_num = proto.Field(proto.INT32, number=3, optional=True)
+
+    s = Squid(mass_kg=20)
+    assert s.mass_kg == 20
+    assert not s.mass_lbs
+    assert not s.Has_iridiphore_num
+
+    s.iridiphore_num = 600
+    assert s.mass_kg == 20
+    assert not s.mass_lbs
+    assert s.Has_iridiphore_num
+
+    s = Squid(mass_lbs=40, iridiphore_num=600)
+    assert not s.mass_kg
+    assert s.mass_lbs == 40
+    assert s.iridiphore_num == 600
+
+    # Oneof defined after an optional
+    class Clam(proto.Message):
+        flute_radius = proto.Field(proto.INT32, number=1, optional=True)
+
+        mass_kg = proto.Field(proto.INT32, number=2, oneof='mass')
+        mass_lbs = proto.Field(proto.INT32, number=3, oneof='mass')
+
+    c = Clam(mass_kg=20)
+
+    assert c.mass_kg == 20
+    assert not c.mass_lbs
+    assert not c.Has_flute_radius
+    c.flute_radius = 30
+    assert c.mass_kg == 20
+    assert not c.mass_lbs
+
+    c = Clam(mass_lbs=40, flute_radius=30)
+    assert c.mass_lbs == 40
+    assert not c.mass_kg
+    assert c.flute_radius == 30
