@@ -160,12 +160,12 @@ class MessageMeta(type):
 
         # As per descriptor.proto, all synthetic oneofs must be ordered after
         # 'real' oneofs.
-        opt_attrs = []
+        opt_attrs = {}
         for field in fields:
             if field.optional:
                 field.oneof = "_{}".format(field.name)
                 field.descriptor.oneof_index = oneofs[field.oneof] = len(oneofs)
-                opt_attrs.append(field.name)
+                opt_attrs[field.name] = field.name
 
         # Generating a metaclass dynamically provides class attributes that
         # instances can't see. This provides idiomatically named constants
@@ -176,7 +176,7 @@ class MessageMeta(type):
         #
         # m = MyMessage()
         # MyMessage.field in m
-        mcls = type('AttrsMeta', (mcls,), {a:a for a in opt_attrs})
+        mcls = type('AttrsMeta', (mcls,), opt_attrs)
 
         # Determine the filename.
         # We determine an appropriate proto filename based on the
