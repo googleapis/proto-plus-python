@@ -24,16 +24,19 @@ def test_optional_init():
     squid_1 = Squid(mass_kg=20)
     squid_2 = Squid()
 
-    assert squid_1.Has_mass_kg
+    assert Squid.mass_kg in squid_1
     assert squid_1.mass_kg == 20
-    assert not squid_2.Has_mass_kg
+    assert not Squid.mass_kg in squid_2
 
     squid_2.mass_kg = 30
     assert squid_2.mass_kg == 30
-    assert squid_2.Has_mass_kg
+    assert Squid.mass_kg in squid_2
 
     del squid_1.mass_kg
-    assert not squid_1.Has_mass_kg
+    assert not Squid.mass_kg in squid_1
+
+    with pytest.raises(AttributeError):
+        Squid.shell
 
 
 def test_optional_and_oneof():
@@ -50,12 +53,12 @@ def test_optional_and_oneof():
     s = Squid(mass_kg=20)
     assert s.mass_kg == 20
     assert not s.mass_lbs
-    assert not s.Has_iridiphore_num
+    assert not Squid.iridiphore_num in s
 
     s.iridiphore_num = 600
     assert s.mass_kg == 20
     assert not s.mass_lbs
-    assert s.Has_iridiphore_num
+    assert Squid.iridiphore_num in s
 
     s = Squid(mass_lbs=40, iridiphore_num=600)
     assert not s.mass_kg
@@ -73,7 +76,7 @@ def test_optional_and_oneof():
 
     assert c.mass_kg == 20
     assert not c.mass_lbs
-    assert not c.Has_flute_radius
+    assert not Clam.flute_radius in c
     c.flute_radius = 30
     assert c.mass_kg == 20
     assert not c.mass_lbs
