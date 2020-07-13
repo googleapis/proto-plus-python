@@ -169,20 +169,14 @@ class MessageMeta(type):
 
         # Generating a metaclass dynamically provides class attributes that
         # instances can't see. This provides idiomatically named constants
-        # that provide the following pattern to check for field presence:
+        # that enable the following pattern to check for field presence:
         #
         # class MyMessage(proto.Message):
         #     field = proto.Field(proto.INT32, number=1, optional=True)
         #
         # m = MyMessage()
         # MyMessage.field in m
-        class AttrsMeta(mcls):
-            pass
-
-        for a in opt_attrs:
-            setattr(mcls, a, a)
-
-        mcls = AttrsMeta
+        mcls = type('AttrsMeta', (mcls,), {a:a for a in opt_attrs})
 
         # Determine the filename.
         # We determine an appropriate proto filename based on the
