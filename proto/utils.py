@@ -42,7 +42,6 @@ def cached_property(fx):
         return self._cached_values[fx.__name__]
     return property(inner)
 
-
 __all__ = (
     'cached_property',
 )
