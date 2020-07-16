@@ -217,3 +217,4 @@ class DatetimeWithNanoseconds(datetime.datetime):
             nanosecond=stamp.nanos,
             tzinfo=datetime.timezone.utc,
         )
+    
