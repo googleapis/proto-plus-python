@@ -189,7 +189,7 @@ jobs:
           command: python setup.py sdist upload
   style-check:
     docker:
-      - image: python:3.7-alpine
+      - image: python:3.8-slim
     steps:
       - checkout
       - run:
