@@ -198,6 +198,38 @@ class DatetimeWithNanoseconds(datetime.datetime):
         inst._nanosecond = nanos or 0
         return inst
 
+    # pylint: disable=arguments-differ
+    def replace(self, *args, **kw ):
+        """Return a date with the same value, except for those parameters given
+        new values by whichever keyword arguments are specified. For example,
+        if d == date(2002, 12, 31), then
+        d.replace(day=26) == date(2002, 12, 26).
+        NOTE: nanosecond and microsecond are mutually exclusive arguemnts.
+        """
+        
+        ms_provided = "microsecond" in kw
+        ns_provided = "nanosecond" in kw
+        prev_nanos = self.nanosecond
+
+        if ms_provided and ns_provided:
+            raise TypeError("Specify only one of 'microsecond' or 'nanosecond'")
+
+        if ns_provided:
+            # if nanos were provided, manipulate microsecond kw arg to super
+            kw["microsecond"] = prev_nanos // 1000
+        inst = super().replace(*args, **kw)
+
+        if ms_provided:
+            # ms were provided, nanos are invalid, build from ms
+            inst._nanosecond = inst.microsecond * 1000
+        elif ns_provided:
+            # ns were provided, replace nanoseconds to match after calling super
+            inst._nanosecond = kw["nanosecond"]
+        else:
+            # if neither ms or ns were provided, passthru previous nanos.
+            inst._nanosecond = prev_nanos
+
+        return inst
 
     @property
     def nanosecond(self):
