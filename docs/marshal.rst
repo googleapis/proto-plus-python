@@ -13,30 +13,32 @@ Well-known types
 
 The following types are currently handled by Proto Plus:
 
-=================================== ================================================== =========
-Protocol buffer type                Python type                                        Nullable
-=================================== ================================================== =========
-``google.protobuf.BoolValue``       ``bool``                                           Yes
-``google.protobuf.BytesValue``      ``bytes``                                          Yes
-``google.protobuf.DoubleValue``     ``float``                                          Yes
-``google.protobuf.Duration``        ``datetime.timedelta``                               –
-``google.protobuf.FloatValue``      ``float``                                          Yes
-``google.protobuf.Int32Value``      ``int``                                            Yes
-``google.protobuf.Int64Value``      ``int``                                            Yes
-``google.protobuf.ListValue``       ``MutableSequence``                                  –
-``google.protobuf.StringValue``     ``str``                                            Yes
-``google.protobuf.Struct``          ``MutableMapping``                                  –
-``google.protobuf.Timestamp``       ``proto.datetime_helpers.DatetimeWithNanoseconds`` Yes
-``google.protobuf.UInt32Value``     ``int``                                            Yes
-``google.protobuf.UInt64Value``     ``int``                                            Yes
-``google.protobuf.Value``           JSON-encodable values                              Yes
-=================================== ================================================== =========
+=================================== ======================= ========
+Protocol buffer type                Python type             Nullable
+=================================== ======================= ========
+``google.protobuf.BoolValue``       ``bool``                     Yes
+``google.protobuf.BytesValue``      ``bytes``                    Yes
+``google.protobuf.DoubleValue``     ``float``                    Yes
+``google.protobuf.Duration``        ``datetime.timedelta``         –
+``google.protobuf.FloatValue``      ``float``                    Yes
+``google.protobuf.Int32Value``      ``int``                      Yes
+``google.protobuf.Int64Value``      ``int``                      Yes
+``google.protobuf.ListValue``       ``MutableSequence``            –
+``google.protobuf.StringValue``     ``str``                      Yes
+``google.protobuf.Struct``          ``MutableMapping``             –
+``google.protobuf.Timestamp``       ``datetime.datetime``        Yes
+``google.protobuf.UInt32Value``     ``int``                      Yes
+``google.protobuf.UInt64Value``     ``int``                      Yes
+``google.protobuf.Value``           JSON-encodable values        Yes
+=================================== ======================= ========
 
 .. note::
 
     Protocol buffers include well-known types for ``Timestamp`` and
     ``Duration``, both of which have nanosecond precision. However, the
     Python ``datetime`` and ``timedelta`` objects have only microsecond
+    precision. This library converts timestamps to an implementation of
+    ``datetime.datetime``, DatetimeWithNanoseconds, that includes nanosecond
     precision.
 
     If you *write* a timestamp field using a Python ``datetime`` value,
