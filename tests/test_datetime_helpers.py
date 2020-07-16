@@ -203,7 +203,7 @@ class Test_DateTimeWithNanos(object):
         assert stamp.minute == 13
         assert stamp.second == 47
         assert stamp.microsecond == 123456
-        assert stamp.nanosecond == 0
+        assert stamp.nanosecond == 123456000
 
     @staticmethod
     def test_ctor_w_nanos():
@@ -364,6 +364,36 @@ class Test_DateTimeWithNanos(object):
         assert stamp.tzinfo == datetime.timezone.utc
 
     @staticmethod
+    def test_replace():
+        stamp = datetime_helpers.DatetimeWithNanoseconds(2016, 12, 20, 21, 13, 47, 123456, tzinfo=datetime.timezone.utc)
+
+        
+        # ns and ms provided raises
+        with pytest.raises(TypeError):
+            stamp.replace(microsecond=1, nanosecond=0)
+
+        # No Nanoseconds or Microseconds
+        new_stamp = stamp.replace(year=2015)
+        assert new_stamp.year == 2015
+        assert new_stamp.microsecond == 123456
+        assert new_stamp.nanosecond == 123456000
+        
+        # Nanos
+        new_stamp = stamp.replace(nanosecond=789123)
+        assert new_stamp.microsecond == 789
+        assert new_stamp.nanosecond == 789123
+        
+        # Micros
+        new_stamp = stamp.replace(microsecond=456)
+        assert new_stamp.microsecond == 456
+        assert new_stamp.nanosecond == 456000
+
+        # assert _to_seconds(when) == _to_seconds(stamp)
+        # assert stamp.microsecond == 0
+        # assert stamp.nanosecond == 0
+        # assert stamp.tzinfo == datetime.timezone.utc
+
+    @staticmethod
     def test_from_timestamp_pb_w_nanos():
         when = datetime.datetime(2016, 12, 20, 21, 13, 47, 123456, tzinfo=datetime.timezone.utc)
         delta = when - datetime_helpers._UTC_EPOCH
@@ -376,6 +406,7 @@ class Test_DateTimeWithNanos(object):
         assert stamp.microsecond == 123456
         assert stamp.nanosecond == 123456789
         assert stamp.tzinfo == datetime.timezone.utc
+        
 
 
 def _to_seconds(value):

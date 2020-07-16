@@ -209,6 +209,8 @@ class DatetimeWithNanoseconds(datetime.datetime):
         
         ms_provided = "microsecond" in kw
         ns_provided = "nanosecond" in kw
+        provided_ns = kw.pop("nanosecond", 0)
+
         prev_nanos = self.nanosecond
 
         if ms_provided and ns_provided:
@@ -216,7 +218,7 @@ class DatetimeWithNanoseconds(datetime.datetime):
 
         if ns_provided:
             # if nanos were provided, manipulate microsecond kw arg to super
-            kw["microsecond"] = prev_nanos // 1000
+            kw["microsecond"] = provided_ns // 1000
         inst = super().replace(*args, **kw)
 
         if ms_provided:
@@ -224,7 +226,7 @@ class DatetimeWithNanoseconds(datetime.datetime):
             inst._nanosecond = inst.microsecond * 1000
         elif ns_provided:
             # ns were provided, replace nanoseconds to match after calling super
-            inst._nanosecond = kw["nanosecond"]
+            inst._nanosecond = provided_ns
         else:
             # if neither ms or ns were provided, passthru previous nanos.
             inst._nanosecond = prev_nanos
@@ -234,7 +236,7 @@ class DatetimeWithNanoseconds(datetime.datetime):
     @property
     def nanosecond(self):
         """Read-only: nanosecond precision."""
-        return self._nanosecond
+        return self._nanosecond or self.microsecond * 1000
 
     def rfc3339(self):
         """Return an RFC3339-compliant timestamp.
