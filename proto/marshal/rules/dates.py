@@ -50,6 +50,7 @@ class DurationRule:
     precision matters, it is recommended to interact with the internal
     proto directly.
     """
+
     def to_python(self, value, *, absent: bool = None) -> timedelta:
         if isinstance(value, duration_pb2.Duration):
             return timedelta(

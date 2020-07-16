@@ -54,7 +54,7 @@ def test_repeated_composite_init_struct():
     class Baz(proto.Message):
         foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
-    baz = Baz(foos=[{'bar': 42}])
+    baz = Baz(foos=[{"bar": 42}])
     assert len(baz.foos) == 1
     assert baz.foos[0].bar == 42
 
@@ -73,9 +73,8 @@ def test_repeated_composite_falsy_behavior():
 
 def test_repeated_composite_marshaled():
     class Foo(proto.Message):
-        timestamps = proto.RepeatedField(proto.MESSAGE,
-            message=timestamp_pb2.Timestamp,
-            number=1,
+        timestamps = proto.RepeatedField(
+            proto.MESSAGE, message=timestamp_pb2.Timestamp, number=1,
         )
 
     foo = Foo(timestamps=[DatetimeWithNanoseconds(2012, 4, 21, 15, tzinfo=timezone.utc)])
@@ -118,7 +117,7 @@ def test_repeated_composite_append():
 
     baz = Baz()
     baz.foos.append(Foo(bar=96))
-    baz.foos.append({'bar': 72})
+    baz.foos.append({"bar": 72})
     assert len(baz.foos) == 2
     assert baz.foos[0].bar == 96
     assert baz.foos[1].bar == 72
@@ -132,7 +131,7 @@ def test_repeated_composite_insert():
         foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
     baz = Baz()
-    baz.foos.insert(0, {'bar': 72})
+    baz.foos.insert(0, {"bar": 72})
     baz.foos.insert(0, Foo(bar=96))
     assert len(baz.foos) == 2
     assert baz.foos[0].bar == 96
@@ -160,7 +159,7 @@ def test_repeated_composite_set():
     class Baz(proto.Message):
         foos = proto.RepeatedField(proto.MESSAGE, message=Foo, number=1)
 
-    baz = Baz(foos=[{'bar': 96}, {'bar': 48}])
+    baz = Baz(foos=[{"bar": 96}, {"bar": 48}])
     baz.foos[1] = Foo(bar=55)
     assert baz.foos[0].bar == 96
     assert baz.foos[1].bar == 55
