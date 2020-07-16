@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0](https://www.github.com/googleapis/proto-plus-python/compare/1.0.0...v1.1.0) (2020-07-16)
+## [1.3.0](https://www.github.com/googleapis/proto-plus-python/compare/1.2.0...v1.3.0) (2020-07-16)
 
 
 ### Features
