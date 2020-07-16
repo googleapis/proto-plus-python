@@ -44,4 +44,5 @@ def cached_property(fx):
 
     return property(inner)
 
+
 __all__ = ("cached_property",)

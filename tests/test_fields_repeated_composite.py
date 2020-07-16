@@ -77,12 +77,13 @@ def test_repeated_composite_marshaled():
             proto.MESSAGE, message=timestamp_pb2.Timestamp, number=1,
         )
 
-    foo = Foo(timestamps=[DatetimeWithNanoseconds(2012, 4, 21, 15, tzinfo=timezone.utc)])
+    foo = Foo(
+        timestamps=[DatetimeWithNanoseconds(2012, 4, 21, 15, tzinfo=timezone.utc)]
+    )
     foo.timestamps.append(timestamp_pb2.Timestamp(seconds=86400 * 365))
     foo.timestamps.append(DatetimeWithNanoseconds(2017, 10, 14, tzinfo=timezone.utc))
     assert all([isinstance(i, DatetimeWithNanoseconds) for i in foo.timestamps])
-    assert all([isinstance(i, timestamp_pb2.Timestamp)
-                for i in Foo.pb(foo).timestamps])
+    assert all([isinstance(i, timestamp_pb2.Timestamp) for i in Foo.pb(foo).timestamps])
     assert foo.timestamps[0].year == 2012
     assert foo.timestamps[0].month == 4
     assert foo.timestamps[0].hour == 15

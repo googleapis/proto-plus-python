@@ -47,6 +47,7 @@ def test_timestamp_write_init():
         event_time = proto.Field(
             proto.MESSAGE, number=1, message=timestamp_pb2.Timestamp,
         )
+
     foo = Foo(event_time=DatetimeWithNanoseconds(2012, 4, 21, 15, tzinfo=timezone.utc))
     assert isinstance(foo.event_time, DatetimeWithNanoseconds)
     assert isinstance(Foo.pb(foo).event_time, timestamp_pb2.Timestamp)
@@ -96,7 +97,9 @@ def test_timestamp_rmw_nanos():
         )
 
     foo = Foo()
-    foo.event_time = DatetimeWithNanoseconds(2012, 4, 21, 15, 0, 0, 1, tzinfo=timezone.utc)
+    foo.event_time = DatetimeWithNanoseconds(
+        2012, 4, 21, 15, 0, 0, 1, tzinfo=timezone.utc
+    )
     assert foo.event_time.microsecond == 1
     assert Foo.pb(foo).event_time.nanos == 1000
     foo.event_time = foo.event_time.replace(microsecond=2)
@@ -119,6 +122,7 @@ def test_timestamp_del():
         event_time = proto.Field(
             proto.MESSAGE, number=1, message=timestamp_pb2.Timestamp,
         )
+
     foo = Foo(event_time=DatetimeWithNanoseconds(2012, 4, 21, 15, tzinfo=timezone.utc))
     del foo.event_time
     assert foo.event_time is None
