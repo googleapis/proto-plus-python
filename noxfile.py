@@ -22,9 +22,9 @@ import nox
 def unit(session, proto="python"):
     """Run the unit test suite."""
 
-    session.env['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = proto
-    session.install('coverage', 'pytest', 'pytest-cov', 'pytz')
-    session.install('-e', '.')
+    session.env["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = proto
+    session.install("coverage", "pytest", "pytest-cov", "pytz")
+    session.install("-e", ".")
 
     session.run(
         "py.test",
