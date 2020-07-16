@@ -39,26 +39,7 @@ _RFC3339_NANOS = re.compile(
     re.VERBOSE,
 )
 
-
-def utcnow():
-    """A :meth:`datetime.datetime.utcnow()` alias to allow mocking in tests."""
-    return datetime.datetime.utcnow()
-
-
-def to_milliseconds(value):
-    """Convert a zone-aware datetime to milliseconds since the unix epoch.
-
-    Args:
-        value (datetime.datetime): The datetime to covert.
-
-    Returns:
-        int: Milliseconds since the unix epoch.
-    """
-    micros = to_microseconds(value)
-    return micros // 1000
-
-
-def from_microseconds(value):
+def _from_microseconds(value):
     """Convert timestamp in microseconds since the unix epoch to datetime.
 
     Args:
@@ -71,96 +52,7 @@ def from_microseconds(value):
     return _UTC_EPOCH + datetime.timedelta(microseconds=value)
 
 
-def to_microseconds(value):
-    """Convert a datetime to microseconds since the unix epoch.
-
-    Args:
-        value (datetime.datetime): The datetime to covert.
-
-    Returns:
-        int: Microseconds since the unix epoch.
-    """
-    if not value.tzinfo:
-        value = value.replace(tzinfo=datetime.timezone.utc)
-    # Regardless of what timezone is on the value, convert it to UTC.
-    value = value.astimezone(datetime.timezone.utc)
-    # Convert the datetime to a microsecond timestamp.
-    return int(calendar.timegm(value.timetuple()) * 1e6) + value.microsecond
-
-
-def from_iso8601_date(value):
-    """Convert a ISO8601 date string to a date.
-
-    Args:
-        value (str): The ISO8601 date string.
-
-    Returns:
-        datetime.date: A date equivalent to the date string.
-    """
-    return datetime.datetime.strptime(value, "%Y-%m-%d").date()
-
-
-def from_iso8601_time(value):
-    """Convert a zoneless ISO8601 time string to a time.
-
-    Args:
-        value (str): The ISO8601 time string.
-
-    Returns:
-        datetime.time: A time equivalent to the time string.
-    """
-    return datetime.datetime.strptime(value, "%H:%M:%S").time()
-
-
-def from_rfc3339(value):
-    """Convert an RFC3339-format timestamp to a native datetime.
-
-    Supported formats include those without fractional seconds, or with
-    any fraction up to nanosecond precision.
-
-    .. note::
-        Python datetimes do not support nanosecond precision; this function
-        therefore truncates such values to microseconds.
-
-    Args:
-        value (str): The RFC3339 string to convert.
-
-    Returns:
-        datetime.datetime: The datetime object equivalent to the timestamp
-        in UTC.
-
-    Raises:
-        ValueError: If the timestamp does not match the RFC3339
-            regular expression.
-    """
-    with_nanos = _RFC3339_NANOS.match(value)
-
-    if with_nanos is None:
-        raise ValueError(
-            "Timestamp: {!r}, does not match pattern: {!r}".format(
-                value, _RFC3339_NANOS.pattern
-            )
-        )
-
-    bare_seconds = datetime.datetime.strptime(
-        with_nanos.group("no_fraction"), _RFC3339_NO_FRACTION
-    )
-    fraction = with_nanos.group("nanos")
-
-    if fraction is None:
-        micros = 0
-    else:
-        scale = 9 - len(fraction)
-        nanos = int(fraction) * (10 ** scale)
-        micros = nanos // 1000
-
-    return bare_seconds.replace(microsecond=micros, tzinfo=datetime.timezone.utc)
-
-
-from_rfc3339_nanos = from_rfc3339  # from_rfc3339_nanos method was deprecated.
-
-
-def to_rfc3339(value, ignore_zone=True):
+def _to_rfc3339(value, ignore_zone=True):
     """Convert a datetime to an RFC3339 timestamp string.
 
     Args:
@@ -245,7 +137,7 @@ class DatetimeWithNanoseconds(datetime.datetime):
             (str): Timestamp string according to RFC3339 spec.
         """
         if self._nanosecond == 0:
-            return to_rfc3339(self)
+            return _to_rfc3339(self)
         nanos = str(self._nanosecond).rjust(9, "0").rstrip("0")
         return "{}.{}Z".format(self.strftime(_RFC3339_NO_FRACTION), nanos)
 
@@ -314,7 +206,7 @@ class DatetimeWithNanoseconds(datetime.datetime):
                 an instance matching the timestamp message
         """
         microseconds = int(stamp.seconds * 1e6)
-        bare = from_microseconds(microseconds)
+        bare = _from_microseconds(microseconds)
         return cls(
             bare.year,
             bare.month,
