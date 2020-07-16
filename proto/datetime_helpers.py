@@ -21,8 +21,7 @@ import re
 from google.protobuf import timestamp_pb2
 
 
-_UTC_EPOCH = datetime.datetime.utcfromtimestamp(0).replace(
-    tzinfo=datetime.timezone.utc)
+_UTC_EPOCH = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=datetime.timezone.utc)
 _RFC3339_MICROS = "%Y-%m-%dT%H:%M:%S.%fZ"
 _RFC3339_NO_FRACTION = "%Y-%m-%dT%H:%M:%S"
 # datetime.strptime cannot handle nanosecond precision:  parse w/ regex
@@ -39,6 +38,7 @@ _RFC3339_NANOS = re.compile(
 """,
     re.VERBOSE,
 )
+
 
 def _from_microseconds(value):
     """Convert timestamp in microseconds since the unix epoch to datetime.
@@ -92,14 +92,14 @@ class DatetimeWithNanoseconds(datetime.datetime):
         return inst
 
     # pylint: disable=arguments-differ
-    def replace(self, *args, **kw ):
+    def replace(self, *args, **kw):
         """Return a date with the same value, except for those parameters given
         new values by whichever keyword arguments are specified. For example,
         if d == date(2002, 12, 31), then
         d.replace(day=26) == date(2002, 12, 26).
         NOTE: nanosecond and microsecond are mutually exclusive arguemnts.
         """
-        
+
         ms_provided = "microsecond" in kw
         ns_provided = "nanosecond" in kw
         provided_ns = kw.pop("nanosecond", 0)
@@ -189,7 +189,11 @@ class DatetimeWithNanoseconds(datetime.datetime):
         Returns:
             (:class:`~google.protobuf.timestamp_pb2.Timestamp`): Timestamp message
         """
-        inst = self if self.tzinfo is not None else self.replace(tzinfo=datetime.timezone.utc)
+        inst = (
+            self
+            if self.tzinfo is not None
+            else self.replace(tzinfo=datetime.timezone.utc)
+        )
         delta = inst - _UTC_EPOCH
         seconds = int(delta.total_seconds())
         nanos = self._nanosecond or self.microsecond * 1000
@@ -218,4 +222,3 @@ class DatetimeWithNanoseconds(datetime.datetime):
             nanosecond=stamp.nanos,
             tzinfo=datetime.timezone.utc,
         )
-    

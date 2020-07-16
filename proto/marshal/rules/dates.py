@@ -29,7 +29,10 @@ class TimestampRule:
     precision matters, it is recommended to interact with the internal
     proto directly.
     """
-    def to_python(self, value, *, absent: bool = None) -> datetime_helpers.DatetimeWithNanoseconds:
+
+    def to_python(
+        self, value, *, absent: bool = None
+    ) -> datetime_helpers.DatetimeWithNanoseconds:
         if isinstance(value, timestamp_pb2.Timestamp):
             if absent:
                 return None
