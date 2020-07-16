@@ -196,7 +196,7 @@ jobs:
           name: Install git
           command: |
             apt-get update
-            apt-get install git
+            apt-get install -y git
       - run:
           name: Install black
           command: |
