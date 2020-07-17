@@ -16,6 +16,7 @@ import collections
 import collections.abc
 import copy
 import re
+import uuid
 from typing import List, Type
 
 from google.protobuf import descriptor_pb2
@@ -254,7 +255,9 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
-            file_info.generate_file_pb()
+            filename_salt_attr = "_fixed_filename_salt"
+            salt = full_name.lower() if filename_salt_attr in attrs and attrs[filename_salt_attr] else str(uuid.uuid4())[0:8]
+            file_info.generate_file_pb(salt=salt)
 
         # Done; return the class.
         return cls
