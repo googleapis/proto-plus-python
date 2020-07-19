@@ -255,8 +255,8 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
-            filename_salt_kwarg = "salted_filename"
-            salt = full_name.lower() if filename_salt_kwarg in kwargs and kwargs[filename_salt_kwarg] else str(uuid.uuid4())[0:8]
+            filename_salt_kwarg = "random_filename_salt"
+            salt = full_name.lower() if filename_salt_kwarg in kwargs and not kwargs[filename_salt_kwarg] else str(uuid.uuid4())[0:8]
             file_info.generate_file_pb(salt=salt)
 
         # Done; return the class.
