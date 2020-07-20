@@ -30,7 +30,7 @@ def test_filename_salt_style_not_set_causes_random_salt():
     assert re.search(random_salt_regex, name)
 
 
-def test_random_filename_salt_set_to_rubbish_causes_random_salt():
+def test_filename_salt_set_to_rubbish_causes_random_salt():
     class Foo(proto.Message, filename_salt_style="some rubbish"):
         bar = proto.Field(proto.INT32, number=1)
 
