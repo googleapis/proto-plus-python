@@ -17,6 +17,7 @@ import collections.abc
 import copy
 import re
 import uuid
+from enum import Enum
 from typing import List, Type
 
 from google.protobuf import descriptor_pb2
@@ -33,10 +34,16 @@ from proto.marshal import Marshal
 from proto.primitives import ProtoType
 
 
+class FilenameSaltStyle(Enum):
+    RANDOM = 1
+    CLASSNAME = 2
+
+
 class MessageMeta(type):
+
     """A metaclass for building and registering Message subclasses."""
 
-    def __new__(mcls, name, bases, attrs, **kwargs):
+    def __new__(mcls, name, bases, attrs, filename_salt_style: FilenameSaltStyle = FilenameSaltStyle.RANDOM):
         # Do not do any special behavior for Message itself.
         if not bases:
             return super().__new__(mcls, name, bases, attrs)
@@ -255,9 +262,15 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
-            filename_salt_kwarg = "random_filename_salt"
-            salt = full_name.lower() if filename_salt_kwarg in kwargs and not kwargs[filename_salt_kwarg] else str(uuid.uuid4())[0:8]
-            file_info.generate_file_pb(salt=salt)
+            def salt_operations(operation):
+                def default_operation(): return lambda: str(uuid.uuid4())[0:8]
+
+                return {
+                    FilenameSaltStyle.RANDOM: default_operation(),
+                    FilenameSaltStyle.CLASSNAME: lambda: full_name.lower()
+                }.get(operation, default_operation())
+
+            file_info.generate_file_pb(salt_operation=salt_operations(filename_salt_style))
 
         # Done; return the class.
         return cls

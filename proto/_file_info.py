@@ -31,7 +31,7 @@ class _FileInfo(
 ):
     registry = {}  # Mapping[str, '_FileInfo']
 
-    def generate_file_pb(self, salt=str(uuid.uuid4())[0:8]):
+    def generate_file_pb(self, salt_operation=lambda: str(uuid.uuid4())[0:8]):
         """Generate the descriptors for all protos in the file.
 
         This method takes the file descriptor attached to the parent
@@ -47,9 +47,7 @@ class _FileInfo(
         # Salt the filename in the descriptor.
         # This allows re-use of the filename by other proto messages if
         # needed (e.g. if __all__ is not used).
-        self.descriptor.name = "{prefix}_{salt}.proto".format(
-            prefix=self.descriptor.name[:-6], salt=salt,
-        )
+        self.descriptor.name = "{name}.proto".format(name="_".join([self.descriptor.name[:-6], salt_operation()]))
 
         # Add the file descriptor.
         pool.Add(self.descriptor)
