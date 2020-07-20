@@ -590,4 +590,4 @@ class _MessageInfo:
         return self._pb
 
 
-__all__ = ("Message",)
+__all__ = ("Message", "FilenameSaltStyle")
