@@ -263,12 +263,12 @@ class MessageMeta(type):
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
             def salt_operations(operation):
-                def default_operation(): return lambda: str(uuid.uuid4())[0:8]
+                def random_salt_operation(): return lambda: str(uuid.uuid4())[0:8]
 
                 return {
-                    FilenameSaltStyle.RANDOM: default_operation(),
+                    FilenameSaltStyle.RANDOM: random_salt_operation(),
                     FilenameSaltStyle.CLASSNAME: lambda: full_name.lower()
-                }.get(operation, default_operation())
+                }.get(operation, random_salt_operation())
 
             file_info.generate_file_pb(salt_operation=salt_operations(filename_salt_style))
 
