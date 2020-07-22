@@ -263,8 +263,11 @@ class MessageMeta(type):
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
             filename_salt_style_attribute = "__filename_salt_style__"
-            filename_salt_style = attrs[filename_salt_style_attribute] \
-                if filename_salt_style_attribute in attrs else None
+            filename_salt_style = (
+                attrs[filename_salt_style_attribute]
+                if filename_salt_style_attribute in attrs
+                else None
+            )
 
             def salt_operations(operation):
                 def random_salt_operation():
@@ -275,7 +278,9 @@ class MessageMeta(type):
                     FilenameSaltStyle.CLASSNAME: lambda: full_name.lower(),
                 }.get(operation, random_salt_operation())
 
-            file_info.generate_file_pb(salt_operation=salt_operations(filename_salt_style))
+            file_info.generate_file_pb(
+                salt_operation=salt_operations(filename_salt_style)
+            )
 
         # Done; return the class.
         return cls

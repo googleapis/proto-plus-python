@@ -6,7 +6,6 @@ from google.protobuf import descriptor_pb2
 from proto import _file_info, _package_info
 
 
-
 def sample_file_info(name):
     filename = name + ".proto"
 
