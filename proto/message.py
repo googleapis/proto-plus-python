@@ -317,7 +317,7 @@ class MessageMeta(type):
             method was called.
         """
         # Usually we don't wrap the original proto and are force to make a copy
-        # to preveny modifying user data.
+        # to prevent modifying user data.
         # In this case it's perfectly reasonable to wrap the proto becasue it's
         # never user visible, and it gives a huge performance boost.
         return cls(cls.pb().FromString(payload), __wrap_original=True)
