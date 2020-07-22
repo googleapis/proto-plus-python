@@ -69,9 +69,9 @@ using a schema registry this presents a problem. With a schema registry the name
 underlying schema becomes important and must remain consistent if the schema registry is
 to perform its function.
 
-You can change the default salting behaviour by specifying the named argument
-``filename_salt_style`` in your Python proto class (message) declaration and assigning it
-one of the enumerated values from the ``FilenameSaltStyle`` enum class.
+You can change the default salting behaviour by specifying the class attribute
+``__filename_salt_style__`` in your Python proto class (message) declaration and assigning to
+it one of the enumerated values from the ``FilenameSaltStyle`` enum class.
 
 The following styles are available:
 
@@ -87,11 +87,13 @@ For example, given the following declaration in file path ``./path/to/proto/my_m
 
     import proto
 
-    class Composer(proto.Message, filename_salt_style=FilenameSaltStyle.RANDOM):
+    class Composer(proto.Message):
+        __fixed_filename_salt__ = FilenameSaltStyle.RANDOM
         given_name = proto.Field(proto.STRING, number=1)
         family_name = proto.Field(proto.STRING, number=2)
 
-    class Song(proto.Message, filename_salt_style=FilenameSaltStyle.RANDOM):
+    class Song(proto.Message):
+        __fixed_filename_salt__ = FilenameSaltStyle.RANDOM
         composer = proto.Field(Composer, number=1)
         title = proto.Field(proto.STRING, number=2)
         lyrics = proto.Field(proto.STRING, number=3)
@@ -119,11 +121,13 @@ For example, given the following declaration in file path ``./path/to/proto/my_m
 
     import proto
 
-    class Composer(proto.Message, filename_salt_style=FilenameSaltStyle.CLASSNAME):
+    class Composer(proto.Message):
+        __fixed_filename_salt__ = FilenameSaltStyle.CLASSNAME
         given_name = proto.Field(proto.STRING, number=1)
         family_name = proto.Field(proto.STRING, number=2)
 
-    class Song(proto.Message, filename_salt_style=FilenameSaltStyle.CLASSNAME):
+    class Song(proto.Message):
+        __fixed_filename_salt__ = FilenameSaltStyle.CLASSNAME
         composer = proto.Field(Composer, number=1)
         title = proto.Field(proto.STRING, number=2)
         lyrics = proto.Field(proto.STRING, number=3)
