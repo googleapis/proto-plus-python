@@ -345,7 +345,9 @@ class MessageMeta(type):
             ~.Message: An instance of the message class against which this
             method was called.
         """
-        return cls(Parse(payload, cls()._pb))
+        instance = cls()
+        Parse(payload, instance._pb)
+        return instance
 
 
 class Message(metaclass=MessageMeta):
