@@ -31,7 +31,7 @@ class _FileInfo(
 ):
     registry = {}  # Mapping[str, '_FileInfo']
 
-    def generate_file_pb(self, salt_operation=lambda: str(uuid.uuid4())[0:8]):
+    def generate_file_pb(self, salt_operation):
         """Generate the descriptors for all protos in the file.
 
         This method takes the file descriptor attached to the parent
@@ -47,7 +47,8 @@ class _FileInfo(
         # Salt the filename in the descriptor.
         # This allows re-use of the filename by other proto messages if
         # needed (e.g. if __all__ is not used).
-        self.descriptor.name = "{name}.proto".format(name="_".join([self.descriptor.name[:-6], salt_operation()]))
+        salt = salt_operation() if callable(salt_operation) else str(uuid.uuid4())[0:8]
+        self.descriptor.name = "{name}.proto".format(name="_".join([self.descriptor.name[:-6], salt]))
 
         # Add the file descriptor.
         pool.Add(self.descriptor)
@@ -122,7 +123,7 @@ class _FileInfo(
         module = inspect.getmodule(new_class)
         manifest = frozenset()
         if hasattr(module, "__protobuf__"):
-            manifest = module.__protobuf__.manifest.difference({new_class.__name__},)
+            manifest = module.__protobuf__.manifest.difference({new_class.__name__}, )
         if not all([hasattr(module, i) for i in manifest]):
             return False
 

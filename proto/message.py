@@ -43,7 +43,7 @@ class MessageMeta(type):
 
     """A metaclass for building and registering Message subclasses."""
 
-    def __new__(mcls, name, bases, attrs, filename_salt_style: FilenameSaltStyle = FilenameSaltStyle.RANDOM):
+    def __new__(mcls, name, bases, attrs):
         # Do not do any special behavior for Message itself.
         if not bases:
             return super().__new__(mcls, name, bases, attrs)
@@ -262,12 +262,17 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
+            filename_salt_style_attribute = "__filename_salt_style__"
+            filename_salt_style = attrs[filename_salt_style_attribute] \
+                if filename_salt_style_attribute in attrs else None
+
             def salt_operations(operation):
-                def random_salt_operation(): return lambda: str(uuid.uuid4())[0:8]
+                def random_salt_operation():
+                    return lambda: str(uuid.uuid4())[0:8]
 
                 return {
                     FilenameSaltStyle.RANDOM: random_salt_operation(),
-                    FilenameSaltStyle.CLASSNAME: lambda: full_name.lower()
+                    FilenameSaltStyle.CLASSNAME: lambda: full_name.lower(),
                 }.get(operation, random_salt_operation())
 
             file_info.generate_file_pb(salt_operation=salt_operations(filename_salt_style))
