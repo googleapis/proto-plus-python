@@ -16,7 +16,6 @@ import collections
 import collections.abc
 import copy
 import re
-import uuid
 from enum import Enum
 from typing import List, Type
 
@@ -34,13 +33,7 @@ from proto.marshal import Marshal
 from proto.primitives import ProtoType
 
 
-class FilenameSaltStyle(Enum):
-    RANDOM = 1
-    CLASSNAME = 2
-
-
 class MessageMeta(type):
-
     """A metaclass for building and registering Message subclasses."""
 
     def __new__(mcls, name, bases, attrs):
@@ -262,25 +255,7 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
-            filename_salt_style_attribute = "__filename_salt_style__"
-            filename_salt_style = (
-                attrs[filename_salt_style_attribute]
-                if filename_salt_style_attribute in attrs
-                else None
-            )
-
-            def salt_operations(operation):
-                def random_salt_operation():
-                    return lambda: str(uuid.uuid4())[0:8]
-
-                return {
-                    FilenameSaltStyle.RANDOM: random_salt_operation(),
-                    FilenameSaltStyle.CLASSNAME: lambda: full_name.lower(),
-                }.get(operation, random_salt_operation())
-
-            file_info.generate_file_pb(
-                salt_operation=salt_operations(filename_salt_style)
-            )
+            file_info.generate_file_pb(salt=full_name.lower())
 
         # Done; return the class.
         return cls
@@ -600,4 +575,4 @@ class _MessageInfo:
         return self._pb
 
 
-__all__ = ("Message", "FilenameSaltStyle")
+__all__ = "Message"

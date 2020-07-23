@@ -1,5 +1,19 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import collections
-import re
 
 from google.protobuf import descriptor_pb2
 
@@ -29,35 +43,20 @@ def sample_file_info(name):
     )
 
 
-def test_salt_operation_causes_salt():
+def test_salt_is_appended_to_filename():
     # given
     name = "my-fileinfo"
-    salt = "my-sat"
-    file_info = sample_file_info(name)
-
-    # when
-    file_info.generate_file_pb(lambda: salt)
-
-    # then
-    assert file_info.descriptor.name == name + "_" + salt + ".proto"
-
-
-def test_uncallable_salt_operation_causes_random_salt():
-    # given
-    name = "my-fileinfo"
-    salt = "uncallable-salt-operation"
+    salt = "my-salt"
     file_info = sample_file_info(name)
 
     # when
     file_info.generate_file_pb(salt)
 
     # then
-    actual = file_info.descriptor.name
-    regex = "^" + name + "_[0123456789abcdef]{8}.proto$"
-    assert re.search(regex, actual)
+    assert file_info.descriptor.name == name + "_" + salt + ".proto"
 
 
-def test_none_salt_operation_causes_random_salt():
+def test_none_salt_is_appended_to_filename_as_empty():
     # given
     name = "my-fileinfo"
     salt = None
@@ -67,6 +66,4 @@ def test_none_salt_operation_causes_random_salt():
     file_info.generate_file_pb(salt)
 
     # then
-    actual = file_info.descriptor.name
-    regex = "^" + name + "_[0123456789abcdef]{8}.proto$"
-    assert re.search(regex, actual)
+    assert file_info.descriptor.name == name + "_.proto"

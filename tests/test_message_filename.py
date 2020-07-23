@@ -1,41 +1,23 @@
-import re
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import proto
-from proto.message import FilenameSaltStyle
 
 
-def test_classname_filename_salt_style_causes_classname_salt():
+def test_filename_includes_classname_salt():
     class Foo(proto.Message):
-        __filename_salt_style__ = FilenameSaltStyle.CLASSNAME
         bar = proto.Field(proto.INT32, number=1)
 
     assert Foo.pb(Foo()).DESCRIPTOR.file.name == "test_message_filename_foo.proto"
-
-
-random_salt_regex = "^test_message_filename_[0123456789abcdef]{8}.proto$"
-
-
-def test_random_filename_salt_style_causes_random_salt():
-    class Foo(proto.Message):
-        __filename_salt_style__ = FilenameSaltStyle.RANDOM
-        bar = proto.Field(proto.INT32, number=1)
-
-    name = Foo.pb(Foo()).DESCRIPTOR.file.name
-    assert re.search(random_salt_regex, name)
-
-
-def test_filename_salt_style_not_set_causes_random_salt():
-    class Foo(proto.Message):
-        bar = proto.Field(proto.INT32, number=1)
-
-    name = Foo.pb(Foo()).DESCRIPTOR.file.name
-    assert re.search(random_salt_regex, name)
-
-
-def test_filename_salt_set_to_rubbish_causes_random_salt():
-    class Foo(proto.Message):
-        __filename_salt_style__ = "some rubbish"
-        bar = proto.Field(proto.INT32, number=1)
-
-    name = Foo.pb(Foo()).DESCRIPTOR.file.name
-    assert re.search(random_salt_regex, name)
