@@ -47,7 +47,7 @@ class _FileInfo(
         # Salt the filename in the descriptor.
         # This allows re-use of the filename by other proto messages if
         # needed (e.g. if __all__ is not used).
-        salt = "" if salt is None else salt
+        salt = salt or ""
         self.descriptor.name = "{prefix}_{salt}.proto".format(
             prefix=self.descriptor.name[:-6], salt=salt,
         )
