@@ -48,7 +48,7 @@ class _FileInfo(
     def _is_in_manifest(self, new_class):
         return new_class.__name__ in self._get_manifest(new_class)
 
-    def _calculate_salt(self, new_class, fallback=""):
+    def _calculate_salt(self, new_class, fallback):
         if self._has_manifest(new_class=new_class) and not self._is_in_manifest(
             new_class=new_class
         ):
@@ -62,7 +62,7 @@ class _FileInfo(
         return (
             ""
             if self._is_in_manifest(new_class=new_class)
-            else fallback.lower()
+            else (fallback or "").lower()
         )
 
     def generate_file_pb(self, new_class, fallback_salt=""):
