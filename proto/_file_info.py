@@ -40,9 +40,7 @@ class _FileInfo(
         return frozenset()
 
     def _get_remaining_manifest(self, new_class):
-        return frozenset(
-            self._get_manifest(new_class).difference({new_class.__name__},)
-        )
+        return self._get_manifest(new_class) - {new_class.__name__}
 
     def _has_manifest(self, new_class):
         return len(self._get_manifest(new_class)) > 0
@@ -50,7 +48,7 @@ class _FileInfo(
     def _is_in_manifest(self, new_class):
         return new_class.__name__ in self._get_manifest(new_class)
 
-    def _calculate_salt(self, new_class, fallback):
+    def _calculate_salt(self, new_class, fallback=""):
         if self._has_manifest(new_class=new_class) and not self._is_in_manifest(
             new_class=new_class
         ):
@@ -64,10 +62,10 @@ class _FileInfo(
         return (
             ""
             if self._is_in_manifest(new_class=new_class)
-            else (fallback or "").lower()
+            else fallback.lower()
         )
 
-    def generate_file_pb(self, new_class, fallback_salt=None):
+    def generate_file_pb(self, new_class, fallback_salt=""):
         """Generate the descriptors for all protos in the file.
 
         This method takes the file descriptor attached to the parent
@@ -83,7 +81,7 @@ class _FileInfo(
         # Salt the filename in the descriptor.
         # This allows re-use of the filename by other proto messages if
         # needed (e.g. if __all__ is not used).
-        salt = self._calculate_salt(new_class, fallback_salt) or ""
+        salt = self._calculate_salt(new_class, fallback_salt)
         self.descriptor.name = "{name}.proto".format(
             name="_".join([self.descriptor.name[:-6], salt]).rstrip("_"),
         )
