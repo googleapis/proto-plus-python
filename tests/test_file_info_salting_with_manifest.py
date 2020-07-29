@@ -20,6 +20,21 @@ from google.protobuf import descriptor_pb2
 
 from proto import _file_info, _package_info
 
+PACKAGE = "a.test.package.salting.with.manifest"
+__protobuf__ = proto.module(package=PACKAGE, manifest={"This", "That"},)
+
+
+class This(proto.Message):
+    this = proto.Field(proto.INT32, number=1)
+
+
+class That(proto.Message):
+    that = proto.Field(proto.INT32, number=1)
+
+
+class NotInManifest(proto.Message):
+    them = proto.Field(proto.INT32, number=1)
+
 
 def sample_file_info(name):
     filename = name + ".proto"
@@ -44,34 +59,30 @@ def sample_file_info(name):
     )
 
 
-def test_fallback_salt_is_appended_to_filename():
+def test_no_salt_is_appended_to_filename_with_manifest():
     # given
-    class Foo(proto.Message):
-        bar = proto.Field(proto.INT32, number=1)
-
-    name = "my-fileinfo"
+    name = "my-filename"
     fallback_salt = "my-fallback_salt"
     file_info = sample_file_info(name)
 
     # when
-    file_info.generate_file_pb(new_class=Foo, fallback_salt=fallback_salt)
+    file_info.generate_file_pb(new_class=This, fallback_salt=fallback_salt)
 
     # then
-    assert file_info.descriptor.name == name + "_" + fallback_salt + ".proto"
+    assert file_info.descriptor.name == name + ".proto"
 
 
 def test_none_fallback_salt_is_appended_to_filename_as_empty():
     # given
-
-    class Foo(proto.Message):
-        bar = proto.Field(proto.INT32, number=1)
 
     name = "my-fileinfo"
     none_fallback_salt = None
     file_info = sample_file_info(name)
 
     # when
-    file_info.generate_file_pb(new_class=Foo, fallback_salt=none_fallback_salt)
+    file_info.generate_file_pb(
+        new_class=NotInManifest, fallback_salt=none_fallback_salt
+    )
 
     # then
     assert file_info.descriptor.name == name + ".proto"

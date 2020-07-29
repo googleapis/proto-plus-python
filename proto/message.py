@@ -16,7 +16,6 @@ import collections
 import collections.abc
 import copy
 import re
-from enum import Enum
 from typing import List, Type
 
 from google.protobuf import descriptor_pb2
@@ -255,7 +254,7 @@ class MessageMeta(type):
 
         # Generate the descriptor for the file if it is ready.
         if file_info.ready(new_class=cls):
-            file_info.generate_file_pb(salt=full_name.lower())
+            file_info.generate_file_pb(new_class=cls, fallback_salt=full_name)
 
         # Done; return the class.
         return cls
