@@ -157,7 +157,7 @@ class _FileInfo(
         # Do not generate the file descriptor until every member of the
         # manifest has been populated.
         module = inspect.getmodule(new_class)
-        manifest = self._get_remaining_manifest(new_class) or frozenset()
+        manifest = self._get_remaining_manifest(new_class)
         if not all([hasattr(module, i) for i in manifest]):
             return False
 
