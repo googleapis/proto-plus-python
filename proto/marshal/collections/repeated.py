@@ -126,4 +126,3 @@ class RepeatedComposite(Repeated):
         """Insert ``value`` in the sequence before ``index``."""
         pb_value = self._marshal.to_proto(self._pb_type, value, strict=True)
         self.pb.insert(index, pb_value)
-
