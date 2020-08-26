@@ -183,24 +183,13 @@ class MessageMeta(type):
         # Determine the filename.
         # We determine an appropriate proto filename based on the
         # Python module.
-        filename = "{0}.proto".format(
-            new_attrs.get("__module__", name.lower()).replace(".", "/")
+        filename = _file_info._FileInfo.proto_file_name(
+            new_attrs.get("__module__", name.lower())
         )
 
         # Get or create the information about the file, including the
         # descriptor to which the new message descriptor shall be added.
-        file_info = _file_info._FileInfo.registry.setdefault(
-            filename,
-            _file_info._FileInfo(
-                descriptor=descriptor_pb2.FileDescriptorProto(
-                    name=filename, package=package, syntax="proto3",
-                ),
-                enums=collections.OrderedDict(),
-                messages=collections.OrderedDict(),
-                name=filename,
-                nested={},
-            ),
-        )
+        file_info = _file_info._FileInfo.maybe_add_descriptor(filename, package)
 
         # Ensure any imports that would be necessary are assigned to the file
         # descriptor proto being created.
@@ -325,7 +314,7 @@ class MessageMeta(type):
         """
         return cls.wrap(cls.pb().FromString(payload))
 
-    def to_json(cls, instance) -> str:
+    def to_json(cls, instance, *, enum_strings=False) -> str:
         """Given a message instance, serialize it to json
 
         Args:
@@ -335,7 +324,11 @@ class MessageMeta(type):
         Returns:
             str: The json string representation of the protocol buffer.
         """
-        return MessageToJson(cls.pb(instance))
+        return MessageToJson(
+            cls.pb(instance),
+            use_integers_for_enums=not enum_strings,
+            including_default_value_fields=True,
+        )
 
     def from_json(cls, payload) -> "Message":
         """Given a json string representing an instance,
