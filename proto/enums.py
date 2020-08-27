@@ -70,7 +70,7 @@ class ProtoEnumMeta(enum.EnumMeta):
         # Run the superclass constructor.
         cls = super().__new__(mcls, name, bases, attrs)
 
-        # We can't just add a "_pb" element to attrs because the Enum
+        # We can't just add a "_meta" element to attrs because the Enum
         # machinery doesn't know what to do with a non-int value.
         cls._meta = _EnumInfo(full_name=full_name, pb=enum_desc)
 
