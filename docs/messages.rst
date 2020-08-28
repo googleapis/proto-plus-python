@@ -171,6 +171,6 @@ represent enum values.
 .. code-block:: python
 
    song = Song(genre=Genre.JAZZ)
-   json = Song.to_json(song, enum_strings=True)
+   json = Song.to_json(song, use_integers_for_enums=True)
 
    assert "JAZZ" in json

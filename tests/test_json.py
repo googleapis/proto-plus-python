@@ -63,7 +63,7 @@ def test_stringy_enums():
         zone = proto.Field(Zone, number=1)
 
     s1 = Squid(zone=Zone.MESOPELAGIC)
-    json = Squid.to_json(s1, enum_strings=True)
+    json = Squid.to_json(s1, use_integers_for_enums=True)
 
     assert "MESOPELAGIC" in json
 
@@ -86,5 +86,5 @@ def test_default_enums():
     json1 = Squid.to_json(s).replace(" ", "").replace("\n", "")
     assert json1 == '{"zone":0}'
 
-    json2 = Squid.to_json(s, enum_strings=True)
+    json2 = Squid.to_json(s, use_integers_for_enums=True)
     assert "EPIPELAGIC" in json2

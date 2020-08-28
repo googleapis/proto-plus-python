@@ -314,13 +314,13 @@ class MessageMeta(type):
         """
         return cls.wrap(cls.pb().FromString(payload))
 
-    def to_json(cls, instance, *, enum_strings=False) -> str:
+    def to_json(cls, instance, *, use_integers_for_enums=False) -> str:
         """Given a message instance, serialize it to json
 
         Args:
             instance: An instance of this message type, or something
                 compatible (accepted by the type's constructor).
-            enum_strings (Optional(bool)): An option that determines whether enum
+            use_integers_for_enums (Optional(bool)): An option that determines whether enum
                 values should be represented by strings (True) or integers (False).
                 Default is False.
 
@@ -329,7 +329,7 @@ class MessageMeta(type):
         """
         return MessageToJson(
             cls.pb(instance),
-            use_integers_for_enums=not enum_strings,
+            use_integers_for_enums=not use_integers_for_enums,
             including_default_value_fields=True,
         )
 
