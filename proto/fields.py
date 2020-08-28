@@ -78,7 +78,8 @@ class Field:
             if isinstance(self.message, str):
                 if not self.message.startswith(self.package):
                     self.message = "{package}.{name}".format(
-                        package=self.package, name=self.message,
+                        package=self.package,
+                        name=self.message,
                     )
                 type_name = self.message
             elif self.message:
