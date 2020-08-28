@@ -320,6 +320,9 @@ class MessageMeta(type):
         Args:
             instance: An instance of this message type, or something
                 compatible (accepted by the type's constructor).
+            enum_strings (Optional(bool)): An option that determines whether enum
+                values should be represented by strings (True) or integers (False).
+                Default is False.
 
         Returns:
             str: The json string representation of the protocol buffer.
