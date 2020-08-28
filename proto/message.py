@@ -314,22 +314,22 @@ class MessageMeta(type):
         """
         return cls.wrap(cls.pb().FromString(payload))
 
-    def to_json(cls, instance, *, use_integers_for_enums=False) -> str:
+    def to_json(cls, instance, *, use_integers_for_enums=True) -> str:
         """Given a message instance, serialize it to json
 
         Args:
             instance: An instance of this message type, or something
                 compatible (accepted by the type's constructor).
             use_integers_for_enums (Optional(bool)): An option that determines whether enum
-                values should be represented by strings (True) or integers (False).
-                Default is False.
+                values should be represented by strings (False) or integers (True).
+                Default is True.
 
         Returns:
             str: The json string representation of the protocol buffer.
         """
         return MessageToJson(
             cls.pb(instance),
-            use_integers_for_enums=not use_integers_for_enums,
+            use_integers_for_enums=use_integers_for_enums,
             including_default_value_fields=True,
         )
 
