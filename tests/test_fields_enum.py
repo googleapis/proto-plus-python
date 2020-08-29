@@ -252,3 +252,42 @@ def test_enum_del():
     assert "color" not in foo
     assert not foo.color
     assert Foo.pb(foo).color == 0
+
+
+class Zone(proto.Enum):
+    EPIPELAGIC = 0
+    MESOPELAGIC = 1
+    ABYSSOPELAGIC = 2
+    HADOPELAGIC = 3
+
+
+def test_enum_outest():
+    z = Zone(value=Zone.MESOPELAGIC)
+
+    assert z == Zone.MESOPELAGIC
+
+
+def test_nested_enum_from_string():
+
+    class Zone(proto.Enum):
+        EPIPELAGIC = 0
+        MESOPELAGIC = 1
+        BATHYPELAGIC = 2
+        ABYSSOPELAGIC = 3
+
+    class Squid(proto.Message):
+        zone = proto.Field(Zone, number=1)
+
+    class Trawl(proto.Message):
+        # Note: this indirection with the nested field
+        # is necessary to trigger the exception for testing.
+        # Setting the field in an existing message accepts strings AND
+        # checks for valid variants.
+        # Similarly, constructing a message directly with a top level 
+        # enum field kwarg passed as a string is also handled correctly, i.e.
+        # s = Squid(zone="ABYSSAL")
+        # does NOT raise an exception.
+        squids = proto.RepeatedField(Squid, number=1)
+
+    t = Trawl(squids=[{"zone": "MESOPELAGIC"}])
+    assert t.squids[0] == Squid(zone=Zone.MESOPELAGIC)
