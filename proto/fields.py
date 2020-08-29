@@ -85,10 +85,20 @@ class Field:
                 type_name = (
                     self.message.DESCRIPTOR.full_name
                     if hasattr(self.message, "DESCRIPTOR")
-                    else self.message.meta.full_name
+                    else self.message._meta.full_name
                 )
+            elif isinstance(self.enum, str):
+                if not self.enum.startswith(self.package):
+                    self.enum = "{package}.{name}".format(
+                        package=self.package, name=self.enum,
+                    )
+                type_name = self.enum
             elif self.enum:
-                type_name = self.enum._meta.full_name
+                type_name = (
+                    self.enum.DESCRIPTOR.full_name
+                    if hasattr(self.enum, "DESCRIPTOR")
+                    else self.enum._meta.full_name
+                )
 
             # Set the descriptor.
             self._descriptor = descriptor_pb2.FieldDescriptorProto(

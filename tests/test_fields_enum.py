@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import proto
+import sys
 
 
 def test_outer_enum_init():
@@ -285,9 +286,42 @@ def test_nested_enum_from_string():
         # checks for valid variants.
         # Similarly, constructing a message directly with a top level 
         # enum field kwarg passed as a string is also handled correctly, i.e.
-        # s = Squid(zone="ABYSSAL")
+        # s = Squid(zone="ABYSSOPELAGIC")
         # does NOT raise an exception.
         squids = proto.RepeatedField(Squid, number=1)
 
     t = Trawl(squids=[{"zone": "MESOPELAGIC"}])
     assert t.squids[0] == Squid(zone=Zone.MESOPELAGIC)
+
+
+def test_enum_field_by_string():
+    class Zone(proto.Enum):
+        EPIPELAGIC = 0
+        MESOPELAGIC = 1
+        BATHYPELAGIC = 2
+        ABYSSOPELAGIC = 3
+
+    class Squid(proto.Message):
+        zone = proto.Field(proto.ENUM, number=1, enum="Zone")
+
+    s = Squid(zone=Zone.BATHYPELAGIC)
+    assert s.zone == Zone.BATHYPELAGIC
+
+
+def test_enum_field_by_string_with_package():
+    sys.modules[__name__].__protobuf__ = proto.module(package="mollusca.cephalopoda")
+    try:
+        class Zone(proto.Enum):
+            EPIPELAGIC = 0
+            MESOPELAGIC = 1
+            BATHYPELAGIC = 2
+            ABYSSOPELAGIC = 3
+
+        class Squid(proto.Message):
+            zone = proto.Field(proto.ENUM, number=1, enum="Zone")
+
+    finally:
+        del sys.modules[__name__].__protobuf__
+
+    s = Squid(zone="ABYSSOPELAGIC")
+    assert s.zone == Zone.ABYSSOPELAGIC
