@@ -17,14 +17,14 @@ import sys
 
 
 def test_outer_enum_init():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo(color=Color.RED)
     assert foo.color == Color.RED
@@ -35,14 +35,14 @@ def test_outer_enum_init():
 
 
 def test_outer_enum_init_int():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo(color=1)
     assert foo.color == Color.RED
@@ -53,14 +53,14 @@ def test_outer_enum_init_int():
 
 
 def test_outer_enum_init_str():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo(color="RED")
     assert foo.color == Color.RED
@@ -71,14 +71,14 @@ def test_outer_enum_init_str():
 
 
 def test_outer_enum_init_dict():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo({"color": 1})
     assert foo.color == Color.RED
@@ -89,14 +89,14 @@ def test_outer_enum_init_dict():
 
 
 def test_outer_enum_init_dict_str():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo({"color": "BLUE"})
     assert foo.color == Color.BLUE
@@ -107,14 +107,14 @@ def test_outer_enum_init_dict_str():
 
 
 def test_outer_enum_init_pb2():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(proto.ENUM, number=1, enum=Color)
 
     foo = Foo(Foo.pb()(color=Color.RED))
     assert foo.color == Color.RED
@@ -125,14 +125,14 @@ def test_outer_enum_init_pb2():
 
 
 def test_outer_enum_unset():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(proto.ENUM, number=1, enum=Color)
 
     foo = Foo()
     assert foo.color == Color.COLOR_UNSPECIFIED
@@ -144,14 +144,14 @@ def test_outer_enum_unset():
 
 
 def test_outer_enum_write():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(proto.ENUM, number=1, enum=Color)
 
     foo = Foo()
     foo.color = Color.GREEN
@@ -162,14 +162,14 @@ def test_outer_enum_write():
 
 
 def test_outer_enum_write_int():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(proto.ENUM, number=1, enum=Color)
 
     foo = Foo()
     foo.color = 3
@@ -181,14 +181,14 @@ def test_outer_enum_write_int():
 
 
 def test_outer_enum_write_str():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo()
     foo.color = "BLUE"
@@ -207,7 +207,7 @@ def test_inner_enum_init():
             GREEN = 2
             BLUE = 3
 
-        color = proto.Field(proto.ENUM, number=1, enum=Color)
+        color = proto.Field(Color, number=1)
 
     foo = Foo(color=Foo.Color.RED)
     assert foo.color == Foo.Color.RED
@@ -236,14 +236,14 @@ def test_inner_enum_write():
 
 
 def test_enum_del():
+    class Foo(proto.Message):
+        color = proto.Field(proto.ENUM, number=1, enum="Color")
+
     class Color(proto.Enum):
         COLOR_UNSPECIFIED = 0
         RED = 1
         GREEN = 2
         BLUE = 3
-
-    class Foo(proto.Message):
-        color = proto.Field(Color, number=1)
 
     foo = Foo(color=Color.BLUE)
     del foo.color
@@ -255,29 +255,7 @@ def test_enum_del():
     assert Foo.pb(foo).color == 0
 
 
-class Zone(proto.Enum):
-    EPIPELAGIC = 0
-    MESOPELAGIC = 1
-    ABYSSOPELAGIC = 2
-    HADOPELAGIC = 3
-
-
-def test_enum_outest():
-    z = Zone(value=Zone.MESOPELAGIC)
-
-    assert z == Zone.MESOPELAGIC
-
-
 def test_nested_enum_from_string():
-    class Zone(proto.Enum):
-        EPIPELAGIC = 0
-        MESOPELAGIC = 1
-        BATHYPELAGIC = 2
-        ABYSSOPELAGIC = 3
-
-    class Squid(proto.Message):
-        zone = proto.Field(Zone, number=1)
-
     class Trawl(proto.Message):
         # Note: this indirection with the nested field
         # is necessary to trigger the exception for testing.
@@ -287,21 +265,30 @@ def test_nested_enum_from_string():
         # enum field kwarg passed as a string is also handled correctly, i.e.
         # s = Squid(zone="ABYSSOPELAGIC")
         # does NOT raise an exception.
-        squids = proto.RepeatedField(Squid, number=1)
+        squids = proto.RepeatedField("Squid", number=1)
 
-    t = Trawl(squids=[{"zone": "MESOPELAGIC"}])
-    assert t.squids[0] == Squid(zone=Zone.MESOPELAGIC)
+    class Squid(proto.Message):
+        zone = proto.Field(proto.ENUM, number=1, enum="Zone")
 
-
-def test_enum_field_by_string():
     class Zone(proto.Enum):
         EPIPELAGIC = 0
         MESOPELAGIC = 1
         BATHYPELAGIC = 2
         ABYSSOPELAGIC = 3
 
+    t = Trawl(squids=[{"zone": "MESOPELAGIC"}])
+    assert t.squids[0] == Squid(zone=Zone.MESOPELAGIC)
+
+
+def test_enum_field_by_string():
     class Squid(proto.Message):
         zone = proto.Field(proto.ENUM, number=1, enum="Zone")
+
+    class Zone(proto.Enum):
+        EPIPELAGIC = 0
+        MESOPELAGIC = 1
+        BATHYPELAGIC = 2
+        ABYSSOPELAGIC = 3
 
     s = Squid(zone=Zone.BATHYPELAGIC)
     assert s.zone == Zone.BATHYPELAGIC
@@ -311,17 +298,33 @@ def test_enum_field_by_string_with_package():
     sys.modules[__name__].__protobuf__ = proto.module(package="mollusca.cephalopoda")
     try:
 
+        class Octopus(proto.Message):
+            zone = proto.Field(proto.ENUM, number=1, enum="mollusca.cephalopoda.Zone")
+
         class Zone(proto.Enum):
             EPIPELAGIC = 0
             MESOPELAGIC = 1
             BATHYPELAGIC = 2
             ABYSSOPELAGIC = 3
 
-        class Squid(proto.Message):
-            zone = proto.Field(proto.ENUM, number=1, enum="Zone")
-
     finally:
         del sys.modules[__name__].__protobuf__
 
-    s = Squid(zone="ABYSSOPELAGIC")
-    assert s.zone == Zone.ABYSSOPELAGIC
+    o = Octopus(zone="MESOPELAGIC")
+    assert o.zone == Zone.MESOPELAGIC
+
+
+def test_enums_in_different_files():
+    import mollusc
+    import zone
+
+    m = mollusc.Mollusc(zone="BATHYPELAGIC")
+
+    assert m.zone == zone.Zone.BATHYPELAGIC
+
+
+def test_enums_in_one_file():
+    import clam
+
+    c = clam.Clam(species=clam.Species.DURASA)
+    assert c.species == clam.Species.DURASA

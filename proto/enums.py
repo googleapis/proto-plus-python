@@ -44,6 +44,9 @@ class ProtoEnumMeta(enum.EnumMeta):
 
         # Determine the full name in protocol buffers.
         full_name = ".".join((package,) + local_path).lstrip(".")
+        filename = _file_info._FileInfo.proto_file_name(
+            attrs.get("__module__", name.lower())
+        )
         enum_desc = descriptor_pb2.EnumDescriptorProto(
             name=name,
             # Note: the superclass ctor removes the variants, so get them now.
@@ -59,10 +62,6 @@ class ProtoEnumMeta(enum.EnumMeta):
             ),
         )
 
-        filename = _file_info._FileInfo.proto_file_name(
-            attrs.get("__module__", name.lower())
-        )
-
         file_info = _file_info._FileInfo.maybe_add_descriptor(filename, package)
         if len(local_path) == 1:
             file_info.descriptor.enum_type.add().MergeFrom(enum_desc)
@@ -74,12 +73,17 @@ class ProtoEnumMeta(enum.EnumMeta):
 
         # We can't just add a "_meta" element to attrs because the Enum
         # machinery doesn't know what to do with a non-int value.
-        cls._meta = _EnumInfo(full_name=full_name, pb=enum_desc)
+        # The pb is set later, in generate_file_pb
+        cls._meta = _EnumInfo(full_name=full_name, pb=None)
 
         file_info.enums[full_name] = cls
 
         # Register the enum with the marshal.
         marshal.register(cls, EnumRule(cls))
+
+        # Generate the descriptor for the file if it is ready.
+        if file_info.ready(new_class=cls):
+            file_info.generate_file_pb(new_class=cls, fallback_salt=full_name)
 
         # Done; return the class.
         return cls

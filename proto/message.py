@@ -145,7 +145,6 @@ class MessageMeta(type):
                 field_msg = field.message
                 if hasattr(field_msg, "pb") and callable(field_msg.pb):
                     field_msg = field_msg.pb()
-
                 # Sanity check: The field's message may not yet be defined if
                 # it was a Message defined in the same file, and the file
                 # descriptor proto has not yet been generated.
@@ -155,6 +154,14 @@ class MessageMeta(type):
                 if field_msg:
                     proto_imports.add(field_msg.DESCRIPTOR.file.name)
                     symbol_database.Default().RegisterMessage(field_msg)
+
+            # Same thing, but for enums.
+            elif field.enum and not isinstance(field.enum, str):
+                field_enum = field.enum._meta.pb
+
+                if field_enum:
+                    proto_imports.add(field_enum.file.name)
+                    symbol_database.Default().RegisterEnumDescriptor(field_enum)
 
             # Increment the field index counter.
             index += 1
