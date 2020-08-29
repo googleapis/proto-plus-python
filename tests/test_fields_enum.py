@@ -269,7 +269,6 @@ def test_enum_outest():
 
 
 def test_nested_enum_from_string():
-
     class Zone(proto.Enum):
         EPIPELAGIC = 0
         MESOPELAGIC = 1
@@ -284,7 +283,7 @@ def test_nested_enum_from_string():
         # is necessary to trigger the exception for testing.
         # Setting the field in an existing message accepts strings AND
         # checks for valid variants.
-        # Similarly, constructing a message directly with a top level 
+        # Similarly, constructing a message directly with a top level
         # enum field kwarg passed as a string is also handled correctly, i.e.
         # s = Squid(zone="ABYSSOPELAGIC")
         # does NOT raise an exception.
@@ -311,6 +310,7 @@ def test_enum_field_by_string():
 def test_enum_field_by_string_with_package():
     sys.modules[__name__].__protobuf__ = proto.module(package="mollusca.cephalopoda")
     try:
+
         class Zone(proto.Enum):
             EPIPELAGIC = 0
             MESOPELAGIC = 1
