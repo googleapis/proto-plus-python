@@ -160,7 +160,6 @@ class MessageMeta(type):
 
                 if field_enum:
                     proto_imports.add(field_enum.file.name)
-                    symbol_database.Default().RegisterEnumDescriptor(field_enum)
 
             # Increment the field index counter.
             index += 1
