@@ -94,11 +94,7 @@ class Field:
                     )
                 type_name = self.enum
             elif self.enum:
-                type_name = (
-                    self.enum.DESCRIPTOR.full_name
-                    if hasattr(self.enum, "DESCRIPTOR")
-                    else self.enum._meta.full_name
-                )
+                type_name = self.enum._meta.full_name
 
             # Set the descriptor.
             self._descriptor = descriptor_pb2.FieldDescriptorProto(
