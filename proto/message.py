@@ -153,7 +153,6 @@ class MessageMeta(type):
                 # correctly when the file descriptor is created later.
                 if field_msg:
                     proto_imports.add(field_msg.DESCRIPTOR.file.name)
-                    symbol_database.Default().RegisterMessage(field_msg)
 
             # Same thing, but for enums.
             elif field.enum and not isinstance(field.enum, str):
