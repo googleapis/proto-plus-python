@@ -72,7 +72,6 @@ class Field:
     def descriptor(self):
         """Return the descriptor for the field."""
         if not self._descriptor:
-            proto_type = self.proto_type
             # Resolve the message type, if any, to a string.
             type_name = None
             if isinstance(self.message, str):
@@ -101,7 +100,7 @@ class Field:
                 name=self.name,
                 number=self.number,
                 label=3 if self.repeated else 1,
-                type=proto_type,
+                type=self.proto_type,
                 type_name=type_name,
                 json_name=self.json_name,
                 proto3_optional=self.optional,
