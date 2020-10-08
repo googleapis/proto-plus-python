@@ -36,6 +36,7 @@ setup(
     long_description=README,
     platforms="Posix; MacOS X",
     include_package_data=True,
+    package_data={"": ["LICENSE"]},
     install_requires=("protobuf >= 3.12.0",),
     extras_require={"testing": ["google-api-core[grpc] >= 1.22.2",],},
     classifiers=[
