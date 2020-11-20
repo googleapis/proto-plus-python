@@ -328,10 +328,12 @@ class MessageMeta(type):
         return cls.wrap(cls.pb().FromString(payload))
 
     def to_json(
-        cls, instance, *, 
+        cls,
+        instance,
+        *,
         use_integers_for_enums=True,
         including_default_value_fields=True
-        ) -> str:
+    ) -> str:
         """Given a message instance, serialize it to json
 
         Args:

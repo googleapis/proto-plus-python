@@ -101,16 +101,19 @@ def test_json_default_values():
     class Squid(proto.Message):
         mass_kg = proto.Field(proto.INT32, number=1)
         name = proto.Field(proto.STRING, number=2)
-    
-    s = Squid(name='Steve')
+
+    s = Squid(name="Steve")
     json1 = (
         Squid.to_json(s, including_default_value_fields=False)
-        .replace(" ", "").replace("\n", "")
+        .replace(" ", "")
+        .replace("\n", "")
     )
     assert json1 == '{"name":"Steve"}'
 
     json2 = Squid.to_json(s).replace(" ", "").replace("\n", "")
-    assert json2 == '{"name":"Steve","massKg":0}'
+    assert (
+        json2 == '{"name":"Steve","massKg":0}' or json2 == '{"massKg":0,"name":"Steve"}'
+    )
 
     s1 = Squid.from_json(json1)
     s2 = Squid.from_json(json2)
