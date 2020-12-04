@@ -48,14 +48,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - unit-3.10:
-          filters:
-            tags:
-              only: /.*/
-      - unit-cpp-3.10:
-          filters:
-            tags:
-              only: /.*/
       - docs:
           filters:
             tags:
@@ -145,23 +137,6 @@ jobs:
           name: Submit coverage data to codecov.
           command: codecov
           when: always
-  unit-3.10:
-    docker:
-      - image: python:3.10
-    steps:
-      - checkout
-      - run:
-          name: Install nox and codecov.
-          command: |
-            pip install nox
-            pip install codecov
-      - run:
-          name: Run unit tests.
-          command: nox -s unit-3.10
-      - run:
-          name: Submit coverage data to codecov.
-          command: codecov
-          when: always
   unit-cpp-3.6:
     docker:
       - image: python:3.6
@@ -226,23 +201,6 @@ jobs:
       - run:
           name: Run unit tests.
           command: nox -s unitcpp-3.9
-      - run:
-          name: Submit coverage data to codecov.
-          command: codecov
-          when: always
-  unit-cpp-3.10:
-    docker:
-      - image: python:3.10-rc
-    steps:
-      - checkout
-      - run:
-          name: Install nox and codecov.
-          command: |
-            pip install nox
-            pip install codecov
-      - run:
-          name: Run unit tests.
-          command: nox -s unitcpp-3.10
       - run:
           name: Submit coverage data to codecov.
           command: codecov
