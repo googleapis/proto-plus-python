@@ -16,14 +16,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+.*/
-      - unit-3.5:
-          filters:
-            tags:
-              only: /.*/
-      - unit-cpp-3.5:
-          filters:
-            tags:
-              only: /.*/
       - unit-3.6:
           filters:
             tags:
@@ -70,8 +62,6 @@ workflows:
               only: /.*/
       - publish:
           requires:
-            - unit-3.5
-            - unit-cpp-3.5
             - unit-3.6
             - unit-cpp-3.6
             - unit-3.7
@@ -87,23 +77,6 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+((a|b|rc)\d+)?$/
 jobs:
-  unit-3.5:
-    docker:
-      - image: python:3.5
-    steps:
-      - checkout
-      - run:
-          name: Install nox and codecov.
-          command: |
-            pip install nox
-            pip install codecov
-      - run:
-          name: Run unit tests.
-          command: nox -s unit-3.5
-      - run:
-          name: Submit coverage data to codecov.
-          command: codecov
-          when: always
   unit-3.6:
     docker:
       - image: python:3.6
@@ -172,26 +145,9 @@ jobs:
           name: Submit coverage data to codecov.
           command: codecov
           when: always
-    unit-3.10:
-      docker:
-        - image: python:3.10
-      steps:
-        - checkout
-        - run:
-            name: Install nox and codecov.
-            command: |
-              pip install nox
-              pip install codecov
-        - run:
-            name: Run unit tests.
-            command: nox -s unit-3.10
-        - run:
-            name: Submit coverage data to codecov.
-            command: codecov
-            when: always
-  unit-cpp-3.5:
+  unit-3.10:
     docker:
-      - image: python:3.5
+      - image: python:3.10
     steps:
       - checkout
       - run:
@@ -201,7 +157,7 @@ jobs:
             pip install codecov
       - run:
           name: Run unit tests.
-          command: nox -s unitcpp-3.5
+          command: nox -s unit-3.10
       - run:
           name: Submit coverage data to codecov.
           command: codecov
