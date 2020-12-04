@@ -232,7 +232,7 @@ jobs:
           when: always
   unit-cpp-3.10:
     docker:
-      - image: python:3.10
+      - image: python:3.10-rc-slim
     steps:
       - checkout
       - run:
