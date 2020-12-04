@@ -14,7 +14,6 @@ branchProtectionRules:
     - 'ci/circleci: unit-cpp-3.6'
     - 'ci/circleci: unit-cpp-3.7'
     - 'ci/circleci: unit-cpp-3.8'
-    - 'ci/circleci: unit-cpp-3.9'
     - 'cla/google'
   requiredApprovingReviewCount: 1
   requiresCodeOwnerReviews: true

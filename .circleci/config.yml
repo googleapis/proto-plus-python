@@ -44,7 +44,11 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - unit-cpp-3.9:
+      # - unit-cpp-3.9:
+      #     filters:
+      #       tags:
+      #         only: /.*/
+      - unit-3.10:
           filters:
             tags:
               only: /.*/
@@ -61,7 +65,7 @@ workflows:
             - unit-3.8
             - unit-cpp-3.8
             - unit-3.9
-            - unit-cpp-3.9
+            # - unit-cpp-3.9
             - docs
           filters:
             branches:
@@ -137,6 +141,23 @@ jobs:
           name: Submit coverage data to codecov.
           command: codecov
           when: always
+  unit-3.10:
+    docker:
+      - image: python:3.10-rc
+    steps:
+      - checkout
+      - run:
+          name: Install nox and codecov.
+          command: |
+            pip install nox
+            pip install codecov
+      - run:
+          name: Run unit tests.
+          command: nox -s unit-3.10
+      - run:
+          name: Submit coverage data to codecov.
+          command: codecov
+          when: always
   unit-cpp-3.6:
     docker:
       - image: python:3.6
@@ -188,23 +209,23 @@ jobs:
           name: Submit coverage data to codecov.
           command: codecov
           when: always
-  unit-cpp-3.9:
-    docker:
-      - image: python:3.9
-    steps:
-      - checkout
-      - run:
-          name: Install nox and codecov.
-          command: |
-            pip install nox
-            pip install codecov
-      - run:
-          name: Run unit tests.
-          command: nox -s unitcpp-3.9
-      - run:
-          name: Submit coverage data to codecov.
-          command: codecov
-          when: always
+  # unit-cpp-3.9:
+  #   docker:
+  #     - image: python:3.9
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Install nox and codecov.
+  #         command: |
+  #           pip install nox
+  #           pip install codecov
+  #     - run:
+  #         name: Run unit tests.
+  #         command: nox -s unitcpp-3.9
+  #     - run:
+  #         name: Submit coverage data to codecov.
+  #         command: codecov
+  #         when: always
   docs:
     docker:
       - image: python:3.6
