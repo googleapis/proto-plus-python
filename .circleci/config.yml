@@ -48,10 +48,6 @@ workflows:
       #     filters:
       #       tags:
       #         only: /.*/
-      - unit-3.10:
-          filters:
-            tags:
-              only: /.*/
       - docs:
           filters:
             tags:
