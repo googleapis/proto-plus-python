@@ -22,7 +22,7 @@ import nox
 CURRENT_DIRECTORY = pathlib.Path(__file__).parent.absolute()
 
 
-@nox.session(python=["3.5", "3.6", "3.7", "3.8", "3.9"])
+@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"])
 def unit(session, proto="python"):
     """Run the unit test suite."""
 
@@ -51,7 +51,7 @@ def unit(session, proto="python"):
     )
 
 
-@nox.session(python=["3.5", "3.6", "3.7", "3.8", "3.9"])
+@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"])
 def unitcpp(session):
     return unit(session, proto="cpp")
 
