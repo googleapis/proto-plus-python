@@ -18,13 +18,20 @@ import os
 import nox
 
 
-@nox.session(python=["3.5", "3.6", "3.7", "3.8"])
+CURRENT_DIRECTORY = pathlib.Path(__file__).parent.absolute()
+
+
+@nox.session(python=["3.5", "3.6", "3.7", "3.8", "3.9"])
 def unit(session, proto="python"):
     """Run the unit test suite."""
 
+    constraints_path = str(
+        CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
+    )
+
     session.env["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = proto
     session.install("coverage", "pytest", "pytest-cov", "pytz")
-    session.install("-e", ".[testing]")
+    session.install("-e", ".[testing]", "-c", constraints_path)
 
     session.run(
         "py.test",
@@ -43,7 +50,7 @@ def unit(session, proto="python"):
     )
 
 
-@nox.session(python=["3.5", "3.6", "3.7", "3.8"])
+@nox.session(python=["3.5", "3.6", "3.7", "3.8", "3.9"])
 def unitcpp(session):
     return unit(session, proto="cpp")
 
