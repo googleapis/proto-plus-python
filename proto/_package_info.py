@@ -36,7 +36,7 @@ def compile(name, attrs):
     proto_module = getattr(module, "__protobuf__", object())
 
     # A package should be present; get the marshal from there.
-    package = getattr(proto_module, "package", "")
+    package = getattr(proto_module, "package", module.__name__)
     marshal = Marshal(name=getattr(proto_module, "marshal", package))
 
     # Done; return the data.
