@@ -46,11 +46,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install nox and codecov.
-        command: |
+        run: |
           pip install nox
           pip install codecov
       - name: Run unit tests.
-        command: nox -s unit${{ matrix.variant }}-${{ matrix.python }}
+        run: nox -s unit${{ matrix.variant }}-${{ matrix.python }}
       - name: Submit coverage data to codecov.
-        command: codecov
+        run: codecov
         if: always()
