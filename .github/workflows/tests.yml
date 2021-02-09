@@ -45,15 +45,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - run:
-          name: Install nox and codecov.
-          command: |
-            pip install nox
-            pip install codecov
-      - run:
-          name: Run unit tests.
-          command: nox -s unit${{ matrix.variant }}-${{ matrix.python }}
-      - run:
-          name: Submit coverage data to codecov.
-          command: codecov
-          if: always()
+      - name: Install nox and codecov.
+        command: |
+          pip install nox
+          pip install codecov
+      - name: Run unit tests.
+        command: nox -s unit${{ matrix.variant }}-${{ matrix.python }}
+      - name: Submit coverage data to codecov.
+        command: codecov
+        if: always()
