@@ -150,9 +150,11 @@ class RepeatedComposite(Repeated):
                 indices = range(start, stop, step)
 
                 if len(value) != len(indices):  # XXX: Use PEP 572 on 3.8+
-                    raise ValueError(f"attempt to assign sequence of size "
-                                     f"{len(value)} to extended slice of size "
-                                     f"{len(indices)}")
+                    raise ValueError(
+                        f"attempt to assign sequence of size "
+                        f"{len(value)} to extended slice of size "
+                        f"{len(indices)}"
+                    )
 
                 # Assign each value to its index, calling this function again
                 # with individual integer indexes that get processed above.
@@ -160,8 +162,9 @@ class RepeatedComposite(Repeated):
                     self[index] = item
 
         else:
-            raise TypeError(f"list indices must be integers or slices, "
-                            f"not {type(key).__name__}")
+            raise TypeError(
+                f"list indices must be integers or slices, not {type(key).__name__}"
+            )
 
     def insert(self, index: int, value):
         """Insert ``value`` in the sequence before ``index``."""
