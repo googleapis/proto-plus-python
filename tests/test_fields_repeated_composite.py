@@ -100,6 +100,7 @@ def test_repeated_composite_enum():
     class Foo(proto.Message):
         class Bar(proto.Enum):
             BAZ = 0
+
         bars = proto.RepeatedField(Bar, number=1)
 
     foo = Foo(bars=[Foo.Bar.BAZ])
