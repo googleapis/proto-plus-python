@@ -25,7 +25,7 @@ class Repeated(collections.abc.MutableSequence):
     modify the underlying field container directly.
     """
 
-    def __init__(self, sequence, *, marshal):
+    def __init__(self, sequence, *, marshal, proto_type=None):
         """Initialize a wrapper around a protobuf repeated field.
 
         Args:
@@ -35,6 +35,7 @@ class Repeated(collections.abc.MutableSequence):
         """
         self._pb = sequence
         self._marshal = marshal
+        self._proto_type = proto_type
 
     def __copy__(self):
         """Copy this object and return the copy."""
@@ -61,7 +62,7 @@ class Repeated(collections.abc.MutableSequence):
         return not self == other
 
     def __repr__(self):
-        return repr(self.pb)
+        return repr([*self])
 
     def __setitem__(self, key, value):
         self.pb[key] = value
@@ -89,6 +90,11 @@ class RepeatedComposite(Repeated):
     @cached_property
     def _pb_type(self):
         """Return the protocol buffer type for this sequence."""
+        # Provide the marshal-given proto_type, if any.
+        # Used for RepeatedComposite of Enum.
+        if self._proto_type is not None:
+            return self._proto_type
+
         # There is no public-interface mechanism to determine the type
         # of what should go in the list (and the C implementation seems to
         # have no exposed mechanism at all).
@@ -113,22 +119,60 @@ class RepeatedComposite(Repeated):
         return self._marshal.to_python(self._pb_type, self.pb[key])
 
     def __setitem__(self, key, value):
-        pb_value = self._marshal.to_proto(self._pb_type, value, strict=True)
+        # The underlying protocol buffer does not define __setitem__, so we
+        # have to implement all the operations on our own.
 
-        # Protocol buffers does not define a useful __setitem__, so we
-        # have to pop everything after this point off the list and reload it.
-        after = [pb_value]
-        while self.pb[key:]:
-            after.append(self.pb.pop(key))
-        self.pb.extend(after)
+        # If ``key`` is an integer, as in list[index] = value:
+        if isinstance(key, int):
+            if -len(self) <= key < len(self):
+                self.pop(key)  # Delete the old item.
+                self.insert(key, value)  # Insert the new item in its place.
+            else:
+                raise IndexError("list assignment index out of range")
+
+        # If ``key`` is a slice object, as in list[start:stop:step] = [values]:
+        elif isinstance(key, slice):
+            start, stop, step = key.indices(len(self))
+
+            if not isinstance(value, collections.abc.Iterable):
+                raise TypeError("can only assign an iterable")
+
+            if step == 1:  # Is not an extended slice.
+                # Assign all the new values to the sliced part, replacing the
+                # old values, if any, and unconditionally inserting those
+                # values whose indices already exceed the slice length.
+                for index, item in enumerate(value):
+                    if start + index < stop:
+                        self.pop(start + index)
+                    self.insert(start + index, item)
+
+                # If there are less values than the length of the slice, remove
+                # the remaining elements so that the slice adapts to the
+                # newly provided values.
+                for _ in range(stop - start - len(value)):
+                    self.pop(start + len(value))
+
+            else:  # Is an extended slice.
+                indices = range(start, stop, step)
+
+                if len(value) != len(indices):  # XXX: Use PEP 572 on 3.8+
+                    raise ValueError(
+                        f"attempt to assign sequence of size "
+                        f"{len(value)} to extended slice of size "
+                        f"{len(indices)}"
+                    )
+
+                # Assign each value to its index, calling this function again
+                # with individual integer indexes that get processed above.
+                for index, item in zip(indices, value):
+                    self[index] = item
+
+        else:
+            raise TypeError(
+                f"list indices must be integers or slices, not {type(key).__name__}"
+            )
 
     def insert(self, index: int, value):
         """Insert ``value`` in the sequence before ``index``."""
         pb_value = self._marshal.to_proto(self._pb_type, value, strict=True)
-
-        # Protocol buffers does not define a useful insert, so we have
-        # to pop everything after this point off the list and reload it.
-        after = [pb_value]
-        while self.pb[index:]:
-            after.append(self.pb.pop(index))
-        self.pb.extend(after)
+        self.pb.insert(index, pb_value)
