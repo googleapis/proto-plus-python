@@ -12,7 +12,6 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        # Don't actually care too much about which version.
         python-version: '3.x'
     - name: Install dependencies
       run: python -m pip install twine
