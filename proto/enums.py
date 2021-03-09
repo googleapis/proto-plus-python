@@ -24,6 +24,14 @@ from proto.marshal.rules.enums import EnumRule
 class ProtoEnumMeta(enum.EnumMeta):
     """A metaclass for building and registering protobuf enums."""
 
+    @classmethod
+    def __prepare__(mcls, cls, bases):
+        # The _ignore_ attribute must be set before any of the enum attributes
+        # are added because _ignore_ cannot specify already set names.
+        enum_dict = super().__prepare__(cls, bases)
+        enum_dict["_ignore_"] = ["_pb_options"]
+        return enum_dict
+
     def __new__(mcls, name, bases, attrs):
         # Do not do any special behavior for `proto.Enum` itself.
         if bases[0] == enum.IntEnum:
@@ -47,6 +55,13 @@ class ProtoEnumMeta(enum.EnumMeta):
         filename = _file_info._FileInfo.proto_file_name(
             attrs.get("__module__", name.lower())
         )
+
+        # Retrieve any enum options.
+        # We expect something that looks like an EnumOptions message,
+        # either an actual instance or a dict-like representation.
+        opts = attrs.pop("_pb_options", {})
+
+        # Make the descriptor.
         enum_desc = descriptor_pb2.EnumDescriptorProto(
             name=name,
             # Note: the superclass ctor removes the variants, so get them now.
@@ -60,6 +75,7 @@ class ProtoEnumMeta(enum.EnumMeta):
                 ),
                 key=lambda v: v.number,
             ),
+            options=opts,
         )
 
         file_info = _file_info._FileInfo.maybe_add_descriptor(filename, package)
