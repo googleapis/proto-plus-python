@@ -24,14 +24,6 @@ from proto.marshal.rules.enums import EnumRule
 class ProtoEnumMeta(enum.EnumMeta):
     """A metaclass for building and registering protobuf enums."""
 
-    @classmethod
-    def __prepare__(mcls, cls, bases):
-        # The _ignore_ attribute must be set before any of the enum attributes
-        # are added because _ignore_ cannot specify already set names.
-        enum_dict = super().__prepare__(cls, bases)
-        enum_dict["_ignore_"] = ["_pb_options"]
-        return enum_dict
-
     def __new__(mcls, name, bases, attrs):
         # Do not do any special behavior for `proto.Enum` itself.
         if bases[0] == enum.IntEnum:
@@ -59,7 +51,15 @@ class ProtoEnumMeta(enum.EnumMeta):
         # Retrieve any enum options.
         # We expect something that looks like an EnumOptions message,
         # either an actual instance or a dict-like representation.
-        opts = attrs.pop("_pb_options", {})
+        pb_options = "_pb_options"
+        opts = attrs.pop(pb_options, {})
+        # This is the only portable way to remove the _pb_options name
+        # from the enum attrs.
+        # In 3.7 onwards, we can define an _ignore_ attribute and do some
+        # mucking around with that.
+        if pb_options in attrs._member_names:
+            idx = attrs._member_names.index(pb_options)
+            attrs._member_names.pop(idx)
 
         # Make the descriptor.
         enum_desc = descriptor_pb2.EnumDescriptorProto(
