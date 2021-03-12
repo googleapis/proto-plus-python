@@ -625,7 +625,7 @@ class _MessageInfo:
         package: str,
         full_name: str,
         marshal: Marshal,
-        options: descriptor_pb2.MessageOptions
+        options: descriptor_pb2.MessageOptions,
     ) -> None:
         self.package = package
         self.full_name = full_name
