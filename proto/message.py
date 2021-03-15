@@ -436,7 +436,7 @@ class Message(metaclass=MessageMeta):
             #
             # The `wrap` method on the metaclass is the public API for taking
             # ownership of the passed in protobuf objet.
-            mapping = copy.copy(mapping)
+            mapping = copy.deepcopy(mapping)
             if kwargs:
                 mapping.MergeFrom(self._meta.pb(**kwargs))
 
@@ -601,6 +601,35 @@ class Message(metaclass=MessageMeta):
         # Merge in the value being set.
         if pb_value is not None:
             self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
+
+    def copy_from(self, other):
+        """Equivalent for protobuf.Message.CopyFrom
+
+        Args:
+            other: (Union[dict, ~.Message):
+                A dictionary or message to reinitialize the values for this message.
+        """
+        if isinstance(other, type(self)):
+            # Just want the underlying proto.
+            other = Message.pb(other)
+        elif isinstance(other, type(Message.pb(self))):
+            # Don't need to do anything.
+            pass
+        elif isinstance(other, collections.abc.Mapping):
+            # Coerce into a proto
+            other = type(Message.pb(self))(**other)
+        else:
+            raise TypeError(
+                "invalid argument type to copy to {}: {}".format(
+                    self.__class__.__name__, other.__class__.__name__
+                )
+            )
+
+        # Note: we can't just run self.__init__ because this may be a message field
+        # for a higher order proto; the memory layout for protos is NOT LIKE the
+        # python memory model. We cannot rely on just setting things by reference.
+        # Non-trivial complexity is (partially) hidden by the protobuf runtime.
+        self._pb.CopyFrom(other)
 
 
 class _MessageInfo:
