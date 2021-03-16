@@ -30,6 +30,7 @@ Protocol buffer type                Python type             Nullable
 ``google.protobuf.UInt32Value``     ``int``                      Yes
 ``google.protobuf.UInt64Value``     ``int``                      Yes
 ``google.protobuf.Value``           JSON-encodable values        Yes
+``google.type.Decimal``             ``decimal.Decimal``          Yes
 =================================== ======================= ========
 
 .. note::

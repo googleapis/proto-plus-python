@@ -22,13 +22,7 @@ from proto import datetime_helpers, utils
 
 
 class TimestampRule:
-    """A marshal between Python datetimes and protobuf timestamps.
-
-    Note: Python datetimes are less precise than protobuf datetimes
-    (microsecond vs. nanosecond level precision). If nanosecond-level
-    precision matters, it is recommended to interact with the internal
-    proto directly.
-    """
+    """A marshal between Python datetimes and protobuf timestamps."""
 
     def to_python(
         self, value, *, absent: bool = None
