@@ -89,6 +89,7 @@ objects as possible. It is possible to update a message's field by assigning to 
 just as if it were a regular python object.
 
 .. code-block:: python
+
    song = Song()
    song.composer = Composer(given_name="Johann", family_name="Bach")
 
@@ -141,6 +142,7 @@ just as if it were a regular python object.
       # We can use 'copy_from' if we're concerned that the code
       # implies that assignment involves references.
       composer = Composer(given_name="Elisabeth", family_name="Bach")
+      # We could also do Message.copy_from(song.composer, composer) instead.
       Composer.copy_from(song.composer, composer)
 
       assert song.composer.given_name == "Elisabeth"
