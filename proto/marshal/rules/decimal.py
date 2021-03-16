@@ -22,7 +22,6 @@ class DecimalRule:
     """A marshal between ``google.type.Decimal`` and Python's
     ``decimal.Decimal``.
     """
-
     def to_python(self, value, *, absent: bool = None) -> Optional[decimal.Decimal]:
         if isinstance(value, decimal_pb2.Decimal):
             if absent:

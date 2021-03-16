@@ -104,6 +104,22 @@ def test_decimal_write_py_decimal():
     test_decimal_write(value_func=decimal.Decimal)
 
 
+def test_decimal_write_pb2():
+    class Foo(proto.Message):
+        event_price = proto.Field(
+            proto.MESSAGE, number=1, message=decimal_pb2.Decimal,
+        )
+
+    for v in ['2', '2.', '2.5', '2.5e10', '2.5e-10', '-2.5']:
+        foo = Foo()
+        foo.event_price = decimal_pb2.Decimal(value=v)
+        assert isinstance(foo.event_price, decimal.Decimal)
+        assert isinstance(Foo.pb(foo).event_price, decimal_pb2.Decimal)
+        assert foo.event_price == decimal.Decimal(v)
+        assert foo.event_price == float(v)
+        assert Foo.pb(foo).event_price.value == v
+
+
 def test_decimal_absence():
     class Foo(proto.Message):
         event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
@@ -143,5 +159,5 @@ def test_decimal_to_proto_error():
         event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
 
     with pytest.raises(decimal.InvalidOperation):
-        # Make sure we do basic
+        # Make sure we do basic error checking
         Foo(event_price="a lot")
