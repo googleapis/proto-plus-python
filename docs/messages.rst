@@ -113,7 +113,7 @@ just as if it were a regular python object.
 
    :class:`proto.Message` defines a helper message, :meth:`~.Message.copy_from` to
    help make the distinction clear when reading code.
-   The semantics of :meth:`~.Message.copy_from` are addentical to regular assignment.
+   The semantics of :meth:`~.Message.copy_from` are identical to the field assignment behavior described above.
 
    .. code-block:: python
 
