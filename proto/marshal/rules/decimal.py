@@ -22,9 +22,8 @@ class DecimalRule:
     """A marshal between ``google.type.Decimal`` and Python's
     ``decimal.Decimal``.
     """
-    def to_python(
-        self, value, *, absent: bool = None
-    ) -> Optional[decimal.Decimal]:
+
+    def to_python(self, value, *, absent: bool = None) -> Optional[decimal.Decimal]:
         if isinstance(value, decimal_pb2.Decimal):
             if absent:
                 return None
@@ -32,8 +31,16 @@ class DecimalRule:
         return value
 
     def to_proto(self, value) -> decimal_pb2.Decimal:
+        if isinstance(value, str):
+            # Let the built in library do the parsing and error checking.
+            # Fall through to the next instance check.
+            value = decimal.Decimal(value)
         if isinstance(value, (decimal.Decimal, int, float)):
             return decimal_pb2.Decimal(value=str(value).lower())
         if isinstance(value, decimal_pb2.Decimal):
             return value
-        raise TypeError('Invalid type received for decimal value.')
+        raise TypeError(
+            "Invalid type received for decimal value: {}".format(
+                value.__class__.__name__
+            )
+        )
