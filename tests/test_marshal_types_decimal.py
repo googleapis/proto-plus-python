@@ -138,3 +138,10 @@ def test_decimal_to_proto_error():
     marshal = BaseMarshal()
     with pytest.raises(TypeError):
         marshal.to_proto(decimal_pb2.Decimal, None)
+
+    class Foo(proto.Message):
+        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+
+    with pytest.raises(decimal.InvalidOperation):
+        # Make sure we do basic
+        Foo(event_price="a lot")
