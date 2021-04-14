@@ -26,7 +26,7 @@ with io.open(os.path.join(PACKAGE_ROOT, "README.rst")) as file_obj:
 
 setup(
     name="proto-plus",
-    version=version,
+    version=setuptools.sic(version),
     license="Apache 2.0",
     author="Google LLC",
     author_email="googleapis-packages@google.com",
