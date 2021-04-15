@@ -15,7 +15,7 @@
 import io
 import os
 
-from setuptools import find_packages, setup
+import setuptools
 
 version = "1.18.1"
 
@@ -24,14 +24,14 @@ PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(PACKAGE_ROOT, "README.rst")) as file_obj:
     README = file_obj.read()
 
-setup(
+setuptools.setup(
     name="proto-plus",
     version=setuptools.sic(version),
     license="Apache 2.0",
     author="Google LLC",
     author_email="googleapis-packages@google.com",
     url="https://github.com/googleapis/proto-plus-python.git",
-    packages=find_packages(exclude=["docs", "tests"]),
+    packages=setuptools.find_packages(exclude=["docs", "tests"]),
     description="Beautiful, Pythonic protocol buffers.",
     long_description=README,
     platforms="Posix; MacOS X",
