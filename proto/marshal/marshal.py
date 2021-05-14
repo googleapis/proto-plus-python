@@ -21,6 +21,7 @@ from google.protobuf import timestamp_pb2
 from google.protobuf import struct_pb2
 from google.protobuf import wrappers_pb2
 
+import proto
 from proto.marshal import compat
 from proto.marshal.collections import MapComposite
 from proto.marshal.collections import Repeated
@@ -29,6 +30,10 @@ from proto.marshal.rules import dates
 from proto.marshal.rules import struct
 from proto.marshal.rules import wrappers
 
+
+max_uint_32 = 1<<32 - 1
+max_int_32 = 1<<31 - 1
+min_int_32 = max_int_32 * -1
 
 class Rule(abc.ABC):
     """Abstract class definition for marshal rules."""
@@ -121,6 +126,75 @@ class BaseMarshal:
             return rule_class
 
         return register_rule_class
+
+    @staticmethod
+    def _throw_type_error(primitive):
+        raise TypeError(f"Unacceptable value of type {type(primitive)}")
+
+    @staticmethod
+    def _throw_value_error(proto_type, primitive):
+        raise ValueError(f"Unacceptable value {type(primitive)} for type {proto_type}")
+
+    def validate_primitives(self, field, primitive):
+        proto_type = field.proto_type
+        if field.repeated:
+            if primitive and not isinstance(primitive, (list, Repeated, RepeatedComposite,)):
+                self._throw_type_error(primitive)
+            if primitive:
+                primitive = primitive[0]
+
+        _type = type(primitive)
+        if proto_type == proto.DOUBLE and _type != float:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.FLOAT and _type != float:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.INT64 and _type != int:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.UINT64:
+            if  _type != int:
+                self._throw_type_error(primitive)
+            if primitive < 0:
+                self._throw_value_error(proto_type, primitive)
+        elif proto_type == proto.INT32:
+            if _type != int:
+                self._throw_type_error(primitive)
+            if primitive < min_int_32 or primitive > max_int_32:
+                self._throw_value_error(proto_type, primitive)
+        elif proto_type == proto.FIXED64 and _type != int:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.FIXED32 and _type != int:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.BOOL and _type != bool:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.STRING and _type not in (str, bytes,):
+            self._throw_type_error(primitive)
+        # elif proto_type == proto.MESSAGE:
+        #     # This is not a primitive!
+        #     self._throw_type_error(primitive)
+        elif proto_type == proto.BYTES and _type != bytes:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.UINT32:
+            if _type != int:
+                self._throw_type_error(primitive)
+            if primitive < 0 or primitive > max_int_32:
+                self._throw_value_error(proto_type, primitive)
+        # elif proto_type == proto.ENUM:
+        #     # This is not a primitive!
+        #     self._throw_type_error(primitive)
+        elif proto_type == proto.SFIXED32:
+            if _type != int:
+                self._throw_type_error(primitive)
+            if primitive < min_int_32 or primitive > max_int_32:
+                self._throw_value_error(proto_type, primitive)
+        elif proto_type == proto.SFIXED64 and _type != int:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.SINT32:
+            if _type != int:
+                self._throw_type_error(primitive)
+            if primitive < min_int_32 or primitive > max_int_32:
+                self._throw_value_error(proto_type, primitive)
+        elif proto_type == proto.SINT64 and _type != int:
+            self._throw_type_error(primitive)
 
     def reset(self):
         """Reset the registry to its initial state."""

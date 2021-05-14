@@ -15,13 +15,15 @@
 import collections
 import collections.abc
 import copy
+import inspect
 import re
-from typing import List, Type
+from typing import Callable, List, Optional, Type
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf.json_format import MessageToDict, MessageToJson, Parse
 
+import proto
 from proto import _file_info
 from proto import _package_info
 from proto.fields import Field
@@ -30,6 +32,13 @@ from proto.fields import RepeatedField
 from proto.marshal import Marshal
 from proto.primitives import ProtoType
 
+
+def _has_contribute_to_class(value):
+    # Only call contribute_to_class() if it's bound.
+    return not inspect.isclass(value) and hasattr(value, 'contribute_to_class')
+
+class MapValueMessage:
+    isMapValue: bool = True
 
 class MessageMeta(type):
     """A metaclass for building and registering Message subclasses."""
@@ -105,6 +114,7 @@ class MessageMeta(type):
         # Okay, now we deal with all the rest of the fields.
         # Iterate over all the attributes and separate the fields into
         # their own sequence.
+        contributable_attrs = {}
         fields = []
         new_attrs = {}
         oneofs = collections.OrderedDict()
@@ -126,6 +136,9 @@ class MessageMeta(type):
                 "index": index,
                 "package": package,
             }
+
+            if _has_contribute_to_class(field):
+                contributable_attrs[key] = field
 
             # Add the field to the list of fields.
             fields.append(field)
@@ -248,6 +261,9 @@ class MessageMeta(type):
         # Run the superclass constructor.
         cls = super().__new__(mcls, name, bases, new_attrs)
 
+        for field_name, field in contributable_attrs.items():
+            cls.add_to_class(field_name, field)
+
         # The info class and fields need a reference to the class just created.
         cls._meta.parent = cls
         for field in cls._meta.fields.values():
@@ -269,6 +285,12 @@ class MessageMeta(type):
     def __prepare__(mcls, name, bases, **kwargs):
         return collections.OrderedDict()
 
+    def add_to_class(cls, name, value):
+        if _has_contribute_to_class(value):
+            value.contribute_to_class(cls, name)
+        else:
+            setattr(cls, name, value)
+
     @property
     def meta(cls):
         return cls._meta
@@ -289,6 +311,10 @@ class MessageMeta(type):
                 obj = cls(obj)
             else:
                 raise TypeError("%r is not an instance of %s" % (obj, cls.__name__,))
+        if hasattr(obj, '_update_pb'):
+            obj._update_pb()
+        if hasattr(obj, '_update_nested_pb'):
+            obj._update_nested_pb()
         return obj._pb
 
     def wrap(cls, pb):
@@ -313,6 +339,8 @@ class MessageMeta(type):
         Returns:
             bytes: The serialized representation of the protocol buffer.
         """
+        if instance and type(instance) == cls:
+            instance._update_pb()
         return cls.pb(instance, coerce=True).SerializeToString()
 
     def deserialize(cls, payload: bytes) -> "Message":
@@ -446,6 +474,14 @@ class Message(metaclass=MessageMeta):
     """
 
     def __init__(self, mapping=None, *, ignore_unknown_fields=False, **kwargs):
+
+        self._cached_pb = None
+        # Tracks any new values have had their serialization deferred, and thus whether we
+        # are ready to serialize immediately, or need to sync from the instance back to the
+        # underlying `_pb`
+        self._stale_fields: List[str] = []
+
+
         # We accept several things for `mapping`:
         #   * An instance of this class.
         #   * An instance of the underlying protobuf descriptor class.
@@ -454,7 +490,7 @@ class Message(metaclass=MessageMeta):
         if mapping is None:
             if not kwargs:
                 # Special fast path for empty construction.
-                super().__setattr__("_pb", self._meta.pb())
+                # `self._pb` is lazily initialized only when needed
                 return
 
             mapping = kwargs
@@ -539,6 +575,8 @@ class Message(metaclass=MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
+        if key in getattr(self, '_stale_fields', []):
+            return True
         pb_value = getattr(self._pb, key)
         try:
             # Protocol buffers "HasField" is unfriendly; it only works
@@ -552,12 +590,6 @@ class Message(metaclass=MessageMeta):
         except ValueError:
             return bool(pb_value)
 
-    def __delattr__(self, key):
-        """Delete the value on the given field.
-
-        This is generally equivalent to setting a falsy value.
-        """
-        self._pb.ClearField(key)
 
     def __eq__(self, other):
         """Return True if the messages are equal, False otherwise."""
@@ -572,38 +604,6 @@ class Message(metaclass=MessageMeta):
         # Ask the other object.
         return NotImplemented
 
-    def __getattr__(self, key):
-        """Retrieve the given field's value.
-
-        In protocol buffers, the presence of a field on a message is
-        sufficient for it to always be "present".
-
-        For primitives, a value of the correct type will always be returned
-        (the "falsy" values in protocol buffers consistently match those
-        in Python). For repeated fields, the falsy value is always an empty
-        sequence.
-
-        For messages, protocol buffers does distinguish between an empty
-        message and absence, but this distinction is subtle and rarely
-        relevant. Therefore, this method always returns an empty message
-        (following the official implementation). To check for message
-        presence, use ``key in self`` (in other words, ``__contains__``).
-
-        .. note::
-
-            Some well-known protocol buffer types
-            (e.g. ``google.protobuf.Timestamp``) will be converted to
-            their Python equivalents. See the ``marshal`` module for
-            more details.
-        """
-        try:
-            pb_type = self._meta.fields[key].pb_type
-            pb_value = getattr(self._pb, key)
-            marshal = self._meta.marshal
-            return marshal.to_python(pb_type, pb_value, absent=key not in self)
-        except KeyError as ex:
-            raise AttributeError(str(ex))
-
     def __ne__(self, other):
         """Return True if the messages are unequal, False otherwise."""
         return not self == other
@@ -611,26 +611,48 @@ class Message(metaclass=MessageMeta):
     def __repr__(self):
         return repr(self._pb)
 
-    def __setattr__(self, key, value):
-        """Set the value on the given field.
+    @property
+    def _pb(self):
+        if self._cached_pb is None:
+            self._cached_pb = self._meta.pb()
+        return self._cached_pb
 
-        For well-known protocol buffer types which are marshalled, either
-        the protocol buffer object or the Python equivalent is accepted.
-        """
-        if key[0] == "_":
-            return super().__setattr__(key, value)
-        marshal = self._meta.marshal
-        pb_type = self._meta.fields[key].pb_type
-        pb_value = marshal.to_proto(pb_type, value)
+    @_pb.setter
+    def _pb(self, value):
+        self._cached_pb = value
+        # return super().__setattr__('_cached_pb', value)
 
-        # Clear the existing field.
-        # This is the only way to successfully write nested falsy values,
-        # because otherwise MergeFrom will no-op on them.
-        self._pb.ClearField(key)
+    def _mark_pb_stale(self, field_name: str):
+        if not hasattr(self, '_stale_fields'):
+            self._stale_fields = []
+        self._stale_fields.append(field_name)
 
-        # Merge in the value being set.
-        if pb_value is not None:
-            self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
+    def _mark_pb_synced(self):
+        self._stale_fields = []
+
+    def _update_nested_pb(self):
+        for field_name, field in self._meta.fields.items():
+            if field.proto_type == proto.MESSAGE:
+                obj = getattr(self, field_name, None)
+                if obj and hasattr(obj, '_update_pb'):
+                    obj._update_pb()
+                if obj and hasattr(obj, '_update_nested_pb'):
+                    obj._update_nested_pb()
+
+    def _update_pb(self):
+        merge_params = {}
+        for field_name in getattr(self, '_stale_fields', []):
+            wrapper_value = getattr(self, field_name, None)
+
+            field = self._meta.fields[field_name]
+            pb_value = self._meta.marshal.to_proto(field.pb_type, wrapper_value)
+            merge_params[field_name] = pb_value
+
+            self._pb.ClearField(field_name)
+
+        if merge_params:
+            self._pb.MergeFrom(self._meta.pb(**merge_params))
+        self._mark_pb_synced()
 
 
 class _MessageInfo:
@@ -664,6 +686,13 @@ class _MessageInfo:
         self.fields_by_number = collections.OrderedDict((i.number, i) for i in fields)
         self.marshal = marshal
         self._pb = None
+
+    def __repr__(self) -> str:
+        return (
+            f"_MessageInfo(fields={self.fields}, package={self.package}, full_name={self.full_name}, "
+            f"options={self.options}, fields_by_number={self.fields_by_number}, marshal={self.marshal}, "
+            f"_pb={self._pb})"
+        )
 
     @property
     def pb(self) -> Type[message.Message]:

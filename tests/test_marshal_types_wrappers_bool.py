@@ -66,8 +66,11 @@ def test_bool_value_write_bool_value():
         bar = proto.Field(proto.MESSAGE, message=wrappers_pb2.BoolValue, number=1,)
 
     foo = Foo(bar=True)
+    assert foo.bar is True
     foo.bar = wrappers_pb2.BoolValue()
     assert foo.bar is False
+    foo.bar = wrappers_pb2.BoolValue(value=True)
+    assert foo.bar is True
 
 
 def test_bool_value_del():

@@ -59,6 +59,7 @@ def test_optional_and_oneof():
     assert s.mass_kg == 20
     assert not s.mass_lbs
     assert Squid.iridiphore_num in s
+    assert s.iridiphore_num == 600
 
     s = Squid(mass_lbs=40, iridiphore_num=600)
     assert not s.mass_kg
