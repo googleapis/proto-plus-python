@@ -261,6 +261,8 @@ class MessageMeta(type):
         # Run the superclass constructor.
         cls = super().__new__(mcls, name, bases, new_attrs)
 
+        # Now that the class officially exists, but is not yet finalized, allow
+        # individual attributes to run functions to attach themselves in special ways.
         for field_name, field in contributable_attrs.items():
             cls.add_to_class(field_name, field)
 
@@ -286,6 +288,8 @@ class MessageMeta(type):
         return collections.OrderedDict()
 
     def add_to_class(cls, name, value):
+        """Hook for attributes on the class definition to attach themselves
+        in special ways."""
         if _has_contribute_to_class(value):
             value.contribute_to_class(cls, name)
         else:
@@ -620,9 +624,12 @@ class Message(metaclass=MessageMeta):
     @_pb.setter
     def _pb(self, value):
         self._cached_pb = value
-        # return super().__setattr__('_cached_pb', value)
 
     def _mark_pb_stale(self, field_name: str):
+        """We often set fields on the proto-plus object (this), and do not immediately
+        sync them down to the underlying pb2 object. This mechanism tracks which
+        fields are stale in this way.
+        """
         if not hasattr(self, '_stale_fields'):
             self._stale_fields = []
         self._stale_fields.append(field_name)
@@ -631,6 +638,10 @@ class Message(metaclass=MessageMeta):
         self._stale_fields = []
 
     def _update_nested_pb(self):
+        """When it is time to serialize a pb2 object, it does not do to sync just ourselves -
+        we must also recursively search for nested proto-plus objects that may also require
+        a sync.
+        """
         for field_name, field in self._meta.fields.items():
             if field.proto_type == proto.MESSAGE:
                 obj = getattr(self, field_name, None)
@@ -640,6 +651,8 @@ class Message(metaclass=MessageMeta):
                     obj._update_nested_pb()
 
     def _update_pb(self):
+        """Loops over any stale fields and syncs them to the underlying pb2 object.
+        """
         merge_params = {}
         for field_name in getattr(self, '_stale_fields', []):
             wrapper_value = getattr(self, field_name, None)

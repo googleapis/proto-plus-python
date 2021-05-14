@@ -168,8 +168,17 @@ class Field:
         # return self.pb_type is None and not self.repeated
 
     def contribute_to_class(self, cls, name: str):
+        """Attaches a descriptor to the top-level proto.Message class, so that attribute
+        reads and writes can be specially handled in `_FieldDescriptor.__get__` and
+        `FieldDescriptor.__set__`.
+
+        Also contains hooks for write-time type-coersion to translate special cases between
+        pure Pythonic objects and pb2-compatible structs or values.
+        """
         set_coercion = None
         if self.proto_type == ProtoType.STRING:
+            # Bytes are accepted for string values, but strings are not accepted for byte values.
+            # This is an artifact of older Python2 implementations.
             set_coercion = self._bytes_to_str
         if self.pb_type == timestamp_pb2.Timestamp:
             set_coercion = self._timestamp_to_datetime
@@ -179,14 +188,15 @@ class Field:
             set_coercion = self._bool_value_to_bool
         if self.enum:
             set_coercion = self._literal_to_enum
-        setattr(cls, name, self._get_field_descriptor_class()(name, cls=cls, set_coercion=set_coercion))
-
-    @staticmethod
-    def _get_field_descriptor_class():
-        return _FieldDescriptor
+        setattr(cls, name, _FieldDescriptor(name, cls=cls, set_coercion=set_coercion))
 
     @property
     def reverse_enum_map(self):
+        """Helper that allows for constant-time lookup on self.enum, used to hydrate
+        primitives that are supplied but which stand for their official enum types.
+
+        This is used when a developer supplies the literal value for an enum type (often an int).
+        """
         if not self.enum:
             return None
         if not getattr(self, '_reverse_enum_map', None):
@@ -195,6 +205,11 @@ class Field:
 
     @property
     def reverse_enum_names_map(self):
+        """Helper that allows for constant-time lookup on self.enum, used to hydrate
+        primitives that are supplied but which stand for their official enum types.
+
+        This is used when a developer supplies the string value for an enum type's name.
+        """
         if not self.enum:
             return None
         if not getattr(self, '_reverse_enum_names_map', None):
@@ -255,6 +270,18 @@ class MapField(Field):
 
 
 class _FieldDescriptor:
+    """Handler for proto.Field access on any proto.Message object.
+
+    Wraps each proto.Field instance within a given proto.Message subclass's definition
+    with getters and setters that allow for caching of values on the proto-plus object,
+    deferment of syncing to the underlying pb2 object, and tracking of the current state.
+
+    Special treatment is given to MapFields, nested Messages, and certain data types, as
+    their various implementations within pb2 (which for our purposes is mostly a black box)
+    sometimes mandate immediate syncing. This is usually because proto-plus objects are not
+    long-lived, and thus information about which fields are stale would be lost if syncing
+    was left for serialization time.
+    """
     def __init__(self, name: str, *, cls, set_coercion: Optional[Callable] = None):
         # something like "id". required whenever reach back to the pb2 object.
         self.original_name = name
@@ -269,7 +296,10 @@ class _FieldDescriptor:
     def field(self):
         return self.cls._meta.fields[self.original_name]
 
-    def _hydrate_dicts(self, value: Any, instance):
+    def _hydrate_dicts(self, value: Any):
+        """Turns a dictionary assigned to a nested Message into a full instance of
+        that Message type.
+        """
         if not isinstance(value, dict):
             return value
 
@@ -296,16 +326,31 @@ class _FieldDescriptor:
             delattr(instance, field_name)
 
     def __set__(self, instance, value):
-        value = self._set_coercion(value)
-        value = self._hydrate_dicts(value, instance)
+        """Called whenever a value is assigned to a proto.Field attribute on an instantiated
+        proto.Message object.
 
+        Usage:
+
+            class MyMessage(proto.Message):
+                name = proto.Field(proto.STRING, number=1)
+
+            my_message = MyMessage()
+            my_message.name = "Frodo"
+
+        In the above scenario, `__set__` is called with "Frodo" passed as `value` and `my_instance`
+        passed as `instance`.
+        """
+        value = self._set_coercion(value)
+        value = self._hydrate_dicts(value)
+
+        # Warning: `always_commit` is hacky!
+        # Some contexts, particularly instances created from MapFields, require immediate syncing.
+        # It is impossible to deduce such a scenario purely from logic available to this function,
+        # so instead we set a flag on instances when a MapField yields them, and then when those
+        # instances receive attribute updates, immediately syncing those values to the underlying
+        # pb2 instance is sufficient.
         always_commit: bool = getattr(instance, '_always_commit', False)
-        if always_commit or not self.field.can_set_natively(value):  #  or self.field.pb_type is not None or self.field.repeated:
-            # MapFields have a unique requirement to always eagerly commit their
-            # writes, as the MapComposite implementation does not used long-lived
-            # proto-plus types, and thus any information about dirty fields is
-            # discarded and leads to irrepairable de-sync between proto-plus and
-            # protobuf.
+        if always_commit or not self.field.can_set_natively(value):
             pb_value = instance._meta.marshal.to_proto(self.field.pb_type, value)
             _pb = instance._meta.pb(**{self.original_name: pb_value})
             instance._pb.ClearField(self.original_name)
@@ -323,7 +368,20 @@ class _FieldDescriptor:
         setattr(instance, self.instance_attr_name, value)
         self._clear_oneofs(instance)
 
-    def __get__(self, instance: 'proto.Message', owner):  # type: ignore
+    def __get__(self, instance: 'proto.Message', _):  # type: ignore
+        """Called whenever a value is read from a proto.Field attribute on an instantiated
+        proto.Message object.
+
+        Usage:
+
+            class MyMessage(proto.Message):
+                name = proto.Field(proto.STRING, number=1)
+
+            my_message = MyMessage(name="Frodo")
+            print(my_message.name)
+
+        In the above scenario, `__get__` is called with "my_message" passed as `instance`.
+        """
         # If `instance` is None, then we are accessing this field directly
         # off the class itself instead of off an instance.
         if instance is None:
