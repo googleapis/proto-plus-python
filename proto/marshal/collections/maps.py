@@ -26,18 +26,10 @@ class MapComposite(collections.abc.MutableMapping):
     """
 
     @cached_property
-    def entry_class(self):
-        return self.pb.GetEntryClass()
-
-    @cached_property
     def _pb_type(self):
         """Return the protocol buffer type for this sequence."""
         # Huzzah, another hack. Still less bad than RepeatedComposite.
-        return type(self.entry_class().value)
-
-    @cached_property
-    def _override_pb_type(self):
-        return getattr(self.entry_class._meta["fields"]["value"], "pb_override", None)
+        return type(self.self.pb.GetEntryClass()().value)
 
     def __init__(self, sequence, *, marshal):
         """Initialize a wrapper around a protobuf map.

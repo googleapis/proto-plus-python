@@ -136,6 +136,11 @@ class BaseMarshal:
         raise ValueError(f"Unacceptable value {type(primitive)} for type {proto_type}")
 
     def validate_primitives(self, field, primitive):
+        """Replicates validation logic when assigning values to proto.Field attributes
+        on instantiated proto.Message objects. This is required to recreate the immediacy
+        of ValueError and TypeError checks that the pb2 layer made, but which are now
+        deferred because syncing to the pb2 layer itself is often entirely deferred.
+        """
         proto_type = field.proto_type
         if field.repeated:
             if primitive and not isinstance(primitive, (list, Repeated, RepeatedComposite,)):
@@ -168,9 +173,9 @@ class BaseMarshal:
             self._throw_type_error(primitive)
         elif proto_type == proto.STRING and _type not in (str, bytes,):
             self._throw_type_error(primitive)
-        # elif proto_type == proto.MESSAGE:
-        #     # This is not a primitive!
-        #     self._throw_type_error(primitive)
+        elif proto_type == proto.MESSAGE:
+            # Do nothing - this is not a primitive
+            pass
         elif proto_type == proto.BYTES and _type != bytes:
             self._throw_type_error(primitive)
         elif proto_type == proto.UINT32:
@@ -178,9 +183,9 @@ class BaseMarshal:
                 self._throw_type_error(primitive)
             if primitive < 0 or primitive > max_int_32:
                 self._throw_value_error(proto_type, primitive)
-        # elif proto_type == proto.ENUM:
-        #     # This is not a primitive!
-        #     self._throw_type_error(primitive)
+        elif proto_type == proto.ENUM:
+            # Do nothing - this is not a primitive
+            pass
         elif proto_type == proto.SFIXED32:
             if _type != int:
                 self._throw_type_error(primitive)
