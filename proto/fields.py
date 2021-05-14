@@ -136,10 +136,6 @@ class Field:
         return self.mcls_data["package"]
 
     @property
-    def inner_pb_type(self):
-        return None
-
-    @property
     def pb_type(self):
         """Return the composite type of the field, or None for primitives."""
         # For enums, return the Python enum.
@@ -263,10 +259,6 @@ class MapField(Field):
     def __init__(self, key_type, value_type, *, number: int, message=None, enum=None):
         super().__init__(value_type, number=number, message=message, enum=enum)
         self.map_key_type = key_type
-
-    @property
-    def inner_pb_type(self):
-        return
 
 
 class _FieldDescriptor:
