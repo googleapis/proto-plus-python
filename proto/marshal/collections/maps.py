@@ -29,7 +29,7 @@ class MapComposite(collections.abc.MutableMapping):
     def _pb_type(self):
         """Return the protocol buffer type for this sequence."""
         # Huzzah, another hack. Still less bad than RepeatedComposite.
-        return type(self.self.pb.GetEntryClass()().value)
+        return type(self.pb.GetEntryClass()().value)
 
     def __init__(self, sequence, *, marshal):
         """Initialize a wrapper around a protobuf map.

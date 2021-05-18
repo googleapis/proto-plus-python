@@ -157,11 +157,11 @@ class Field:
             return False
         return True
 
-    def can_set_natively(self, val: Any) -> bool:
+    @property
+    def can_set_natively(self) -> bool:
         if self.proto_type == ProtoType.MESSAGE and self.message == struct_pb2.Value:
             return False
         return True
-        # return self.pb_type is None and not self.repeated
 
     def contribute_to_class(self, cls, name: str):
         """Attaches a descriptor to the top-level proto.Message class, so that attribute
@@ -176,13 +176,13 @@ class Field:
             # Bytes are accepted for string values, but strings are not accepted for byte values.
             # This is an artifact of older Python2 implementations.
             set_coercion = self._bytes_to_str
-        if self.pb_type == timestamp_pb2.Timestamp:
+        elif self.pb_type == timestamp_pb2.Timestamp:
             set_coercion = self._timestamp_to_datetime
-        if self.proto_type == ProtoType.MESSAGE and self.message == duration_pb2.Duration:
+        elif self.proto_type == ProtoType.MESSAGE and self.message == duration_pb2.Duration:
             set_coercion = self._duration_to_timedelta
-        if self.proto_type == ProtoType.MESSAGE and self.message == wrappers_pb2.BoolValue:
+        elif self.proto_type == ProtoType.MESSAGE and self.message == wrappers_pb2.BoolValue:
             set_coercion = self._bool_value_to_bool
-        if self.enum:
+        elif self.enum:
             set_coercion = self._literal_to_enum
         setattr(cls, name, _FieldDescriptor(name, cls=cls, set_coercion=set_coercion))
 
@@ -281,7 +281,7 @@ class _FieldDescriptor:
         self.instance_attr_name = f'_cached_fields__{name}'
 
         # simple types coercion for setting attributes (for example, bytes -> str)
-        self._set_coercion = set_coercion or _FieldDescriptor._noop
+        self._set_coercion: Optional[Callable] = set_coercion
         self.cls = cls
 
     @property
@@ -318,8 +318,8 @@ class _FieldDescriptor:
             delattr(instance, field_name)
 
     def __set__(self, instance, value):
-        """Called whenever a value is assigned to a proto.Field attribute on an instantiated
-        proto.Message object.
+        """Called whenever a value is assigned to a `proto.Field` attribute on an instantiated
+        `proto.Message` object.
 
         Usage:
 
@@ -329,10 +329,10 @@ class _FieldDescriptor:
             my_message = MyMessage()
             my_message.name = "Frodo"
 
-        In the above scenario, `__set__` is called with "Frodo" passed as `value` and `my_instance`
-        passed as `instance`.
+        In the above scenario, `__set__` is called with "Frodo" passed as `value` and
+        `my_message` passed as `instance`.
         """
-        value = self._set_coercion(value)
+        value = self._set_coercion(value) if self._set_coercion is not None else value
         value = self._hydrate_dicts(value)
 
         # Warning: `always_commit` is hacky!
@@ -342,7 +342,7 @@ class _FieldDescriptor:
         # instances receive attribute updates, immediately syncing those values to the underlying
         # pb2 instance is sufficient.
         always_commit: bool = getattr(instance, '_always_commit', False)
-        if always_commit or not self.field.can_set_natively(value):
+        if always_commit or not self.field.can_set_natively:
             pb_value = instance._meta.marshal.to_proto(self.field.pb_type, value)
             _pb = instance._meta.pb(**{self.original_name: pb_value})
             instance._pb.ClearField(self.original_name)
@@ -382,13 +382,13 @@ class _FieldDescriptor:
         value = getattr(instance, self.instance_attr_name, None)
         if self.field.can_get_natively and value is not None:
             return value
-        else:
-            # For the most part, only primitive values can be returned natively, meaning
-            # this is either a Message itself, in which case, since we're dealing with the
-            # underlying pb object, we need to sync all deferred fields.
-            # This is functionally a no-op if no fields have been deferred.
-            if hasattr(value, '_update_pb'):
-                value._update_pb()
+
+        # For the most part, only primitive values can be returned natively, meaning
+        # this is either a Message itself, in which case, since we're dealing with the
+        # underlying pb object, we need to sync all deferred fields.
+        # This is functionally a no-op if no fields have been deferred.
+        if hasattr(value, '_update_pb'):
+            value._update_pb()
 
         pb_value = getattr(instance._pb, self.original_name, None)
         value = instance._meta.marshal.to_python(self.field.pb_type, pb_value, absent=self.original_name not in instance)
@@ -402,10 +402,6 @@ class _FieldDescriptor:
         instance._pb.ClearField(self.original_name)
         if self.original_name in getattr(instance, '_stale_fields', []):
             instance._stale_fields.remove(self.original_name)
-
-    @staticmethod
-    def _noop(val):
-        return val
 
 
 __all__ = (
