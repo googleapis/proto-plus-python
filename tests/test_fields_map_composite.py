@@ -31,6 +31,23 @@ def test_composite_map():
     assert "k" not in baz.foos
 
 
+def test_composite_map_with_stale_fields():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    class Baz(proto.Message):
+        foos = proto.MapField(proto.STRING, proto.MESSAGE, number=1, message=Foo,)
+        name = proto.Field(proto.STRING, number=2)
+
+    baz = Baz(foos={"i": Foo(bar=42), "j": Foo(bar=24)})
+    baz.name = "New Value"
+    assert "name" in baz._stale_fields
+    foo = baz.foos["i"]
+    foo.bar = 100
+    assert Baz.to_dict(baz)["name"] == "New Value"
+    assert Baz.to_dict(baz)["foos"]["i"]["bar"] == 100
+
+
 def test_composite_map_dict():
     class Foo(proto.Message):
         bar = proto.Field(proto.INT32, number=1)

@@ -33,7 +33,7 @@ from proto.marshal.rules import wrappers
 
 max_uint_32 = 1<<32 - 1
 max_int_32 = 1<<31 - 1
-min_int_32 = max_int_32 * -1
+min_int_32 = (max_int_32 * -1) + 1
 
 class Rule(abc.ABC):
     """Abstract class definition for marshal rules."""
@@ -143,13 +143,21 @@ class BaseMarshal:
         """
         proto_type = field.proto_type
         if field.repeated:
-            if primitive and not isinstance(primitive, (list, Repeated, RepeatedComposite,)):
+            if primitive and not isinstance(primitive, (list, tuple, Repeated, RepeatedComposite,)):
                 self._throw_type_error(primitive)
-            if primitive:
+
+            # Typically, checking a sequence's length after checking its Truthiness is
+            # unnecessary, but this will make us safe from any unexpected behavior from
+            # `Repeated` or `RepeatedComposite`.
+            if primitive and len(primitive) > 0:
                 primitive = primitive[0]
 
         _type = type(primitive)
-        if proto_type == proto.DOUBLE and _type != float:
+        if proto_type == proto.BOOL and _type != bool:
+            self._throw_type_error(primitive)
+        elif proto_type == proto.STRING and _type not in (str, bytes,):
+            self._throw_type_error(primitive)
+        elif proto_type == proto.DOUBLE and _type != float:
             self._throw_type_error(primitive)
         elif proto_type == proto.FLOAT and _type != float:
             self._throw_type_error(primitive)
@@ -168,10 +176,6 @@ class BaseMarshal:
         elif proto_type == proto.FIXED64 and _type != int:
             self._throw_type_error(primitive)
         elif proto_type == proto.FIXED32 and _type != int:
-            self._throw_type_error(primitive)
-        elif proto_type == proto.BOOL and _type != bool:
-            self._throw_type_error(primitive)
-        elif proto_type == proto.STRING and _type not in (str, bytes,):
             self._throw_type_error(primitive)
         elif proto_type == proto.MESSAGE:
             # Do nothing - this is not a primitive

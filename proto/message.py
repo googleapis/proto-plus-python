@@ -17,7 +17,7 @@ import collections.abc
 import copy
 import inspect
 import re
-from typing import Callable, List, Optional, Type
+from typing import List, Set, Type
 
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
@@ -37,8 +37,6 @@ def _has_contribute_to_class(value):
     # Only call contribute_to_class() if it's bound.
     return not inspect.isclass(value) and hasattr(value, 'contribute_to_class')
 
-class MapValueMessage:
-    isMapValue: bool = True
 
 class MessageMeta(type):
     """A metaclass for building and registering Message subclasses."""
@@ -483,7 +481,7 @@ class Message(metaclass=MessageMeta):
         # Tracks any new values have had their serialization deferred, and thus whether we
         # are ready to serialize immediately, or need to sync from the instance back to the
         # underlying `_pb`
-        self._stale_fields: List[str] = []
+        self._stale_fields: Set[str] = set()
 
 
         # We accept several things for `mapping`:
@@ -579,7 +577,7 @@ class Message(metaclass=MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
-        if key in getattr(self, '_stale_fields', []):
+        if key in getattr(self, '_stale_fields', set()):
             return True
         pb_value = getattr(self._pb, key)
         try:
@@ -631,11 +629,11 @@ class Message(metaclass=MessageMeta):
         fields are stale in this way.
         """
         if not hasattr(self, '_stale_fields'):
-            self._stale_fields = []
-        self._stale_fields.append(field_name)
+            self._stale_fields = set()
+        self._stale_fields.add(field_name)
 
     def _mark_pb_synced(self):
-        self._stale_fields = []
+        self._stale_fields = set()
 
     def _update_nested_pb(self):
         """When it is time to serialize a pb2 object, it does not do to sync just ourselves -
@@ -654,7 +652,7 @@ class Message(metaclass=MessageMeta):
         """Loops over any stale fields and syncs them to the underlying pb2 object.
         """
         merge_params = {}
-        for field_name in getattr(self, '_stale_fields', []):
+        for field_name in getattr(self, '_stale_fields', set()):
             wrapper_value = getattr(self, field_name, None)
 
             field = self._meta.fields[field_name]

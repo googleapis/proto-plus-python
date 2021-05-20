@@ -15,9 +15,10 @@
 import datetime
 from enum import EnumMeta
 from re import L
-from proto.marshal.rules import wrappers
 from proto.datetime_helpers import DatetimeWithNanoseconds
+from proto.marshal.rules import wrappers
 from proto.marshal.rules.dates import DurationRule
+from proto.utils import cached_property
 from typing import Any, Callable, Optional, Union
 
 from google.protobuf import descriptor_pb2
@@ -186,31 +187,23 @@ class Field:
             set_coercion = self._literal_to_enum
         setattr(cls, name, _FieldDescriptor(name, cls=cls, set_coercion=set_coercion))
 
-    @property
+    @cached_property
     def reverse_enum_map(self):
         """Helper that allows for constant-time lookup on self.enum, used to hydrate
         primitives that are supplied but which stand for their official enum types.
 
         This is used when a developer supplies the literal value for an enum type (often an int).
         """
-        if not self.enum:
-            return None
-        if not getattr(self, '_reverse_enum_map', None):
-            self._reverse_enum_map = {e.value: e for e in self.enum}
-        return self._reverse_enum_map
+        return {e.value: e for e in self.enum} if self.enum else None
 
-    @property
+    @cached_property
     def reverse_enum_names_map(self):
         """Helper that allows for constant-time lookup on self.enum, used to hydrate
         primitives that are supplied but which stand for their official enum types.
 
         This is used when a developer supplies the string value for an enum type's name.
         """
-        if not self.enum:
-            return None
-        if not getattr(self, '_reverse_enum_names_map', None):
-            self._reverse_enum_names_map = {e.name: e for e in self.enum}
-        return self._reverse_enum_names_map
+        return {e.name: e for e in self.enum} if self.enum else None
 
     def _literal_to_enum(self, val: Any):
         if isinstance(val, self.enum):
@@ -274,13 +267,27 @@ class _FieldDescriptor:
     long-lived, and thus information about which fields are stale would be lost if syncing
     was left for serialization time.
     """
+
+    # Namespace for attributes where we will store the Pythonic values of
+    # various `proto.Field` classes on instantiated `proto.Message` objects.
+    # For example, in the following scenario, this attribute is involved in
+    # saving the value "Homer Simpson" to `my_message._cached_fields__name`.
+    #
+    #   class MyMessage(proto.Message):
+    #       name = proto.Field(proto.STRING, ...)
+    #
+    #    my_message = MyMessage()
+    #    my_message.name = "Homer Simpson"  # saves to `_cached_fields__name`
+    cached_fields_prefix = '_cached_fields__'
+
     def __init__(self, name: str, *, cls, set_coercion: Optional[Callable] = None):
         # something like "id". required whenever reach back to the pb2 object.
         self.original_name = name
         # something like "_cached_id"
-        self.instance_attr_name = f'_cached_fields__{name}'
+        self.instance_attr_name = f'{self.cached_fields_prefix}{name}'
 
-        # simple types coercion for setting attributes (for example, bytes -> str)
+        # simple types coercion for setting attributes
+        # (e.g., bytes -> str if our type is string, but we are supplied bytes)
         self._set_coercion: Optional[Callable] = set_coercion
         self.cls = cls
 
@@ -379,8 +386,8 @@ class _FieldDescriptor:
         if instance is None:
             return self.original_name
 
-        value = getattr(instance, self.instance_attr_name, None)
-        if self.field.can_get_natively and value is not None:
+        value = getattr(instance, self.instance_attr_name, _none)
+        if self.field.can_get_natively and value is not _none:
             return value
 
         # For the most part, only primitive values can be returned natively, meaning
@@ -402,6 +409,18 @@ class _FieldDescriptor:
         instance._pb.ClearField(self.original_name)
         if self.original_name in getattr(instance, '_stale_fields', []):
             instance._stale_fields.remove(self.original_name)
+
+
+class _NoneType:
+    def __bool__(self):
+        return False
+
+    def __eq__(self, other):
+        """All _NoneType instances are equal"""
+        return isinstance(other, _NoneType)
+
+
+_none = _NoneType()
 
 
 __all__ = (
