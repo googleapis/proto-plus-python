@@ -18,6 +18,7 @@ from re import L
 from proto.datetime_helpers import DatetimeWithNanoseconds
 from proto.marshal.rules import wrappers
 from proto.marshal.rules.dates import DurationRule
+from proto.marshal.collections.maps import MapComposite
 from proto.utils import cached_property
 from typing import Any, Callable, Optional, Union
 
@@ -153,16 +154,11 @@ class Field:
         return self.message
 
     @property
-    def can_get_natively(self) -> bool:
-        if self.proto_type == ProtoType.MESSAGE and self.message == struct_pb2.Value:
-            return False
-        return True
-
-    @property
-    def can_set_natively(self) -> bool:
-        if self.proto_type == ProtoType.MESSAGE and self.message == struct_pb2.Value:
-            return False
-        return True
+    def can_represent_natively(self) -> bool:
+        return not (
+            self.proto_type == ProtoType.MESSAGE and
+            self.message == struct_pb2.Value
+        )
 
     def contribute_to_class(self, cls, name: str):
         """Attaches a descriptor to the top-level proto.Message class, so that attribute
@@ -288,6 +284,9 @@ class _FieldDescriptor:
 
         # simple types coercion for setting attributes
         # (e.g., bytes -> str if our type is string, but we are supplied bytes)
+        # the signature of `set_coercion` is dependent on the field's data types
+        # and is always handled by `contribute_to_class` which pairs data types
+        # to appropriate write-time coercions.
         self._set_coercion: Optional[Callable] = set_coercion
         self.cls = cls
 
@@ -349,7 +348,7 @@ class _FieldDescriptor:
         # instances receive attribute updates, immediately syncing those values to the underlying
         # pb2 instance is sufficient.
         always_commit: bool = getattr(instance, '_always_commit', False)
-        if always_commit or not self.field.can_set_natively:
+        if always_commit or not self.field.can_represent_natively:
             pb_value = instance._meta.marshal.to_proto(self.field.pb_type, value)
             _pb = instance._meta.pb(**{self.original_name: pb_value})
             instance._pb.ClearField(self.original_name)
@@ -379,7 +378,8 @@ class _FieldDescriptor:
             my_message = MyMessage(name="Frodo")
             print(my_message.name)
 
-        In the above scenario, `__get__` is called with "my_message" passed as `instance`.
+        In the above scenario, `__get__` is called with "my_message" passed as
+        `instance`.
         """
         # If `instance` is None, then we are accessing this field directly
         # off the class itself instead of off an instance.
@@ -387,18 +387,31 @@ class _FieldDescriptor:
             return self.original_name
 
         value = getattr(instance, self.instance_attr_name, _none)
-        if self.field.can_get_natively and value is not _none:
+        is_map: bool = isinstance(value, MapComposite)
+
+        # Return any values that do not require immediate rehydration.
+        # A few notes:
+        #   * primitives are simple, and so can be returned
+        #   * `Messages` are already Pythonic, and so can be returned
+        #   * `Values` are wrappers and so have to be unwrapped
+        #     * The exception to this is MapComposites, which have the same
+        #       types as Values, but which handle their own field caching and
+        #       thus can be returned when pulled off the `instance`.
+        if value is not _none and (is_map or self.field.can_represent_natively):
             return value
 
-        # For the most part, only primitive values can be returned natively, meaning
-        # this is either a Message itself, in which case, since we're dealing with the
-        # underlying pb object, we need to sync all deferred fields.
-        # This is functionally a no-op if no fields have been deferred.
+        # For the most part, only primitive values can be returned natively,
+        # meaning this is either a Message itself, in which case, since we're
+        # dealing with the underlying pb object, we need to sync all deferred
+        # fields. This is functionally a no-op if no fields have been deferred.
         if hasattr(value, '_update_pb'):
             value._update_pb()
 
         pb_value = getattr(instance._pb, self.original_name, None)
-        value = instance._meta.marshal.to_python(self.field.pb_type, pb_value, absent=self.original_name not in instance)
+        value = instance._meta.marshal.to_python(
+            self.field.pb_type, pb_value,
+            absent=self.original_name not in instance,
+        )
 
         setattr(instance, self.instance_attr_name, value)
         return value

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import collections
+from typing import Dict, Set
 
 import proto
 from proto.utils import cached_property
@@ -41,6 +42,8 @@ class MapComposite(collections.abc.MutableMapping):
         """
         self._pb = sequence
         self._marshal = marshal
+        self._item_cache: Dict = {}
+        self._stale_keys: Set[str] = set()
 
     def __contains__(self, key):
         # Protocol buffers is so permissive that querying for the existence
@@ -48,19 +51,50 @@ class MapComposite(collections.abc.MutableMapping):
         #
         # By taking a tuple of the keys and querying that, we avoid sending
         # the lookup to protocol buffers and therefore avoid creating the key.
+        if key in self._item_cache:
+            return True
         return key in tuple(self.keys())
 
     def __getitem__(self, key):
         # We handle raising KeyError ourselves, because otherwise protocol
         # buffers will create the key if it does not exist.
-        if key not in self:
-            raise KeyError(key)
-        obj = self._marshal.to_python(self._pb_type, self.pb[key])
-        if isinstance(obj, proto.Message):
-            obj._always_commit = True
-        return obj
+        value = self._item_cache.get(key, _Empty.shared)
+
+        if isinstance(value, _Empty):
+            if key not in self:
+                raise KeyError(key)
+            value = self._marshal.to_python(self._pb_type, self.pb[key])
+
+            # This is the first domino in a hacky workaround that is completed
+            # in `fields._FieldDescriptor.__set__`. Because of the by-value nature
+            # of protobufs (which conflicts with the by-reference nature of Python),
+            # proto-plus objects that are yielded from MapFields must immediately
+            # write to their internal pb2 object whenever their fields are updated.
+            # This is a new requirement as always writing to a proto-plus object's
+            # inner pb2 protobuf used to be the default, but has been moved to a
+            # lazy-syncing system for performance reasons.
+            if isinstance(value, proto.Message):
+                value._always_commit = True
+
+            self._item_cache[key] = value
+
+        return value
 
     def __setitem__(self, key, value):
+        self._item_cache[key] = value
+        self._stale_keys.add(key)
+        # self._sync_key(key, value)
+
+    def _sync_all_keys(self):
+        for key in self._stale_keys:
+            self._sync_key(key)
+        self._stale_keys.clear()
+
+    def _sync_key(self, key, value = None):
+        value = value or self._item_cache.pop(key, None)
+        if value is None:
+            self.pb.pop(key)
+            return
         pb_value = self._marshal.to_proto(self._pb_type, value, strict=True)
 
         # Directly setting a key is not allowed; however, protocol buffers
@@ -73,14 +107,27 @@ class MapComposite(collections.abc.MutableMapping):
         self.pb[key].MergeFrom(pb_value)
 
     def __delitem__(self, key):
-        self.pb.pop(key)
+        self._item_cache.pop(key, None)
+        self._stale_keys.add(key)
+        # self.pb.pop(key)
 
     def __len__(self):
-        return len(self.pb)
+        _all_keys = set(list(self._item_cache.keys()))
+        _all_keys = _all_keys.union(list(self.pb.keys()))
+        return len(_all_keys)
+        # return len(self.pb)
 
     def __iter__(self):
+        self._sync_all_keys()
         return iter(self.pb)
 
     @property
     def pb(self):
         return self._pb
+
+
+class _Empty:
+    pass
+
+
+_Empty.shared = _Empty()

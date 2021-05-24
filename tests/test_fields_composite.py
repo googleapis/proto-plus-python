@@ -24,6 +24,7 @@ def test_composite_init():
         foo = proto.Field(proto.MESSAGE, number=1, message=Foo)
         eggs = proto.Field(proto.BOOL, number=2)
 
+
     spam = Spam(foo=Foo(bar="str", baz=42))
     assert spam.foo.bar == "str"
     assert spam.foo.baz == 42

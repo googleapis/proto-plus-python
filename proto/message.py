@@ -483,7 +483,6 @@ class Message(metaclass=MessageMeta):
         # underlying `_pb`
         self._stale_fields: Set[str] = set()
 
-
         # We accept several things for `mapping`:
         #   * An instance of this class.
         #   * An instance of the underlying protobuf descriptor class.
@@ -592,7 +591,6 @@ class Message(metaclass=MessageMeta):
         except ValueError:
             return bool(pb_value)
 
-
     def __eq__(self, other):
         """Return True if the messages are equal, False otherwise."""
         # If these are the same type, use internal protobuf's equality check.
@@ -633,7 +631,8 @@ class Message(metaclass=MessageMeta):
         self._stale_fields.add(field_name)
 
     def _mark_pb_synced(self):
-        self._stale_fields = set()
+        if hasattr(self, '_stale_fields'):
+            self._stale_fields.clear()
 
     def _update_nested_pb(self):
         """When it is time to serialize a pb2 object, it does not do to sync just ourselves -
@@ -643,8 +642,11 @@ class Message(metaclass=MessageMeta):
         for field_name, field in self._meta.fields.items():
             if field.proto_type == proto.MESSAGE:
                 obj = getattr(self, field_name, None)
+                # Traversing the tree of objects eventually encounters primitives
+                # that do not have these functions
                 if obj and hasattr(obj, '_update_pb'):
                     obj._update_pb()
+                # Same here - many values will not have these methods
                 if obj and hasattr(obj, '_update_nested_pb'):
                     obj._update_nested_pb()
 
