@@ -375,7 +375,8 @@ class MessageMeta(type):
         return instance
 
     def to_dict(
-        cls, instance, *, use_integers_for_enums=True, preserving_proto_field_name=True
+        cls, instance, *, use_integers_for_enums=True, preserving_proto_field_name=True,
+        including_default_value_fields=True,
     ) -> "Message":
         """Given a message instance, return its representation as a python dict.
 
@@ -396,7 +397,7 @@ class MessageMeta(type):
         """
         return MessageToDict(
             cls.pb(instance),
-            including_default_value_fields=True,
+            including_default_value_fields=including_default_value_fields,
             preserving_proto_field_name=preserving_proto_field_name,
             use_integers_for_enums=use_integers_for_enums,
         )
