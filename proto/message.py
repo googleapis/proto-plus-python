@@ -375,7 +375,11 @@ class MessageMeta(type):
         return instance
 
     def to_dict(
-        cls, instance, *, use_integers_for_enums=True, preserving_proto_field_name=True,
+        cls, 
+        instance, 
+        *, 
+        use_integers_for_enums=True, 
+        preserving_proto_field_name=True,
         including_default_value_fields=True,
     ) -> "Message":
         """Given a message instance, return its representation as a python dict.
@@ -389,6 +393,7 @@ class MessageMeta(type):
             preserving_proto_field_name (Optional(bool)): An option that
                 determines whether field name representations preserve
                 proto case (snake_case) or use lowerCamelCase. Default is True.
+            including_default_value_fields (Optional(bool)): An option that determines whether the default field values should be included in the results. Default is True.
 
         Returns:
             dict: A representation of the protocol buffer using pythonic data structures.
