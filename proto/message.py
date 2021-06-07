@@ -380,7 +380,7 @@ class MessageMeta(type):
         *, 
         use_integers_for_enums=True, 
         preserving_proto_field_name=True,
-        including_default_value_fields=True,
+        including_default_value_fields=True
     ) -> "Message":
         """Given a message instance, return its representation as a python dict.
 
