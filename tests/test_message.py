@@ -346,4 +346,3 @@ def test_copy_from():
 
     with pytest.raises(TypeError):
         Mollusc.Squid.copy_from(m.squid, (("mass_kg", 20)))
-
