@@ -374,7 +374,14 @@ class MessageMeta(type):
         Parse(payload, instance._pb, ignore_unknown_fields=ignore_unknown_fields)
         return instance
 
-    def to_dict(cls, instance, *, use_integers_for_enums=True, preserving_proto_field_name=True, including_default_value_fields=True) -> "Message":
+    def to_dict(
+        cls,
+        instance,
+        *,
+        use_integers_for_enums=True,
+        preserving_proto_field_name=True,
+        including_default_value_fields=True,
+    ) -> "Message":
         """Given a message instance, return its representation as a python dict.
 
         Args:
