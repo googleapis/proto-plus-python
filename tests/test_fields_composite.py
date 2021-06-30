@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import proto
+from google.api_core import protobuf_helpers
 
 
 def test_composite_init():
@@ -91,3 +92,19 @@ def test_composite_del():
     assert not spam.foo
     assert isinstance(spam.foo, Foo)
     assert spam.foo.bar == ""
+
+
+def test_composite_custom_name():
+    class Mollusc(proto.Message):
+        class_ = proto.Field(proto.STRING, number=1, proto_name="class")
+
+    m = Mollusc(class_="Cephalopoda")
+
+    # Note that in the vanilla proto, the field is named "class", not "class_".
+    # We can't touch the field directly because that's a syntax error.
+    assert getattr(Mollusc.pb(m), "class", None) == m.class_
+
+    m.class_ = "Gastropoda"
+
+    fm = protobuf_helpers.field_mask(None, Mollusc.pb(m))
+    assert fm.paths == ["class"]

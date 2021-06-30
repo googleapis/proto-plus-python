@@ -394,7 +394,7 @@ class MessageMeta(type):
                 determines whether field name representations preserve
                 proto case (snake_case) or use lowerCamelCase. Default is True.
             including_default_value_fields (Optional(bool)): An option that
-                determines whether the default field values should be included in the results. 
+                determines whether the default field values should be included in the results.
                 Default is True.
 
         Returns:
@@ -502,7 +502,8 @@ class Message(metaclass=MessageMeta):
         marshal = self._meta.marshal
         for key, value in mapping.items():
             try:
-                pb_type = self._meta.fields[key].pb_type
+                field = self._meta.fields[key]
+                pb_type = field.pb_type
             except KeyError:
                 if ignore_unknown_fields:
                     continue
@@ -513,7 +514,7 @@ class Message(metaclass=MessageMeta):
 
             pb_value = marshal.to_proto(pb_type, value)
             if pb_value is not None:
-                params[key] = pb_value
+                params[field.name] = pb_value
 
         # Create the internal protocol buffer.
         super().__setattr__("_pb", self._meta.pb(**params))
@@ -547,7 +548,8 @@ class Message(metaclass=MessageMeta):
             bool: Whether the field's value corresponds to a non-empty
                 wire serialization.
         """
-        pb_value = getattr(self._pb, key)
+        field_name = self._meta.fields[key].name
+        pb_value = getattr(self._pb, field_name)
         try:
             # Protocol buffers "HasField" is unfriendly; it only works
             # against composite, non-repeated fields, and raises ValueError
@@ -556,7 +558,7 @@ class Message(metaclass=MessageMeta):
             # There is no good way to test whether it is valid to provide
             # a field to this method, so sadly we are stuck with a
             # somewhat inefficient try/except.
-            return self._pb.HasField(key)
+            return self._pb.HasField(field_name)
         except ValueError:
             return bool(pb_value)
 
@@ -605,8 +607,9 @@ class Message(metaclass=MessageMeta):
             more details.
         """
         try:
-            pb_type = self._meta.fields[key].pb_type
-            pb_value = getattr(self._pb, key)
+            field = self._meta.fields[key]
+            pb_type = field.pb_type
+            pb_value = getattr(self._pb, field.name)
             marshal = self._meta.marshal
             return marshal.to_python(pb_type, pb_value, absent=key not in self)
         except KeyError as ex:
@@ -628,17 +631,18 @@ class Message(metaclass=MessageMeta):
         if key[0] == "_":
             return super().__setattr__(key, value)
         marshal = self._meta.marshal
-        pb_type = self._meta.fields[key].pb_type
+        field = self._meta.fields[key]
+        pb_type = field.pb_type
         pb_value = marshal.to_proto(pb_type, value)
 
         # Clear the existing field.
         # This is the only way to successfully write nested falsy values,
         # because otherwise MergeFrom will no-op on them.
-        self._pb.ClearField(key)
+        self._pb.ClearField(field.name)
 
         # Merge in the value being set.
         if pb_value is not None:
-            self._pb.MergeFrom(self._meta.pb(**{key: pb_value}))
+            self._pb.MergeFrom(self._meta.pb(**{field.name: pb_value}))
 
 
 class _MessageInfo:
@@ -668,7 +672,7 @@ class _MessageInfo:
         self.package = package
         self.full_name = full_name
         self.options = options
-        self.fields = collections.OrderedDict((i.name, i) for i in fields)
+        self.fields = collections.OrderedDict((i.mcls_data["name"], i) for i in fields)
         self.fields_by_number = collections.OrderedDict((i.number, i) for i in fields)
         self.marshal = marshal
         self._pb = None

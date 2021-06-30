@@ -36,7 +36,8 @@ class Field:
         enum=None,
         oneof: str = None,
         json_name: str = None,
-        optional: bool = False
+        optional: bool = False,
+        proto_name: str = None,
     ):
         # This class is not intended to stand entirely alone;
         # data is augmented by the metaclass for Message.
@@ -63,6 +64,7 @@ class Field:
         self.json_name = json_name
         self.optional = optional
         self.oneof = oneof
+        self.proto_name = proto_name
 
         # Once the descriptor is accessed the first time, cache it.
         # This is important because in rare cases the message or enum
@@ -117,7 +119,8 @@ class Field:
     @property
     def name(self) -> str:
         """Return the name of the field."""
-        return self.mcls_data["name"]
+        # If there is a proto name explicitly passed use that.
+        return self.proto_name or self.mcls_data["name"]
 
     @property
     def package(self) -> str:
