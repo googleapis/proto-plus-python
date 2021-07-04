@@ -262,6 +262,11 @@ def test_serialize_to_dict():
     s_dict = Squid.to_dict(s, use_integers_for_enums=False)
     assert s_dict["chromatophores"][0]["color"] == "RED"
 
+    s_new_2 = Squid(mass_kg=20)
+    s_dict_2 = Squid.to_dict(s_new_2, including_default_value_fields=False)
+    expected_dict = {"mass_kg": 20}
+    assert s_dict_2 == expected_dict
+
     new_s = Squid(s_dict)
     assert new_s == s
 
@@ -317,3 +322,27 @@ def test_unknown_field_from_dict():
 
     s = Squid({"mass_kg": 20, "length_cm": 100}, ignore_unknown_fields=True)
     assert not hasattr(s, "length_cm")
+
+
+def test_copy_from():
+    class Mollusc(proto.Message):
+        class Squid(proto.Message):
+            mass_kg = proto.Field(proto.INT32, number=1)
+
+        squid = proto.Field(Squid, number=1)
+
+    m = Mollusc()
+    s = Mollusc.Squid(mass_kg=20)
+    Mollusc.Squid.copy_from(m.squid, s)
+    assert m.squid is not s
+    assert m.squid == s
+
+    s.mass_kg = 30
+    Mollusc.Squid.copy_from(m.squid, Mollusc.Squid.pb(s))
+    assert m.squid == s
+
+    Mollusc.Squid.copy_from(m.squid, {"mass_kg": 10})
+    assert m.squid.mass_kg == 10
+
+    with pytest.raises(TypeError):
+        Mollusc.Squid.copy_from(m.squid, (("mass_kg", 20)))

@@ -332,7 +332,8 @@ class MessageMeta(type):
         instance,
         *,
         use_integers_for_enums=True,
-        including_default_value_fields=True
+        including_default_value_fields=True,
+        preserving_proto_field_name=False,
     ) -> str:
         """Given a message instance, serialize it to json
 
@@ -342,6 +343,9 @@ class MessageMeta(type):
             use_integers_for_enums (Optional(bool)): An option that determines whether enum
                 values should be represented by strings (False) or integers (True).
                 Default is True.
+            preserving_proto_field_name (Optional(bool)): An option that
+                determines whether field name representations preserve
+                proto case (snake_case) or use lowerCamelCase. Default is False.
 
         Returns:
             str: The json string representation of the protocol buffer.
@@ -350,6 +354,7 @@ class MessageMeta(type):
             cls.pb(instance),
             use_integers_for_enums=use_integers_for_enums,
             including_default_value_fields=including_default_value_fields,
+            preserving_proto_field_name=preserving_proto_field_name,
         )
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
@@ -369,7 +374,14 @@ class MessageMeta(type):
         Parse(payload, instance._pb, ignore_unknown_fields=ignore_unknown_fields)
         return instance
 
-    def to_dict(cls, instance, *, use_integers_for_enums=True) -> "Message":
+    def to_dict(
+        cls,
+        instance,
+        *,
+        use_integers_for_enums=True,
+        preserving_proto_field_name=True,
+        including_default_value_fields=True,
+    ) -> "Message":
         """Given a message instance, return its representation as a python dict.
 
         Args:
@@ -377,6 +389,12 @@ class MessageMeta(type):
                       compatible (accepted by the type's constructor).
             use_integers_for_enums (Optional(bool)): An option that determines whether enum
                 values should be represented by strings (False) or integers (True).
+                Default is True.
+            preserving_proto_field_name (Optional(bool)): An option that
+                determines whether field name representations preserve
+                proto case (snake_case) or use lowerCamelCase. Default is True.
+            including_default_value_fields (Optional(bool)): An option that
+                determines whether the default field values should be included in the results. 
                 Default is True.
 
         Returns:
@@ -386,10 +404,40 @@ class MessageMeta(type):
         """
         return MessageToDict(
             cls.pb(instance),
-            including_default_value_fields=True,
-            preserving_proto_field_name=True,
+            including_default_value_fields=including_default_value_fields,
+            preserving_proto_field_name=preserving_proto_field_name,
             use_integers_for_enums=use_integers_for_enums,
         )
+
+    def copy_from(cls, instance, other):
+        """Equivalent for protobuf.Message.CopyFrom
+
+        Args:
+            instance: An instance of this message type
+            other: (Union[dict, ~.Message):
+                A dictionary or message to reinitialize the values for this message.
+        """
+        if isinstance(other, cls):
+            # Just want the underlying proto.
+            other = Message.pb(other)
+        elif isinstance(other, cls.pb()):
+            # Don't need to do anything.
+            pass
+        elif isinstance(other, collections.abc.Mapping):
+            # Coerce into a proto
+            other = cls._meta.pb(**other)
+        else:
+            raise TypeError(
+                "invalid argument type to copy to {}: {}".format(
+                    cls.__name__, other.__class__.__name__
+                )
+            )
+
+        # Note: we can't just run self.__init__ because this may be a message field
+        # for a higher order proto; the memory layout for protos is NOT LIKE the
+        # python memory model. We cannot rely on just setting things by reference.
+        # Non-trivial complexity is (partially) hidden by the protobuf runtime.
+        cls.pb(instance).CopyFrom(other)
 
 
 class Message(metaclass=MessageMeta):
@@ -426,7 +474,7 @@ class Message(metaclass=MessageMeta):
             #
             # The `wrap` method on the metaclass is the public API for taking
             # ownership of the passed in protobuf objet.
-            mapping = copy.copy(mapping)
+            mapping = copy.deepcopy(mapping)
             if kwargs:
                 mapping.MergeFrom(self._meta.pb(**kwargs))
 
@@ -615,7 +663,7 @@ class _MessageInfo:
         package: str,
         full_name: str,
         marshal: Marshal,
-        options: descriptor_pb2.MessageOptions
+        options: descriptor_pb2.MessageOptions,
     ) -> None:
         self.package = package
         self.full_name = full_name

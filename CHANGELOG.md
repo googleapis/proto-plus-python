@@ -1,5 +1,81 @@
 # Changelog
 
+## [1.19.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.18.1...v1.19.0) (2021-06-29)
+
+
+### Features
+
+* pass 'including_default_value_fields' through to 'Message.to_dict' method ([#232](https://www.github.com/googleapis/proto-plus-python/issues/232)) ([15c2f47](https://www.github.com/googleapis/proto-plus-python/commit/15c2f479f81f0f80d451ca9b043e42cecfe7184e))
+
+### [1.18.1](https://www.github.com/googleapis/proto-plus-python/compare/v1.18.0...v1.18.1) (2021-03-19)
+
+
+### Bug Fixes
+
+* Add arm64 support for PY3.6 ([#219](https://www.github.com/googleapis/proto-plus-python/issues/219)) ([c9667c2](https://www.github.com/googleapis/proto-plus-python/commit/c9667c22d0b8f6026dbf69d502eb8eb972279891))
+
+## [1.18.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.17.0...v1.18.0) (2021-03-16)
+
+
+### Features
+
+* add copy_from method for field assignment ([#215](https://www.github.com/googleapis/proto-plus-python/issues/215)) ([11c3e58](https://www.github.com/googleapis/proto-plus-python/commit/11c3e58a9ba59f0d7d808a26597dab735ca982ba))
+
+## [1.17.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.16.0...v1.17.0) (2021-03-12)
+
+
+### Features
+
+* add preserving_proto_field_name to to_json ([#213](https://www.github.com/googleapis/proto-plus-python/issues/213)) ([b2c245b](https://www.github.com/googleapis/proto-plus-python/commit/b2c245bf044b964897f4e7423ff4944ae915e469))
+
+## [1.16.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.15.0...v1.16.0) (2021-03-12)
+
+
+### Features
+
+* add preserving_proto_field_name passthrough in MessageMeta.to_dict ([#211](https://www.github.com/googleapis/proto-plus-python/issues/211)) ([7675a0c](https://www.github.com/googleapis/proto-plus-python/commit/7675a0c8d1004f2727d64100527f2b208d305017))
+
+## [1.15.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.14.3...v1.15.0) (2021-03-10)
+
+
+### Features
+
+* allow_alias for enums ([#207](https://www.github.com/googleapis/proto-plus-python/issues/207)) ([6d4d713](https://www.github.com/googleapis/proto-plus-python/commit/6d4d71399f494b9f3bd47b6f3ef0b6d3c0c547b5))
+
+### [1.14.3](https://www.github.com/googleapis/proto-plus-python/compare/v1.14.2...v1.14.3) (2021-03-04)
+
+
+### Bug Fixes
+
+* adding enums to a repeated field does not raise a TypeError ([#202](https://www.github.com/googleapis/proto-plus-python/issues/202)) ([2a10bbe](https://www.github.com/googleapis/proto-plus-python/commit/2a10bbecaf8955c7bf1956086aef42630112788b))
+
+### [1.14.2](https://www.github.com/googleapis/proto-plus-python/compare/v1.14.1...v1.14.2) (2021-02-26)
+
+
+### Bug Fixes
+
+* use the correct environment for uploading to pypi ([#199](https://www.github.com/googleapis/proto-plus-python/issues/199)) ([babdc5c](https://www.github.com/googleapis/proto-plus-python/commit/babdc5cddf08235cac3cda66200babab44204688))
+
+### [1.14.1](https://www.github.com/googleapis/proto-plus-python/compare/v1.14.0...v1.14.1) (2021-02-26)
+
+
+### Bug Fixes
+
+* install the wheel dependency ([#197](https://www.github.com/googleapis/proto-plus-python/issues/197)) ([923ab31](https://www.github.com/googleapis/proto-plus-python/commit/923ab31e4685b47acae793198be55335e5eeae38))
+
+## [1.14.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.13.1...v1.14.0) (2021-02-24)
+
+
+### Features
+
+* Pypi publish ghub actions ([#189](https://www.github.com/googleapis/proto-plus-python/issues/189)) ([4c967b0](https://www.github.com/googleapis/proto-plus-python/commit/4c967b0bb2ead29156bcc53c1f3b227b3afb2e8b))
+
+
+### Bug Fixes
+
+* proper __setitem__ and insert for RepeatedComposite ([#178](https://www.github.com/googleapis/proto-plus-python/issues/178)) ([1157a76](https://www.github.com/googleapis/proto-plus-python/commit/1157a76bb608d72389f46dc4d8e9aa00cc14ccc6))
+* proper native marshal for repeated enumeration fields ([#180](https://www.github.com/googleapis/proto-plus-python/issues/180)) ([30265d6](https://www.github.com/googleapis/proto-plus-python/commit/30265d654d7f3589cbd0994d2ac564db1fd44265))
+
 ### [1.13.1](https://www.github.com/googleapis/proto-plus-python/compare/v1.13.0...v1.13.1) (2021-02-09)
 
 
