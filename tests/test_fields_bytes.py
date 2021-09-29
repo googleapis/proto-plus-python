@@ -71,5 +71,23 @@ def test_bytes_string_distinct():
     # for strings (but not vice versa).
     foo.bar = b"anything"
     assert foo.bar == "anything"
-    with pytest.raises(TypeError):
-        foo.baz = "anything"
+
+    # We need to permit setting bytes fields from strings,
+    # but the marhalling needs to base64 decode the result.
+    # This is a requirement for interop with the vanilla protobuf runtime:
+    # converting a proto message to a dict base64 encodes the bytes
+    # becase it may be sent over the network via a protocol like HTTP.
+    foo.baz = "dW5sYWRlbiBzd2FsbG93"
+    assert foo.baz == b"unladen swallow"
+
+
+def test_bytes_to_dict_bidi():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.BYTES, number=1)
+
+    foo = Foo(bar=b"spam")
+
+    foo_dict = Foo.to_dict(foo)
+    foo_two = Foo(foo_dict)
+
+    assert foo == foo_two
