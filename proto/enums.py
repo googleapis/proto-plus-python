@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import enum
-import functools
 
 from google.protobuf import descriptor_pb2
 
