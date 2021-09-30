@@ -73,7 +73,7 @@ def test_bytes_string_distinct():
     assert foo.bar == "anything"
 
     # We need to permit setting bytes fields from strings,
-    # but the marhalling needs to base64 decode the result.
+    # but the marshalling needs to base64 decode the result.
     # This is a requirement for interop with the vanilla protobuf runtime:
     # converting a proto message to a dict base64 encodes the bytes
     # becase it may be sent over the network via a protocol like HTTP.

@@ -134,7 +134,7 @@ class Field:
         # Special case for 'bytes'.
         # We need to know if a field stores bytes
         # so that we can properly url encode/decode strings.
-        # See marhsal.rules.bytes.BytesRule for more info.
+        # See marshal.rules.bytes.BytesRule for more info.
         if self.proto_type == ProtoType.BYTES:
             return self.proto_type
 

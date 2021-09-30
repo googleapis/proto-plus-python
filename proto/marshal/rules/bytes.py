@@ -28,7 +28,7 @@ class BytesRule:
     It is necessary to have the conversion be bidirectional, i.e.
     my_message == MyMessage(MyMessage.to_dict(my_message))
 
-    To accomplish this, we need to intercept assignments from strigs and
+    To accomplish this, we need to intercept assignments from strings and
     base64 decode them back into bytes.
     """
 
