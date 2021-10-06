@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import pytest
 
 import proto
@@ -77,7 +78,8 @@ def test_bytes_string_distinct():
     # This is a requirement for interop with the vanilla protobuf runtime:
     # converting a proto message to a dict base64 encodes the bytes
     # becase it may be sent over the network via a protocol like HTTP.
-    foo.baz = "dW5sYWRlbiBzd2FsbG93"
+    encoded_swallow: str = base64.urlsafe_b64encode(b"unladen swallow").decode("utf-8")
+    foo.baz = encoded_swallow
     assert foo.baz == b"unladen swallow"
 
 

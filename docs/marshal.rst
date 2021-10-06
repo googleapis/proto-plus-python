@@ -50,7 +50,7 @@ Protocol buffer type                Python type             Nullable
    This is necessary to preserve the original protobuf semantics when converting between
    Python dicts and proto messages.
    Converting a message containing a bytes field to a dict will
-   base64 encode the bytes field.
+   base64 encode the bytes field and yield a value of type str.
 
 .. code-block:: python
 
@@ -63,12 +63,14 @@ Protocol buffer type                Python type             Nullable
   msg = MyMessage(data=b"this is a message")
   msg_dict = MyMessage.to_dict(msg)
 
-  assert msg_dict == {'data': 'dGhpcyBpcyBhIG1lc3NhZ2U='}
+  # Note: the value is the base64 encoded string of the bytes field.
+  # It has a type of str, NOT bytes.
+  assert type(msg_dict['data']) == str
 
   msg_pb = ParseDict(msg_dict, MyMessage.pb())
-  msg = MyMessage(msg_dict)
+  msg_two = MyMessage(msg_dict)
 
-  assert msg_pb == msg
+  assert msg == msg_pb == msg_two
 
 
 Wrapper types
