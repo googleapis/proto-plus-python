@@ -72,7 +72,28 @@ Protocol buffer type                Python type             Nullable
 
   assert msg == msg_pb == msg_two
 
+.. warning::
 
+   Due to certain browser/javascript limitations, 64 bit sized fields, e.g. INT64, UINT64,
+   are converted to strings when marshalling messages to dictionaries or JSON.
+   Decoding JSON handles this correctly, but dicts must be unpacked when reconstructing messages. This is necessary to trigger a special case workaround.
+
+   .. code-block:: python
+
+      import proto
+
+      class MyMessage(proto.Message):
+          serial_id = proto.Field(proto.INT64, number=1)
+
+      msg = MyMessage(serial_id=12345)
+      msg_dict = MyMessage.to_dict(msg)
+
+      msg_2 = MyMessage(msg_dict)  # Raises an exception
+
+      msg_3 = MyMessage(**msg_dict) # Works without exception
+      assert msg == msg_3
+      
+  
 Wrapper types
 -------------
 
