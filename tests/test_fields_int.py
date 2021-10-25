@@ -115,6 +115,24 @@ def test_int64_dict_round_trip():
 
     s_dict = Squid.to_dict(s)
 
-    s2 = Squid(**s_dict)
+    s2 = Squid(s_dict)
 
     assert s == s2
+
+    # Double check that the conversion works with deeply nested messages.
+    class Clam(proto.Message):
+        class Shell(proto.Message):
+            class Pearl(proto.Message):
+                mass_kg = proto.Field(proto.INT64, number=1)
+
+            pearl = proto.Field(Pearl, number=1)
+
+        shell = proto.Field(Shell, number=1)
+
+    c = Clam(shell=Clam.Shell(pearl=Clam.Shell.Pearl(mass_kg=10)))
+
+    c_dict = Clam.to_dict(c)
+
+    c2 = Clam(c_dict)
+
+    assert c == c2

@@ -67,7 +67,9 @@ class MessageMeta(type):
             # Determine the name of the entry message.
             msg_name = "{pascal_key}Entry".format(
                 pascal_key=re.sub(
-                    r"_\w", lambda m: m.group()[1:].upper(), key,
+                    r"_\w",
+                    lambda m: m.group()[1:].upper(),
+                    key,
                 ).replace(key[0], key[0].upper(), 1),
             )
 
@@ -83,20 +85,26 @@ class MessageMeta(type):
                 {
                     "__module__": attrs.get("__module__", None),
                     "__qualname__": "{prefix}.{name}".format(
-                        prefix=attrs.get("__qualname__", name), name=msg_name,
+                        prefix=attrs.get("__qualname__", name),
+                        name=msg_name,
                     ),
                     "_pb_options": {"map_entry": True},
                 }
             )
             entry_attrs["key"] = Field(field.map_key_type, number=1)
             entry_attrs["value"] = Field(
-                field.proto_type, number=2, enum=field.enum, message=field.message,
+                field.proto_type,
+                number=2,
+                enum=field.enum,
+                message=field.message,
             )
             map_fields[msg_name] = MessageMeta(msg_name, (Message,), entry_attrs)
 
             # Create the repeated field for the entry message.
             map_fields[key] = RepeatedField(
-                ProtoType.MESSAGE, number=field.number, message=map_fields[msg_name],
+                ProtoType.MESSAGE,
+                number=field.number,
+                message=map_fields[msg_name],
             )
 
         # Add the new entries to the attrs
@@ -288,7 +296,13 @@ class MessageMeta(type):
             if coerce:
                 obj = cls(obj)
             else:
-                raise TypeError("%r is not an instance of %s" % (obj, cls.__name__,))
+                raise TypeError(
+                    "%r is not an instance of %s"
+                    % (
+                        obj,
+                        cls.__name__,
+                    )
+                )
         return obj._pb
 
     def wrap(cls, pb):
@@ -394,7 +408,7 @@ class MessageMeta(type):
                 determines whether field name representations preserve
                 proto case (snake_case) or use lowerCamelCase. Default is True.
             including_default_value_fields (Optional(bool)): An option that
-                determines whether the default field values should be included in the results. 
+                determines whether the default field values should be included in the results.
                 Default is True.
 
         Returns:
@@ -453,7 +467,13 @@ class Message(metaclass=MessageMeta):
             message.
     """
 
-    def __init__(self, mapping=None, *, ignore_unknown_fields=False, **kwargs):
+    def __init__(
+        self,
+        mapping=None,
+        *,
+        ignore_unknown_fields=False,
+        **kwargs,
+    ):
         # We accept several things for `mapping`:
         #   * An instance of this class.
         #   * An instance of the underlying protobuf descriptor class.
@@ -493,7 +513,10 @@ class Message(metaclass=MessageMeta):
             # Sanity check: Did we get something not a map? Error if so.
             raise TypeError(
                 "Invalid constructor input for %s: %r"
-                % (self.__class__.__name__, mapping,)
+                % (
+                    self.__class__.__name__,
+                    mapping,
+                )
             )
 
         params = {}
