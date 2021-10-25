@@ -76,7 +76,8 @@ Protocol buffer type                Python type             Nullable
 
    Due to certain browser/javascript limitations, 64 bit sized fields, e.g. INT64, UINT64,
    are converted to strings when marshalling messages to dictionaries or JSON.
-   Decoding JSON handles this correctly, but dicts must be unpacked when reconstructing messages. This is necessary to trigger a special case workaround.
+   Decoding JSON handles this correctly, but dicts must be unpacked when reconstructing messages.
+   This is necessary to trigger a special case workaround.
 
    .. code-block:: python
 
