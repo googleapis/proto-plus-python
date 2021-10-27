@@ -19,8 +19,10 @@ from proto.primitives import ProtoType
 
 INT_32BIT_PLUS_ONE = 0xFFFFFFFF + 1
 
+
 @pytest.mark.parametrize(
-    "pb_type,value,expected", [
+    "pb_type,value,expected",
+    [
         (ProtoType.INT64, 0, 0),
         (ProtoType.INT64, INT_32BIT_PLUS_ONE, INT_32BIT_PLUS_ONE),
         (ProtoType.SINT64, -INT_32BIT_PLUS_ONE, -INT_32BIT_PLUS_ONE),
@@ -40,8 +42,9 @@ INT_32BIT_PLUS_ONE = 0xFFFFFFFF + 1
         (ProtoType.SFIXED64, INT_32BIT_PLUS_ONE, INT_32BIT_PLUS_ONE),
         (ProtoType.SFIXED64, -INT_32BIT_PLUS_ONE, -INT_32BIT_PLUS_ONE),
         (ProtoType.SFIXED64, None, None),
-    ])
+    ],
+)
 def test_marshal_to_proto_stringy_numbers(pb_type, value, expected):
-    
+
     marshal = BaseMarshal()
     assert marshal.to_proto(pb_type, value) == expected
