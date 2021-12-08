@@ -652,7 +652,6 @@ class Message(metaclass=MessageMeta):
         super().__setattr__("_pb", new_pb)
 
 
-
 class _MessageInfo:
     """Metadata about a message.
 
