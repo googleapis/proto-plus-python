@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.20.0](https://github.com/googleapis/proto-plus-python/compare/v1.19.9...v1.20.0) (2022-02-07)
+
+
+### Features
+
+* add custom __dir__ for messages and message classes ([#289](https://github.com/googleapis/proto-plus-python/issues/289)) ([35e019e](https://github.com/googleapis/proto-plus-python/commit/35e019eb8155c1e4067b326804e3e7e86f85b6a8))
+
+
+### Bug Fixes
+
+* workaround for buggy pytest ([#291](https://github.com/googleapis/proto-plus-python/issues/291)) ([28aa3b2](https://github.com/googleapis/proto-plus-python/commit/28aa3b2b325d2ba262f35cfc8d20e1f5fbdcf883))
+
+### [1.19.9](https://github.com/googleapis/proto-plus-python/compare/v1.19.8...v1.19.9) (2022-01-25)
+
+
+### Bug Fixes
+
+* add pickling support to proto messages ([#280](https://github.com/googleapis/proto-plus-python/issues/280)) ([2b7be35](https://github.com/googleapis/proto-plus-python/commit/2b7be3563f9fc2a4649a5e14d7653b85020c566f))
+
 ### [1.19.8](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.7...v1.19.8) (2021-11-09)
 
 
