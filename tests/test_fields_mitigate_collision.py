@@ -31,5 +31,6 @@ def test_fields_mitigate_collision():
     obj.eggs = "has_eggs"
     assert obj.spam_ == "has_spam"
 
+    # Test that `spam` is coerced to `spam_`
     modified_obj = TestMessage({"spam": "has_spam", "eggs": "has_eggs"})
     assert modified_obj.spam_ == "has_spam"
