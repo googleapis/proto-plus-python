@@ -18,7 +18,7 @@ import proto
 # Underscores may be appended to field names
 # that collide with python or proto-plus keywords.
 # In case a key only exists with a `_` suffix, coerce the key
-# to include the `_` suffix. Is not possible to
+# to include the `_` suffix. It's not possible to
 # natively define the same field with a trailing underscore in protobuf.
 # See related issue
 # https://github.com/googleapis/python-api-core/issues/227
@@ -26,6 +26,9 @@ def test_fields_mitigate_collision():
     class TestMessage(proto.Message):
         spam_ = proto.Field(proto.STRING, number=1)
         eggs = proto.Field(proto.STRING, number=2)
+    
+    class TextStream(proto.Message):
+        text_stream = proto.Field(TestMessage, number=1)
 
     obj = TestMessage(spam_="has_spam")
     obj.eggs = "has_eggs"
@@ -34,3 +37,8 @@ def test_fields_mitigate_collision():
     # Test that `spam` is coerced to `spam_`
     modified_obj = TestMessage({"spam": "has_spam", "eggs": "has_eggs"})
     assert modified_obj.spam_ == "has_spam"
+
+    # Now try nested values
+    modified_obj = TextStream(text_stream=TestMessage({"spam": "has_spam", "eggs": "has_eggs"}))
+    assert modified_obj.text_stream.spam_ == "has_spam"
+    
