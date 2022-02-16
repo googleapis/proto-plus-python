@@ -530,7 +530,7 @@ class Message(metaclass=MessageMeta):
                 # Underscores may be appended to field names
                 # that collide with python or proto-plus keywords.
                 # In case a key only exists with a `_` suffix, coerce the key
-                # to include the `_` suffix. Is not possible to
+                # to include the `_` suffix. It's not possible to
                 # natively define the same field with a trailing underscore in protobuf.
                 # See related issue
                 # https://github.com/googleapis/python-api-core/issues/227
@@ -545,7 +545,27 @@ class Message(metaclass=MessageMeta):
                         "Unknown field for {}: {}".format(self.__class__.__name__, key)
                     )
 
-            pb_value = marshal.to_proto(pb_type, value)
+            try:
+                pb_value = marshal.to_proto(pb_type, value)
+            except ValueError:
+                # Underscores may be appended to field names
+                # that collide with python or proto-plus keywords.
+                # In case a key only exists with a `_` suffix, coerce the key
+                # to include the `_` suffix. It's not possible to
+                # natively define the same field with a trailing underscore in protobuf.
+                # See related issue
+                # https://github.com/googleapis/python-api-core/issues/227
+                if isinstance(value, dict):
+                    keys_to_update = []
+                    for item in value:
+                        if not hasattr(pb_type, item) and hasattr(pb_type, f"{item}_"):
+                            keys_to_update.append(item)
+                    for item in keys_to_update:
+                        value[f"{item}_"] = value[item]
+                        del value[item]
+
+                pb_value = marshal.to_proto(pb_type, value)
+
             if pb_value is not None:
                 params[key] = pb_value
 
@@ -662,7 +682,24 @@ class Message(metaclass=MessageMeta):
             more details.
         """
         try:
-            pb_type = self._meta.fields[key].pb_type
+            try:
+                pb_type = self._meta.fields[key].pb_type
+            except KeyError:
+                # Underscores may be appended to field names
+                # that collide with python or proto-plus keywords.
+                # In case a key only exists with a `_` suffix, coerce the key
+                # to include the `_` suffix. It's not possible to
+                # natively define the same field with a trailing underscore in protobuf.
+                # See related issue
+                # https://github.com/googleapis/python-api-core/issues/227
+                if f"{key}_" in self._meta.fields:
+                    key = f"{key}_"
+                    pb_type = self._meta.fields[key].pb_type
+                else:
+                    raise KeyError(
+                        "Unknown field for {}: {}".format(self.__class__.__name__, key)
+                    )
+
             pb_value = getattr(self._pb, key)
             marshal = self._meta.marshal
             return marshal.to_python(pb_type, pb_value, absent=key not in self)
@@ -685,7 +722,24 @@ class Message(metaclass=MessageMeta):
         if key[0] == "_":
             return super().__setattr__(key, value)
         marshal = self._meta.marshal
-        pb_type = self._meta.fields[key].pb_type
+        try:
+            pb_type = self._meta.fields[key].pb_type
+        except KeyError:
+            # Underscores may be appended to field names
+            # that collide with python or proto-plus keywords.
+            # In case a key only exists with a `_` suffix, coerce the key
+            # to include the `_` suffix. It's not possible to
+            # natively define the same field with a trailing underscore in protobuf.
+            # See related issue
+            # https://github.com/googleapis/python-api-core/issues/227
+            if f"{key}_" in self._meta.fields:
+                key = f"{key}_"
+                pb_type = self._meta.fields[key].pb_type
+            else:
+                raise KeyError(
+                    "Unknown field for {}: {}".format(self.__class__.__name__, key)
+                )
+
         pb_value = marshal.to_proto(pb_type, value)
 
         # Clear the existing field.
