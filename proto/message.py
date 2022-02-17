@@ -590,7 +590,6 @@ class Message(metaclass=MessageMeta):
 
         return (key, pb_type)
 
-
     def __dir__(self):
         desc = type(self).pb().DESCRIPTOR
         names = {f_name for f_name in self._meta.fields.keys()}
