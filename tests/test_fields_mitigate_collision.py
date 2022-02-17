@@ -38,12 +38,18 @@ def test_fields_mitigate_collision():
     modified_obj = TestMessage({"spam": "has_spam", "eggs": "has_eggs"})
     assert modified_obj.spam_ == "has_spam"
 
-    # Test __setattr__ and __getattr___
-    modified_obj.__setattr__("spam", "no_spam")
-    modified_obj.__getattr__("spam") == "no_spam"
+    # Test get and set
+    modified_obj.spam = "no_spam"
+    assert modified_obj.spam == "no_spam"
 
-    modified_obj.__setattr__("spam_", "yes_spam")
-    modified_obj.__getattr__("spam_") == "yes_spam"
+    modified_obj.spam_ = "yes_spam"
+    assert modified_obj.spam_ == "yes_spam"
+
+    modified_obj.spam = "maybe_spam"
+    assert modified_obj.spam_ == "maybe_spam"
+
+    modified_obj.spam_ = "maybe_not_spam"
+    assert modified_obj.spam == "maybe_not_spam"
 
     # Try nested values
     modified_obj = TextStream(
@@ -51,15 +57,24 @@ def test_fields_mitigate_collision():
     )
     assert modified_obj.text_stream.spam_ == "has_spam"
 
-    # Test __setattr__ and __getattr___
-    modified_obj.text_stream.__setattr__("spam", "no_spam")
-    modified_obj.text_stream.__getattr__("spam") == "no_spam"
+    # Test get and set for nested values
+    modified_obj.text_stream.spam = "no_spam"
+    assert modified_obj.text_stream.spam == "no_spam"
 
-    modified_obj.text_stream.__setattr__("spam_", "yes_spam")
-    modified_obj.text_stream.__getattr__("spam_") == "yes_spam"
+    modified_obj.text_stream.spam_ = "yes_spam"
+    assert modified_obj.text_stream.spam_ == "yes_spam"
 
-    with pytest.raises(KeyError):
-        modified_obj.text_stream.__setattr__("key_does_not_exist", "n/a")
+    modified_obj.text_stream.spam = "maybe_spam"
+    assert modified_obj.text_stream.spam_ == "maybe_spam"
+
+    modified_obj.text_stream.spam_ = "maybe_not_spam"
+    assert modified_obj.text_stream.spam == "maybe_not_spam"
+
+    with pytest.raises(AttributeError):
+        modified_obj.text_stream.attribute_does_not_exist == "n/a"
+
+    with pytest.raises(AttributeError):
+        modified_obj.text_stream.attribute_does_not_exist = "n/a"
 
     # Try using dict
     modified_obj = TextStream(text_stream={"spam": "has_spam", "eggs": "has_eggs"})
