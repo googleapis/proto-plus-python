@@ -699,18 +699,14 @@ class Message(metaclass=MessageMeta):
             their Python equivalents. See the ``marshal`` module for
             more details.
         """
-        try:
-            (key, pb_type) = self._get_pb_type_from_key(key)
-            if pb_type is None:
-                raise AttributeError(
-                    "Unknown field for {}: {}".format(self.__class__.__name__, key)
-                )
-
-            pb_value = getattr(self._pb, key)
-            marshal = self._meta.marshal
-            return marshal.to_python(pb_type, pb_value, absent=key not in self)
-        except KeyError as ex:
-            raise AttributeError(str(ex))
+        (key, pb_type) = self._get_pb_type_from_key(key)
+        if pb_type is None:
+            raise AttributeError(
+                "Unknown field for {}: {}".format(self.__class__.__name__, key)
+            )
+        pb_value = getattr(self._pb, key)
+        marshal = self._meta.marshal
+        return marshal.to_python(pb_type, pb_value, absent=key not in self)
 
     def __ne__(self, other):
         """Return True if the messages are unequal, False otherwise."""
