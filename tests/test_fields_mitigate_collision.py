@@ -71,7 +71,7 @@ def test_fields_mitigate_collision():
     assert modified_obj.text_stream.spam == "maybe_not_spam"
 
     with pytest.raises(AttributeError):
-        modified_obj.text_stream.attribute_does_not_exist == "n/a"
+        assert modified_obj.text_stream.attribute_does_not_exist == "n/a"
 
     with pytest.raises(AttributeError):
         modified_obj.text_stream.attribute_does_not_exist = "n/a"
