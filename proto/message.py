@@ -67,7 +67,9 @@ class MessageMeta(type):
             # Determine the name of the entry message.
             msg_name = "{pascal_key}Entry".format(
                 pascal_key=re.sub(
-                    r"_\w", lambda m: m.group()[1:].upper(), key,
+                    r"_\w",
+                    lambda m: m.group()[1:].upper(),
+                    key,
                 ).replace(key[0], key[0].upper(), 1),
             )
 
@@ -83,20 +85,26 @@ class MessageMeta(type):
                 {
                     "__module__": attrs.get("__module__", None),
                     "__qualname__": "{prefix}.{name}".format(
-                        prefix=attrs.get("__qualname__", name), name=msg_name,
+                        prefix=attrs.get("__qualname__", name),
+                        name=msg_name,
                     ),
                     "_pb_options": {"map_entry": True},
                 }
             )
             entry_attrs["key"] = Field(field.map_key_type, number=1)
             entry_attrs["value"] = Field(
-                field.proto_type, number=2, enum=field.enum, message=field.message,
+                field.proto_type,
+                number=2,
+                enum=field.enum,
+                message=field.message,
             )
             map_fields[msg_name] = MessageMeta(msg_name, (Message,), entry_attrs)
 
             # Create the repeated field for the entry message.
             map_fields[key] = RepeatedField(
-                ProtoType.MESSAGE, number=field.number, message=map_fields[msg_name],
+                ProtoType.MESSAGE,
+                number=field.number,
+                message=map_fields[msg_name],
             )
 
         # Add the new entries to the attrs
@@ -273,6 +281,30 @@ class MessageMeta(type):
     def meta(cls):
         return cls._meta
 
+    def __dir__(self):
+        try:
+            names = set(dir(type))
+            names.update(
+                (
+                    "meta",
+                    "pb",
+                    "wrap",
+                    "serialize",
+                    "deserialize",
+                    "to_json",
+                    "from_json",
+                    "to_dict",
+                    "copy_from",
+                )
+            )
+            desc = self.pb().DESCRIPTOR
+            names.update(t.name for t in desc.nested_types)
+            names.update(e.name for e in desc.enum_types)
+
+            return names
+        except AttributeError:
+            return dir(type)
+
     def pb(cls, obj=None, *, coerce: bool = False):
         """Return the underlying protobuf Message class or instance.
 
@@ -288,7 +320,13 @@ class MessageMeta(type):
             if coerce:
                 obj = cls(obj)
             else:
-                raise TypeError("%r is not an instance of %s" % (obj, cls.__name__,))
+                raise TypeError(
+                    "%r is not an instance of %s"
+                    % (
+                        obj,
+                        cls.__name__,
+                    )
+                )
         return obj._pb
 
     def wrap(cls, pb):
@@ -454,7 +492,11 @@ class Message(metaclass=MessageMeta):
     """
 
     def __init__(
-        self, mapping=None, *, ignore_unknown_fields=False, **kwargs,
+        self,
+        mapping=None,
+        *,
+        ignore_unknown_fields=False,
+        **kwargs,
     ):
         # We accept several things for `mapping`:
         #   * An instance of this class.
@@ -495,7 +537,10 @@ class Message(metaclass=MessageMeta):
             # Sanity check: Did we get something not a map? Error if so.
             raise TypeError(
                 "Invalid constructor input for %s: %r"
-                % (self.__class__.__name__, mapping,)
+                % (
+                    self.__class__.__name__,
+                    mapping,
+                )
             )
 
         params = {}
@@ -503,9 +548,8 @@ class Message(metaclass=MessageMeta):
         # coerced.
         marshal = self._meta.marshal
         for key, value in mapping.items():
-            try:
-                pb_type = self._meta.fields[key].pb_type
-            except KeyError:
+            (key, pb_type) = self._get_pb_type_from_key(key)
+            if pb_type is None:
                 if ignore_unknown_fields:
                     continue
 
@@ -513,12 +557,85 @@ class Message(metaclass=MessageMeta):
                     "Unknown field for {}: {}".format(self.__class__.__name__, key)
                 )
 
-            pb_value = marshal.to_proto(pb_type, value)
+            try:
+                pb_value = marshal.to_proto(pb_type, value)
+            except ValueError:
+                # Underscores may be appended to field names
+                # that collide with python or proto-plus keywords.
+                # In case a key only exists with a `_` suffix, coerce the key
+                # to include the `_` suffix. It's not possible to
+                # natively define the same field with a trailing underscore in protobuf.
+                # See related issue
+                # https://github.com/googleapis/python-api-core/issues/227
+                if isinstance(value, dict):
+                    keys_to_update = [
+                        item
+                        for item in value
+                        if not hasattr(pb_type, item) and hasattr(pb_type, f"{item}_")
+                    ]
+                    for item in keys_to_update:
+                        value[f"{item}_"] = value.pop(item)
+
+                pb_value = marshal.to_proto(pb_type, value)
+
             if pb_value is not None:
                 params[key] = pb_value
 
         # Create the internal protocol buffer.
         super().__setattr__("_pb", self._meta.pb(**params))
+
+    def _get_pb_type_from_key(self, key):
+        """Given a key, return the corresponding pb_type.
+
+        Args:
+            key(str): The name of the field.
+
+        Returns:
+            A tuple containing a key and pb_type. The pb_type will be
+            the composite type of the field, or the primitive type if a primitive.
+            If no corresponding field exists, return None.
+        """
+
+        pb_type = None
+
+        try:
+            pb_type = self._meta.fields[key].pb_type
+        except KeyError:
+            # Underscores may be appended to field names
+            # that collide with python or proto-plus keywords.
+            # In case a key only exists with a `_` suffix, coerce the key
+            # to include the `_` suffix. It's not possible to
+            # natively define the same field with a trailing underscore in protobuf.
+            # See related issue
+            # https://github.com/googleapis/python-api-core/issues/227
+            if f"{key}_" in self._meta.fields:
+                key = f"{key}_"
+                pb_type = self._meta.fields[key].pb_type
+
+        return (key, pb_type)
+
+    def __dir__(self):
+        desc = type(self).pb().DESCRIPTOR
+        names = {f_name for f_name in self._meta.fields.keys()}
+        names.update(m.name for m in desc.nested_types)
+        names.update(e.name for e in desc.enum_types)
+        names.update(dir(object()))
+        # Can't think of a better way of determining
+        # the special methods than manually listing them.
+        names.update(
+            (
+                "__bool__",
+                "__contains__",
+                "__dict__",
+                "__getattr__",
+                "__getstate__",
+                "__module__",
+                "__setstate__",
+                "__weakref__",
+            )
+        )
+
+        return names
 
     def __bool__(self):
         """Return True if any field is truthy, False otherwise."""
@@ -606,13 +723,14 @@ class Message(metaclass=MessageMeta):
             their Python equivalents. See the ``marshal`` module for
             more details.
         """
-        try:
-            pb_type = self._meta.fields[key].pb_type
-            pb_value = getattr(self._pb, key)
-            marshal = self._meta.marshal
-            return marshal.to_python(pb_type, pb_value, absent=key not in self)
-        except KeyError as ex:
-            raise AttributeError(str(ex))
+        (key, pb_type) = self._get_pb_type_from_key(key)
+        if pb_type is None:
+            raise AttributeError(
+                "Unknown field for {}: {}".format(self.__class__.__name__, key)
+            )
+        pb_value = getattr(self._pb, key)
+        marshal = self._meta.marshal
+        return marshal.to_python(pb_type, pb_value, absent=key not in self)
 
     def __ne__(self, other):
         """Return True if the messages are unequal, False otherwise."""
@@ -630,7 +748,12 @@ class Message(metaclass=MessageMeta):
         if key[0] == "_":
             return super().__setattr__(key, value)
         marshal = self._meta.marshal
-        pb_type = self._meta.fields[key].pb_type
+        (key, pb_type) = self._get_pb_type_from_key(key)
+        if pb_type is None:
+            raise AttributeError(
+                "Unknown field for {}: {}".format(self.__class__.__name__, key)
+            )
+
         pb_value = marshal.to_proto(pb_type, value)
 
         # Clear the existing field.

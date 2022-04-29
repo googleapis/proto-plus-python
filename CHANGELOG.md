@@ -1,5 +1,45 @@
 # Changelog
 
+### [1.20.3](https://github.com/googleapis/proto-plus-python/compare/v1.20.2...v1.20.3) (2022-02-18)
+
+
+### Bug Fixes
+
+* additional logic to mitigate collisions with reserved terms ([#301](https://github.com/googleapis/proto-plus-python/issues/301)) ([c9a77df](https://github.com/googleapis/proto-plus-python/commit/c9a77df58e93a87952470d809538a08103644364))
+
+### [1.20.2](https://github.com/googleapis/proto-plus-python/compare/v1.20.1...v1.20.2) (2022-02-17)
+
+
+### Bug Fixes
+
+* dir(proto.Message) does not raise ([#302](https://github.com/googleapis/proto-plus-python/issues/302)) ([80dcce9](https://github.com/googleapis/proto-plus-python/commit/80dcce9099e630a6217792b6b3a14213add690e6))
+
+### [1.20.1](https://github.com/googleapis/proto-plus-python/compare/v1.20.0...v1.20.1) (2022-02-14)
+
+
+### Bug Fixes
+
+* mitigate collisions in field names ([#295](https://github.com/googleapis/proto-plus-python/issues/295)) ([158ae99](https://github.com/googleapis/proto-plus-python/commit/158ae995aa4fdf6239c864a41f5df5575a3c30b3))
+
+## [1.20.0](https://github.com/googleapis/proto-plus-python/compare/v1.19.9...v1.20.0) (2022-02-07)
+
+
+### Features
+
+* add custom __dir__ for messages and message classes ([#289](https://github.com/googleapis/proto-plus-python/issues/289)) ([35e019e](https://github.com/googleapis/proto-plus-python/commit/35e019eb8155c1e4067b326804e3e7e86f85b6a8))
+
+
+### Bug Fixes
+
+* workaround for buggy pytest ([#291](https://github.com/googleapis/proto-plus-python/issues/291)) ([28aa3b2](https://github.com/googleapis/proto-plus-python/commit/28aa3b2b325d2ba262f35cfc8d20e1f5fbdcf883))
+
+### [1.19.9](https://github.com/googleapis/proto-plus-python/compare/v1.19.8...v1.19.9) (2022-01-25)
+
+
+### Bug Fixes
+
+* add pickling support to proto messages ([#280](https://github.com/googleapis/proto-plus-python/issues/280)) ([2b7be35](https://github.com/googleapis/proto-plus-python/commit/2b7be3563f9fc2a4649a5e14d7653b85020c566f))
+
 ### [1.19.8](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.7...v1.19.8) (2021-11-09)
 
 
