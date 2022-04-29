@@ -23,7 +23,11 @@ from proto.marshal.marshal import BaseMarshal
 
 def test_decimal_read(value_func=lambda s: decimal_pb2.Decimal(value=s)):
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     for v in ["2", "2.", "2.5", "2.5e10", "2.5e-10", "-2.5", "NaN", "inf"]:
         foo = Foo(event_price=value_func(v))
@@ -52,7 +56,11 @@ def test_decimal_read_string():
 
 def test_decimal_read_int():
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     for v in ["2", "-2", "+2"]:
         foo = Foo(event_price=int(v))
@@ -63,7 +71,11 @@ def test_decimal_read_int():
 
 def test_decimal_write_init():
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     for v in ["2", "2.", "2.5", "2.5e10", "2.5e-10", "-2.5"]:
         foo = Foo(event_price=decimal.Decimal(v))
@@ -80,7 +92,11 @@ def test_decimal_write_init():
 
 def test_decimal_write(value_func=lambda s: decimal_pb2.Decimal(value=s)):
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     for v in ["2", "2.", "2.5", "2.5e10", "2.5e-10", "-2.5", "infinity", "nan"]:
         foo = Foo()
@@ -110,7 +126,11 @@ def test_decimal_write_py_decimal():
 
 def test_decimal_absence():
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     foo = Foo()
     assert foo.event_price is None
@@ -118,7 +138,11 @@ def test_decimal_absence():
 
 def test_decimal_del():
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     foo = Foo(event_price=2.5)
     del foo.event_price
@@ -144,7 +168,11 @@ def test_decimal_to_proto_error():
         marshal.to_proto(decimal_pb2.Decimal, None)
 
     class Foo(proto.Message):
-        event_price = proto.Field(proto.MESSAGE, number=1, message=decimal_pb2.Decimal,)
+        event_price = proto.Field(
+            proto.MESSAGE,
+            number=1,
+            message=decimal_pb2.Decimal,
+        )
 
     with pytest.raises(decimal.InvalidOperation):
         # Make sure we do basic error checking
