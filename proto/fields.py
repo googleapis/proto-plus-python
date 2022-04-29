@@ -78,7 +78,8 @@ class Field:
             if isinstance(self.message, str):
                 if not self.message.startswith(self.package):
                     self.message = "{package}.{name}".format(
-                        package=self.package, name=self.message,
+                        package=self.package,
+                        name=self.message,
                     )
                 type_name = self.message
             elif self.message:
@@ -90,7 +91,8 @@ class Field:
             elif isinstance(self.enum, str):
                 if not self.enum.startswith(self.package):
                     self.enum = "{package}.{name}".format(
-                        package=self.package, name=self.enum,
+                        package=self.package,
+                        name=self.enum,
                     )
                 type_name = self.enum
             elif self.enum:
@@ -126,14 +128,15 @@ class Field:
 
     @property
     def pb_type(self):
-        """Return the composite type of the field, or None for primitives."""
+        """Return the composite type of the field, or the primitive type if a primitive."""
         # For enums, return the Python enum.
         if self.enum:
             return self.enum
 
-        # For non-enum primitives, return None.
+        # For primitive fields, we still want to know
+        # what the type is.
         if not self.message:
-            return None
+            return self.proto_type
 
         # Return the internal protobuf message.
         if hasattr(self.message, "_meta"):

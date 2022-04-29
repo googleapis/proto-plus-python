@@ -1,5 +1,101 @@
 # Changelog
 
+### [1.20.3](https://github.com/googleapis/proto-plus-python/compare/v1.20.2...v1.20.3) (2022-02-18)
+
+
+### Bug Fixes
+
+* additional logic to mitigate collisions with reserved terms ([#301](https://github.com/googleapis/proto-plus-python/issues/301)) ([c9a77df](https://github.com/googleapis/proto-plus-python/commit/c9a77df58e93a87952470d809538a08103644364))
+
+### [1.20.2](https://github.com/googleapis/proto-plus-python/compare/v1.20.1...v1.20.2) (2022-02-17)
+
+
+### Bug Fixes
+
+* dir(proto.Message) does not raise ([#302](https://github.com/googleapis/proto-plus-python/issues/302)) ([80dcce9](https://github.com/googleapis/proto-plus-python/commit/80dcce9099e630a6217792b6b3a14213add690e6))
+
+### [1.20.1](https://github.com/googleapis/proto-plus-python/compare/v1.20.0...v1.20.1) (2022-02-14)
+
+
+### Bug Fixes
+
+* mitigate collisions in field names ([#295](https://github.com/googleapis/proto-plus-python/issues/295)) ([158ae99](https://github.com/googleapis/proto-plus-python/commit/158ae995aa4fdf6239c864a41f5df5575a3c30b3))
+
+## [1.20.0](https://github.com/googleapis/proto-plus-python/compare/v1.19.9...v1.20.0) (2022-02-07)
+
+
+### Features
+
+* add custom __dir__ for messages and message classes ([#289](https://github.com/googleapis/proto-plus-python/issues/289)) ([35e019e](https://github.com/googleapis/proto-plus-python/commit/35e019eb8155c1e4067b326804e3e7e86f85b6a8))
+
+
+### Bug Fixes
+
+* workaround for buggy pytest ([#291](https://github.com/googleapis/proto-plus-python/issues/291)) ([28aa3b2](https://github.com/googleapis/proto-plus-python/commit/28aa3b2b325d2ba262f35cfc8d20e1f5fbdcf883))
+
+### [1.19.9](https://github.com/googleapis/proto-plus-python/compare/v1.19.8...v1.19.9) (2022-01-25)
+
+
+### Bug Fixes
+
+* add pickling support to proto messages ([#280](https://github.com/googleapis/proto-plus-python/issues/280)) ([2b7be35](https://github.com/googleapis/proto-plus-python/commit/2b7be3563f9fc2a4649a5e14d7653b85020c566f))
+
+### [1.19.8](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.7...v1.19.8) (2021-11-09)
+
+
+### Documentation
+
+* fix typos ([#277](https://www.github.com/googleapis/proto-plus-python/issues/277)) ([e3b71e8](https://www.github.com/googleapis/proto-plus-python/commit/e3b71e8b2a81a5abb5af666c9625facb1814a609))
+
+### [1.19.7](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.6...v1.19.7) (2021-10-27)
+
+
+### Bug Fixes
+
+* restore allowing None as value for stringy ints ([#272](https://www.github.com/googleapis/proto-plus-python/issues/272)) ([a8991d7](https://www.github.com/googleapis/proto-plus-python/commit/a8991d71ff455093fbfef142f9140d3f2928195f))
+
+### [1.19.6](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.5...v1.19.6) (2021-10-25)
+
+
+### Bug Fixes
+
+* setting 64bit fields from strings supported ([#267](https://www.github.com/googleapis/proto-plus-python/issues/267)) ([ea7b911](https://www.github.com/googleapis/proto-plus-python/commit/ea7b91100114f5c3d40d41320b045568ac9a68f9))
+
+### [1.19.5](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.4...v1.19.5) (2021-10-11)
+
+
+### Documentation
+
+* Clarify semantics of multiple oneof variants passed to msg ctor ([#263](https://www.github.com/googleapis/proto-plus-python/issues/263)) ([6f8a5b2](https://www.github.com/googleapis/proto-plus-python/commit/6f8a5b2098e4f6748945c53bda3d5821e62e5a0a))
+
+### [1.19.4](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.3...v1.19.4) (2021-10-08)
+
+
+### Documentation
+
+* clarify that proto plus messages are not pickleable ([#260](https://www.github.com/googleapis/proto-plus-python/issues/260)) ([6e691dc](https://www.github.com/googleapis/proto-plus-python/commit/6e691dc27b1e540ef0661597fd89ece8f0155c97))
+
+### [1.19.3](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.2...v1.19.3) (2021-10-07)
+
+
+### Bug Fixes
+
+* setting bytes field from python string base64 decodes before assignment ([#255](https://www.github.com/googleapis/proto-plus-python/issues/255)) ([b6f3eb6](https://www.github.com/googleapis/proto-plus-python/commit/b6f3eb6575484748126170997b8c98512763ea66))
+
+### [1.19.2](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.1...v1.19.2) (2021-09-29)
+
+
+### Bug Fixes
+
+* ensure enums are hashable ([#252](https://www.github.com/googleapis/proto-plus-python/issues/252)) ([232341b](https://www.github.com/googleapis/proto-plus-python/commit/232341b4f4902fba1b3597bb1e1618b8f320374b))
+
+### [1.19.1](https://www.github.com/googleapis/proto-plus-python/compare/v1.19.0...v1.19.1) (2021-09-29)
+
+
+### Bug Fixes
+
+* ensure enums are incomparable w other enum types ([#248](https://www.github.com/googleapis/proto-plus-python/issues/248)) ([5927c14](https://www.github.com/googleapis/proto-plus-python/commit/5927c1400f400b3213c9b92e7a37c3c3a1abd681))
+
 ## [1.19.0](https://www.github.com/googleapis/proto-plus-python/compare/v1.18.1...v1.19.0) (2021-06-29)
 
 

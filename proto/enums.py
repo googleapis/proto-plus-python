@@ -108,7 +108,48 @@ class ProtoEnumMeta(enum.EnumMeta):
 class Enum(enum.IntEnum, metaclass=ProtoEnumMeta):
     """A enum object that also builds a protobuf enum descriptor."""
 
-    pass
+    def _comparable(self, other):
+        # Avoid 'isinstance' to prevent other IntEnums from matching
+        return type(other) in (type(self), int)
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __eq__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value == int(other)
+
+    def __ne__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value != int(other)
+
+    def __lt__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value < int(other)
+
+    def __le__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value <= int(other)
+
+    def __ge__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value >= int(other)
+
+    def __gt__(self, other):
+        if not self._comparable(other):
+            return NotImplemented
+
+        return self.value > int(other)
 
 
 class _EnumInfo:

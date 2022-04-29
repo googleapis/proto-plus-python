@@ -17,7 +17,7 @@ import os
 
 from setuptools import find_packages, setup
 
-version = "1.19.0"
+version = "1.20.3"
 
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -36,8 +36,12 @@ setup(
     long_description=README,
     platforms="Posix; MacOS X",
     include_package_data=True,
-    install_requires=("protobuf >= 3.12.0",),
-    extras_require={"testing": ["google-api-core[grpc] >= 1.22.2",],},
+    install_requires=("protobuf >= 3.19.0",),
+    extras_require={
+        "testing": [
+            "google-api-core[grpc] >= 1.22.2",
+        ],
+    },
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -50,6 +54,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],

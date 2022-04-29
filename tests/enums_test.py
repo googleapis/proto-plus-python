@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Google LLC
+# Copyright (C) 2021  Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,21 +15,19 @@
 import proto
 
 __protobuf__ = proto.module(
-    package="ocean.clam.v1",
+    package="test.proto",
     manifest={
-        "Clam",
-        "Species",
+        "Enums",
     },
 )
 
 
-class Species(proto.Enum):
-    UNKNOWN = 0
-    SQUAMOSA = 1
-    DURASA = 2
-    GIGAS = 3
+class OneEnum(proto.Enum):
+    UNSPECIFIED = 0
+    SOME_VALUE = 1
 
 
-class Clam(proto.Message):
-    species = proto.Field(proto.ENUM, number=1, enum="Species")
-    mass_kg = proto.Field(proto.DOUBLE, number=2)
+class OtherEnum(proto.Enum):
+    UNSPECIFIED = 0
+    APPLE = 1
+    BANANA = 2

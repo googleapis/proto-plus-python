@@ -25,9 +25,12 @@ from proto.marshal import compat
 from proto.marshal.collections import MapComposite
 from proto.marshal.collections import Repeated
 from proto.marshal.collections import RepeatedComposite
+from proto.marshal.rules import bytes as pb_bytes
+from proto.marshal.rules import stringy_numbers
 from proto.marshal.rules import dates
 from proto.marshal.rules import struct
 from proto.marshal.rules import wrappers
+from proto.primitives import ProtoType
 
 
 class Rule(abc.ABC):
@@ -85,14 +88,6 @@ class BaseMarshal:
             proto_type (type): A protocol buffer message type.
             rule: A marshal object
         """
-        # Sanity check: Do not register anything to a class that is not
-        # a protocol buffer message.
-        if not issubclass(proto_type, (message.Message, enum.IntEnum)):
-            raise TypeError(
-                "Only enums and protocol buffer messages may be "
-                "registered to the marshal."
-            )
-
         # If a rule was provided, register it and be done.
         if rule:
             # Ensure the rule implements Rule.
@@ -149,6 +144,14 @@ class BaseMarshal:
         self.register(struct_pb2.Value, struct.ValueRule(marshal=self))
         self.register(struct_pb2.ListValue, struct.ListValueRule(marshal=self))
         self.register(struct_pb2.Struct, struct.StructRule(marshal=self))
+
+        # Special case for bytes to allow base64 encode/decode
+        self.register(ProtoType.BYTES, pb_bytes.BytesRule())
+
+        # Special case for int64 from strings because of dict round trip.
+        # See https://github.com/protocolbuffers/protobuf/issues/2679
+        for rule_class in stringy_numbers.STRINGY_NUMBER_RULES:
+            self.register(rule_class._proto_type, rule_class())
 
     def to_python(self, proto_type, value, *, absent: bool = None):
         # Internal protobuf has its own special type for lists of values.
@@ -212,7 +215,8 @@ class BaseMarshal:
             raise TypeError(
                 "Parameter must be instance of the same class; "
                 "expected {expected}, got {got}".format(
-                    expected=proto_type.__name__, got=pb_value.__class__.__name__,
+                    expected=proto_type.__name__,
+                    got=pb_value.__class__.__name__,
                 ),
             )
 
