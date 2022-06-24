@@ -37,10 +37,21 @@ def pytest_runtest_setup(item):
         mock.patch.object(symbol_database, "Default", return_value=sym_db),
     ]
     if descriptor_pool._USE_C_DESCRIPTORS:
-        from google.protobuf.pyext import _message
+        has_upb = False
+        try:
+            from google._upb import _message
+            has_upb = True
+            assert _message
+        except ImportError:
+            _message = None
+        if not _message:
+            try:
+                from google.protobuf.pyext import _message
+            except ImportError:
+                _message = None
 
         item._mocks.append(
-            mock.patch("google.protobuf.pyext._message.default_pool", pool)
+            mock.patch("google._upb._message.default_pool" if has_upb else "google.protobuf.pyext._message.default_pool", pool)
         )
 
     [i.start() for i in item._mocks]

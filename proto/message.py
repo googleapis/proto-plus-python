@@ -22,6 +22,11 @@ from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf.json_format import MessageToDict, MessageToJson, Parse
 
+try:
+    from google._upb import _message
+except ImportError:
+    _message = None
+
 from proto import _file_info
 from proto import _package_info
 from proto.fields import Field
@@ -568,11 +573,19 @@ class Message(metaclass=MessageMeta):
                 # See related issue
                 # https://github.com/googleapis/python-api-core/issues/227
                 if isinstance(value, dict):
-                    keys_to_update = [
-                        item
-                        for item in value
-                        if not hasattr(pb_type, item) and hasattr(pb_type, f"{item}_")
-                    ]
+                    if _message is None:
+                        keys_to_update = [
+                            item
+                            for item in value
+                            if not hasattr(pb_type, item) and hasattr(pb_type, f"{item}_")
+                        ]
+                    else:
+                            # In UPB, pb_type is MessageMeta which doesn't expose attrs like it used to in Python/CPP.
+                            keys_to_update = [
+                                item
+                                for item in value
+                                if item not in pb_type.DESCRIPTOR.fields_by_name and f"{item}_" in pb_type.DESCRIPTOR.fields_by_name
+                            ]
                     for item in keys_to_update:
                         value[f"{item}_"] = value.pop(item)
 

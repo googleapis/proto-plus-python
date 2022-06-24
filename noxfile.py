@@ -54,7 +54,7 @@ def unit(session, proto="python"):
                 "--cov-config=.coveragerc",
                 "--cov-report=term",
                 "--cov-report=html",
-                os.path.join("tests", ""),
+                os.path.join("tests"),
             ]
         ),
     )
@@ -66,6 +66,11 @@ def unit(session, proto="python"):
 @nox.session(python=PYTHON_VERSIONS)
 def unitcpp(session):
     return unit(session, proto="cpp")
+
+
+@nox.session(python=PYTHON_VERSIONS)
+def unitupb(session):
+    return unit(session, proto="upb")
 
 
 # Just use the most recent version for docs
