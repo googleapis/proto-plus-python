@@ -25,12 +25,12 @@ try:
 except ImportError:
     _message = None
 
-try:
-    # Assume upb and vanilla are mutually exclusive.
-    assert _message is None
-    from google._upb import _message
-except ImportError:
-    _message = None
+# Try UPB.
+if not _message:
+    try:
+        from google._upb import _message
+    except ImportError:
+        _message = None
 
 repeated_composite_types = (containers.RepeatedCompositeFieldContainer,)
 repeated_scalar_types = (containers.RepeatedScalarFieldContainer,)
