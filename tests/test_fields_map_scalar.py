@@ -39,7 +39,6 @@ def test_basic_map_assignment():
     class Foo(proto.Message):
         tags = proto.MapField(proto.STRING, proto.STRING, number=1)
 
-
     foo = Foo(tags={"a": "foo"})
     foo.tags["b"] = "bar"
     assert len(foo.tags) == 2
