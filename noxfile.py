@@ -42,7 +42,8 @@ def unit(session, proto="python"):
     session.env["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = proto
     session.install("coverage", "pytest", "pytest-cov", "pytz")
     session.install("-e", ".[testing]", "-c", constraints_path)
-
+    if proto == 'cpp': # 4.20 does not have cpp.
+        session.install("protobuf==3.19.0")
     session.run(
         "py.test",
         "-W=error",
