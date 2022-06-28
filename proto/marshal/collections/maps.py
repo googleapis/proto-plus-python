@@ -17,6 +17,7 @@ import collections
 from proto.utils import cached_property
 from google.protobuf.message import Message
 
+
 class MapComposite(collections.abc.MutableMapping):
     """A view around a mutable sequence in protocol buffers.
 

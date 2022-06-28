@@ -40,7 +40,9 @@ def compile(name, attrs):
     # When package is empty, upb based protobuf fails with an
     # "TypeError: Couldn't build proto file into descriptor pool: invalid name: empty part ()' means"
     # during an attempt to add to descriptor pool.
-    package = getattr(proto_module, "package", module_name if module_name else "_default_package")
+    package = getattr(
+        proto_module, "package", module_name if module_name else "_default_package"
+    )
     marshal = Marshal(name=getattr(proto_module, "marshal", package))
 
     # Done; return the data.

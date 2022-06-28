@@ -40,6 +40,7 @@ def pytest_runtest_setup(item):
         has_upb = False
         try:
             from google._upb import _message
+
             has_upb = True
             assert _message
         except ImportError:
@@ -51,7 +52,12 @@ def pytest_runtest_setup(item):
                 _message = None
 
         item._mocks.append(
-            mock.patch("google._upb._message.default_pool" if has_upb else "google.protobuf.pyext._message.default_pool", pool)
+            mock.patch(
+                "google._upb._message.default_pool"
+                if has_upb
+                else "google.protobuf.pyext._message.default_pool",
+                pool,
+            )
         )
 
     [i.start() for i in item._mocks]

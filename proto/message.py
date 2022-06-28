@@ -577,15 +577,17 @@ class Message(metaclass=MessageMeta):
                         keys_to_update = [
                             item
                             for item in value
-                            if not hasattr(pb_type, item) and hasattr(pb_type, f"{item}_")
+                            if not hasattr(pb_type, item)
+                            and hasattr(pb_type, f"{item}_")
                         ]
                     else:
-                            # In UPB, pb_type is MessageMeta which doesn't expose attrs like it used to in Python/CPP.
-                            keys_to_update = [
-                                item
-                                for item in value
-                                if item not in pb_type.DESCRIPTOR.fields_by_name and f"{item}_" in pb_type.DESCRIPTOR.fields_by_name
-                            ]
+                        # In UPB, pb_type is MessageMeta which doesn't expose attrs like it used to in Python/CPP.
+                        keys_to_update = [
+                            item
+                            for item in value
+                            if item not in pb_type.DESCRIPTOR.fields_by_name
+                            and f"{item}_" in pb_type.DESCRIPTOR.fields_by_name
+                        ]
                     for item in keys_to_update:
                         value[f"{item}_"] = value.pop(item)
 
