@@ -55,7 +55,7 @@ def unit(session, proto="python"):
                 "--cov-config=.coveragerc",
                 "--cov-report=term",
                 "--cov-report=html",
-                os.path.join("tests"),
+                "tests",
             ]
         ),
     )
