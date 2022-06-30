@@ -20,15 +20,16 @@
 
 from google.protobuf.internal import containers
 
+# Import protobuf 4.xx first and fallback to earlier version
+# if not present.
 try:
-    from google.protobuf.pyext import _message
+    from google._upb import _message
 except ImportError:
     _message = None
 
-# Try UPB.
 if not _message:
     try:
-        from google._upb import _message
+        from google.protobuf.pyext import _message
     except ImportError:
         _message = None
 

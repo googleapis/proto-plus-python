@@ -65,6 +65,7 @@ class MapComposite(collections.abc.MutableMapping):
         #
         # Therefore, we create a key that way (clearing any fields that may
         # be set) and then merge in our values.
+        # TODO: self.pb[key] should always be Message. Remove this after protobuf fix.
         # In UPB, sometimes self.pb[key] is not always a proto.
         # This happens during marshalling when the pb_value is upb.MapCompositeContainer
         # so it's not marshalled correcrtly (i.e. should be scalar values not composite).
