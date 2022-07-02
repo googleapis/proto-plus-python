@@ -23,13 +23,16 @@ CURRENT_DIRECTORY = pathlib.Path(__file__).parent.absolute()
 
 
 PYTHON_VERSIONS = [
-    "3.11.0-beta.3",
     "3.6",
     "3.7",
     "3.8",
     "3.9",
     "3.10",
+    "3.11",
 ]
+
+# Error if a python version is missing
+nox.options.error_on_missing_interpreters = True
 
 
 @nox.session(python=PYTHON_VERSIONS)
@@ -41,7 +44,7 @@ def unit(session, proto="python"):
     )
 
     session.env["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = proto
-    session.install("coverage", "pytest", "pytest-cov", "pytz")
+    session.install("coverage", "pytest", "pytest-cov", "pytz", "setuptools")
     session.install("-e", ".[testing]", "-c", constraints_path)
     if proto == "cpp":  # 4.20 does not have cpp.
         session.install("protobuf==3.19.0")
