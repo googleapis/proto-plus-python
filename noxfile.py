@@ -78,8 +78,7 @@ def unitupb(session):
     return unit(session, proto="upb")
 
 
-# Just use the most recent version for docs
-@nox.session(python=PYTHON_VERSIONS[-2])
+@nox.session(python="3.8")
 def docs(session):
     """Build the docs."""
 
