@@ -23,13 +23,16 @@ CURRENT_DIRECTORY = pathlib.Path(__file__).parent.absolute()
 
 
 PYTHON_VERSIONS = [
-    "3.11.0-beta.3",
     "3.6",
     "3.7",
     "3.8",
     "3.9",
     "3.10",
+    "3.11",
 ]
+
+# Error if a python version is missing
+nox.options.error_on_missing_interpreters = True
 
 
 @nox.session(python=PYTHON_VERSIONS)
@@ -76,7 +79,7 @@ def unitupb(session):
 
 
 # Just use the most recent version for docs
-@nox.session(python=PYTHON_VERSIONS[-1])
+@nox.session(python=PYTHON_VERSIONS[-2])
 def docs(session):
     """Build the docs."""
 
