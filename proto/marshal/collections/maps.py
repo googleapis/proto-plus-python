@@ -67,7 +67,6 @@ class MapComposite(collections.abc.MutableMapping):
         # be set) and then merge in our values.
         self.pb[key].Clear()
         self.pb[key].MergeFrom(pb_value)
-        
 
     def __delitem__(self, key):
         self.pb.pop(key)
