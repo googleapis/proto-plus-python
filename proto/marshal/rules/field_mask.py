@@ -14,6 +14,7 @@
 
 from google.protobuf import field_mask_pb2
 
+
 class FieldMaskRule:
     """A marshal between FieldMask and strings.
 

@@ -17,6 +17,7 @@ from google.protobuf import field_mask_pb2
 import proto
 from proto.marshal.marshal import BaseMarshal
 
+
 def test_field_mask_read():
     class Foo(proto.Message):
         mask = proto.Field(

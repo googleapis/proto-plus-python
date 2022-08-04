@@ -107,7 +107,7 @@ def test_timestamp_write_string():
         )
 
     foo = Foo()
-    foo.event_time = '2012-04-21T15:00:00Z'
+    foo.event_time = "2012-04-21T15:00:00Z"
     assert isinstance(foo.event_time, DatetimeWithNanoseconds)
     assert isinstance(Foo.pb(foo).event_time, timestamp_pb2.Timestamp)
     assert foo.event_time.year == 2012
