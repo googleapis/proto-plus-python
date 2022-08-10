@@ -2,6 +2,9 @@
 
 ## [1.22.0](https://github.com/googleapis/proto-plus-python/compare/v1.21.0...v1.22.0) (2022-08-10)
 
+### Features
+
+* Add support for protobuf v4 ([#327](https://github.com/googleapis/proto-plus-python/issues/327)) ([ed353aa](https://github.com/googleapis/proto-plus-python/commit/ed353aaf8bd5a659535eb493221320e449f3f637))
 
 ### Bug Fixes
 
