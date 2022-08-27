@@ -400,7 +400,7 @@ class MessageMeta(type):
             use_integers_for_enums=use_integers_for_enums,
             including_default_value_fields=including_default_value_fields,
             preserving_proto_field_name=preserving_proto_field_name,
-            indent=indent
+            indent=indent,
         )
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
