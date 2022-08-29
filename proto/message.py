@@ -391,6 +391,7 @@ class MessageMeta(type):
                 proto case (snake_case) or use lowerCamelCase. Default is False.
             indent: The JSON object will be pretty-printed with this indent level.
                 An indent level of 0 or negative will only insert newlines.
+                Pass None for the most compact representation without newlines.
 
         Returns:
             str: The json string representation of the protocol buffer.
