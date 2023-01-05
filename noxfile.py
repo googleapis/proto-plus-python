@@ -78,7 +78,7 @@ def unitupb(session):
     return unit(session, proto="upb")
 
 
-@nox.session(python="3.8")
+@nox.session(python="3.9")
 def docs(session):
     """Build the docs."""
 
