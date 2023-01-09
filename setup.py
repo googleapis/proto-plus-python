@@ -17,7 +17,7 @@ import os
 
 from setuptools import find_packages, setup
 
-version = "1.22.1"
+version = "1.22.2"
 
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -55,6 +55,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Code Generators",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
