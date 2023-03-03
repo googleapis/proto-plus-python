@@ -36,6 +36,16 @@ def test_module_package():
         del sys.modules[__name__].__protobuf__
 
 
+def test_module_package_defined():
+    class Foo(proto.Message):
+        bar = proto.Field(proto.INT32, number=1)
+
+    marshal = proto.Marshal(name="test_modules")
+
+    assert Foo.meta.package == "test_modules"
+    assert Foo.pb() in marshal._rules
+``
+
 def test_module_package_explicit_marshal():
     sys.modules[__name__].__protobuf__ = proto.module(
         package="spam.eggs.v1",

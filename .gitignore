@@ -53,6 +53,9 @@ docs/_build_doc2dash
 env/
 coverage.xml
 
+# VS Code
+.vscode
+
 # System test environment variables.
 system_tests/local_test_setup
 
