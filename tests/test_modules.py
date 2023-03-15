@@ -43,7 +43,6 @@ def test_module_package_cross_api():
         class Baz(proto.Message):
             foo = proto.RepeatedField(proto.INT64, number=1)
 
-
         marshal = proto.Marshal(name="spam.eggs.v1")
 
         assert Baz.meta.package == "spam.eggs.v1"
