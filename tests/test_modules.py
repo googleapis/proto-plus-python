@@ -61,6 +61,7 @@ def test_module_package_cross_api():
         assert Baz.pb() not in marshal._rules
 
         # Test using multiple packages together
+        # See https://github.com/googleapis/proto-plus-python/issues/349.
         msg = AnotherMessage(qux=Baz())
         assert type(msg) == AnotherMessage
     finally:
