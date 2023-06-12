@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.22.3](https://github.com/googleapis/proto-plus-python/compare/v1.22.2...v1.22.3) (2023-06-12)
+## [1.22.3rc1](https://github.com/googleapis/proto-plus-python/compare/v1.22.2...v1.22.3rc1) (2023-06-12)
 
 
 ### Bug Fixes
