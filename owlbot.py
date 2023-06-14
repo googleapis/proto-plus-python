@@ -25,7 +25,7 @@ REPO_ROOT = pathlib.Path(__file__).parent.absolute()
 common = gcp.CommonTemplates()
 templated_files = common.py_library()
 
-excludes=[
+excludes = [
     "continuous/**",
     "presubmit/**",
     "samples/**",
