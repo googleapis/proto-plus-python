@@ -376,7 +376,10 @@ class MessageMeta(type):
         use_integers_for_enums=True,
         including_default_value_fields=True,
         preserving_proto_field_name=False,
+        sort_keys=False,
         indent=2,
+        float_precision=None,
+        ensure_ascii=False,
     ) -> str:
         """Given a message instance, serialize it to json
 
@@ -389,10 +392,16 @@ class MessageMeta(type):
             preserving_proto_field_name (Optional(bool)): An option that
                 determines whether field name representations preserve
                 proto case (snake_case) or use lowerCamelCase. Default is False.
-            indent: The JSON object will be pretty-printed with this indent level.
+            sort_keys (Optional(bool)): If True, then the output will be sorted by field names.
+                Default is False.
+            indent (int): The JSON object will be pretty-printed with this indent level.
                 An indent level of 0 or negative will only insert newlines.
                 Pass None for the most compact representation without newlines.
-
+            float_precision (Optional(int)): If set, use this to specify float field valid digits.
+                Default is None.
+            ensure_ascii (Optional(bool)): If True, strings with non-ASCII characters are escaped.
+                If False, Unicode strings are returned unchanged.
+                Default is False.
         Returns:
             str: The json string representation of the protocol buffer.
         """
@@ -401,7 +410,10 @@ class MessageMeta(type):
             use_integers_for_enums=use_integers_for_enums,
             including_default_value_fields=including_default_value_fields,
             preserving_proto_field_name=preserving_proto_field_name,
+            sort_keys=sort_keys,
             indent=indent,
+            float_precision=float_precision,
+            ensure_ascii=ensure_ascii,
         )
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
@@ -428,6 +440,7 @@ class MessageMeta(type):
         use_integers_for_enums=True,
         preserving_proto_field_name=True,
         including_default_value_fields=True,
+        float_precision=None,
     ) -> "Message":
         """Given a message instance, return its representation as a python dict.
 
@@ -443,6 +456,8 @@ class MessageMeta(type):
             including_default_value_fields (Optional(bool)): An option that
                 determines whether the default field values should be included in the results.
                 Default is True.
+            float_precision (Optional(int)): If set, use this to specify float field valid digits.
+                Default is None.
 
         Returns:
             dict: A representation of the protocol buffer using pythonic data structures.
@@ -454,6 +469,7 @@ class MessageMeta(type):
             including_default_value_fields=including_default_value_fields,
             preserving_proto_field_name=preserving_proto_field_name,
             use_integers_for_enums=use_integers_for_enums,
+            float_precision=float_precision,
         )
 
     def copy_from(cls, instance, other):
