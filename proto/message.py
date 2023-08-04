@@ -379,7 +379,6 @@ class MessageMeta(type):
         sort_keys=False,
         indent=2,
         float_precision=None,
-        ensure_ascii=False,
     ) -> str:
         """Given a message instance, serialize it to json
 
@@ -399,9 +398,6 @@ class MessageMeta(type):
                 Pass None for the most compact representation without newlines.
             float_precision (Optional(int)): If set, use this to specify float field valid digits.
                 Default is None.
-            ensure_ascii (Optional(bool)): If True, strings with non-ASCII characters are escaped.
-                If False, Unicode strings are returned unchanged.
-                Default is False.
         Returns:
             str: The json string representation of the protocol buffer.
         """
@@ -413,7 +409,6 @@ class MessageMeta(type):
             sort_keys=sort_keys,
             indent=indent,
             float_precision=float_precision,
-            ensure_ascii=ensure_ascii,
         )
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
