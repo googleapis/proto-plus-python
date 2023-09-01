@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.22.3](https://github.com/googleapis/proto-plus-python/compare/v1.22.2...v1.22.3) (2023-06-22)
+
+
+### Bug Fixes
+
+* Resolve issue where marshal fails with cross api dependency ([#348](https://github.com/googleapis/proto-plus-python/issues/348)) ([0dcea18](https://github.com/googleapis/proto-plus-python/commit/0dcea18898cdc2170a945f3d96216bae6a37e60f))
+
+## [1.22.2](https://github.com/googleapis/proto-plus-python/compare/v1.22.1...v1.22.2) (2023-01-05)
+
+
+### Bug Fixes
+
+* Add support for Python 3.11 ([#329](https://github.com/googleapis/proto-plus-python/issues/329)) ([5cff3a0](https://github.com/googleapis/proto-plus-python/commit/5cff3a0d703fc90f757f1d150adc0dfd62aa3d2e))
+
+
+### Documentation
+
+* Fix typo in index.rst ([#342](https://github.com/googleapis/proto-plus-python/issues/342)) ([a66a378](https://github.com/googleapis/proto-plus-python/commit/a66a3782802a1088c775a6b29adb15fa0235e1f1))
+
+## [1.22.1](https://github.com/googleapis/proto-plus-python/compare/v1.22.0...v1.22.1) (2022-08-29)
+
+
+### Bug Fixes
+
+* Add no-pretty print option ([#336](https://github.com/googleapis/proto-plus-python/issues/336)) ([1bb228a](https://github.com/googleapis/proto-plus-python/commit/1bb228ac93543d28871645a22e5ac7fb20a0a55c))
+
+## [1.22.0](https://github.com/googleapis/proto-plus-python/compare/v1.21.0...v1.22.0) (2022-08-10)
+
+### Features
+
+* Add support for protobuf v4 ([#327](https://github.com/googleapis/proto-plus-python/issues/327)) ([ed353aa](https://github.com/googleapis/proto-plus-python/commit/ed353aaf8bd5a659535eb493221320e449f3f637))
+
+### Bug Fixes
+
+* Fix Timestamp, Duration and FieldMask marshaling in REST transport ([a2e7300](https://github.com/googleapis/proto-plus-python/commit/a2e7300368625ceec39dd2c2dfb96291ad8cf1f1))
+* fixes bug in the test. ([#332](https://github.com/googleapis/proto-plus-python/issues/332)) ([f85f470](https://github.com/googleapis/proto-plus-python/commit/f85f470c880a7bff7f3c813d33d15e657e7b5123))
+
 ## [1.20.6](https://github.com/googleapis/proto-plus-python/compare/v1.20.5...v1.20.6) (2022-06-13)
 
 
