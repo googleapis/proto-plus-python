@@ -393,7 +393,7 @@ class MessageMeta(type):
                 proto case (snake_case) or use lowerCamelCase. Default is False.
             sort_keys (Optional(bool)): If True, then the output will be sorted by field names.
                 Default is False.
-            indent (int): The JSON object will be pretty-printed with this indent level.
+            indent (Optional(int)): The JSON object will be pretty-printed with this indent level.
                 An indent level of 0 or negative will only insert newlines.
                 Pass None for the most compact representation without newlines.
             float_precision (Optional(int)): If set, use this to specify float field valid digits.
