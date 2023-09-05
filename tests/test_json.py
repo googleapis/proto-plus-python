@@ -183,7 +183,7 @@ def test_json_sort_keys():
     s = Squid(name="Steve", mass_kg=20)
     j = Squid.to_json(s, sort_keys=True, indent=None)
 
-    assert re.match(r"massKg.*name", j)
+    assert re.search(r"massKg.*name", j)
 
 
 def test_json_float_precision():
