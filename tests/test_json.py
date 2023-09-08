@@ -186,6 +186,7 @@ def test_json_sort_keys():
     assert re.search(r"massKg.*name", j)
 
 
+# TODO: https://github.com/googleapis/proto-plus-python/issues/390
 def test_json_float_precision():
     class Squid(proto.Message):
         name = proto.Field(proto.STRING, number=1)

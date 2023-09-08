@@ -271,6 +271,7 @@ def test_serialize_to_dict():
     assert new_s == s
 
 
+# TODO: https://github.com/googleapis/proto-plus-python/issues/390
 def test_serialize_to_dict_float_precision():
     class Squid(proto.Message):
         mass_kg = proto.Field(proto.FLOAT, number=1)
