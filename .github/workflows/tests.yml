@@ -46,6 +46,8 @@ jobs:
         variant: ['', 'cpp', 'upb']
         exclude:
           - variant: "cpp"
+            python: 3.11
+          - variant: "cpp"
             python: 3.12
     steps:
       - uses: actions/checkout@v4
