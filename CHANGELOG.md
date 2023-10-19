@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.0](https://github.com/googleapis/proto-plus-python/compare/v1.22.3...v1.23.0) (2023-10-19)
+
+
+### Features
+
+* Add additional parameters to `to_json()` and `to_dict()` methods ([#384](https://github.com/googleapis/proto-plus-python/issues/384)) ([8f13a46](https://github.com/googleapis/proto-plus-python/commit/8f13a46514e1d7653426c0db3c1021f9c794451a))
+* Add support for python 3.12 ([#400](https://github.com/googleapis/proto-plus-python/issues/400)) ([1b3a96f](https://github.com/googleapis/proto-plus-python/commit/1b3a96fae7a21bf0120a79ba6bf57aacfd2a0db4))
+
 ## [1.22.3](https://github.com/googleapis/proto-plus-python/compare/v1.22.2...v1.22.3) (2023-06-22)
 
 
