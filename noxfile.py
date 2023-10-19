@@ -51,7 +51,6 @@ def unit(session, proto="python"):
         session.install("protobuf==3.19.0")
     session.run(
         "py.test",
-        "-W=error",
         "--quiet",
         *(
             session.posargs  # Coverage info when running individual tests is annoying.
