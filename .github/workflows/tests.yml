@@ -39,7 +39,7 @@ jobs:
       - name: Build the documentation.
         run: nox -s docs
   unit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
@@ -70,7 +70,7 @@ jobs:
         run: |
           nox -s unit${{ matrix.variant }}-${{ env.PYTHON_VERSION_TRIMMED }}
       - name: Upload coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-artifacts
           path: .coverage-${{ matrix.variant }}-${{ env.PYTHON_VERSION_TRIMMED }}
@@ -90,7 +90,7 @@ jobs:
         python -m pip install --upgrade setuptools pip wheel
         python -m pip install coverage
     - name: Download coverage results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: coverage-artifacts
         path: .coverage-results/
