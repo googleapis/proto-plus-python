@@ -39,7 +39,7 @@ jobs:
       - name: Build the documentation.
         run: nox -s docs
   unit:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
@@ -72,7 +72,7 @@ jobs:
       - name: Upload coverage results
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-artifacts
+          name: coverage-artifact-${{ '{{' }} matrix.python {{ '}}' }}
           path: .coverage-${{ matrix.variant }}-${{ env.PYTHON_VERSION_TRIMMED }}
   cover:
     runs-on: ubuntu-latest
@@ -96,5 +96,6 @@ jobs:
         path: .coverage-results/
     - name: Report coverage results
       run: |
-        coverage combine .coverage-results/.coverage*
+        find .coverage-results -type f -name '*.zip' -exec unzip {} \;
+        coverage combine .coverage-results/**/.coverage*
         coverage report --show-missing --fail-under=100
