@@ -45,7 +45,7 @@ setup(
     install_requires=(
         #"protobuf >= 3.19.0, <5.0.0dev",
         # DO NOT MERGE. For testing purposes only. Testing protobuf at head.
-        "protobuf @ file://localhost//usr/local/google/home/partheniou/git/proto-plus-python/protobuf-4.25.0.tar.gz",
+        "protobuf @ file://localhost//home/runner/work/proto-plus-python/proto-plus-python/protobuf-4.25.0.tar.gz",
     ),
     extras_require={
         "testing": [
