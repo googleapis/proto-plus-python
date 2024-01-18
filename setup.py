@@ -42,7 +42,11 @@ setup(
     long_description=README,
     platforms="Posix; MacOS X",
     include_package_data=True,
-    install_requires=("protobuf >= 3.19.0, <5.0.0dev",),
+    install_requires=(
+        #"protobuf >= 3.19.0, <5.0.0dev",
+        # DO NOT MERGE. For testing purposes only. Testing protobuf at head.
+        "protobuf @ file://localhost//home/runner/work/proto-plus-python/proto-plus-python/protobuf-4.25.0-cp39-abi3-linux_x86_64.whl",
+    ),
     extras_require={
         "testing": [
             "google-api-core[grpc] >= 1.31.5",
