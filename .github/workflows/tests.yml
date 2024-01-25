@@ -72,7 +72,7 @@ jobs:
       - name: Upload coverage results
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-artifact-${{ '{{' }} matrix.python {{ '}}' }}
+          name: coverage-artifact-${{ matrix.variant }}-${{ env.PYTHON_VERSION_TRIMMED }}
           path: .coverage-${{ matrix.variant }}-${{ env.PYTHON_VERSION_TRIMMED }}
   cover:
     runs-on: ubuntu-latest
