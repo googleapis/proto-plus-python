@@ -18,6 +18,7 @@ import copy
 import re
 from typing import List, Type
 
+import google.protobuf
 from google.protobuf import descriptor_pb2
 from google.protobuf import message
 from google.protobuf.json_format import MessageToDict, MessageToJson, Parse
@@ -33,6 +34,7 @@ from proto.utils import has_upb
 
 
 _upb = has_upb()  # Important to cache result here.
+PROTOBUF_VERSION = google.protobuf.__version__
 
 
 class MessageMeta(type):
@@ -401,15 +403,28 @@ class MessageMeta(type):
         Returns:
             str: The json string representation of the protocol buffer.
         """
-        return MessageToJson(
-            cls.pb(instance),
-            use_integers_for_enums=use_integers_for_enums,
-            including_default_value_fields=including_default_value_fields,
-            preserving_proto_field_name=preserving_proto_field_name,
-            sort_keys=sort_keys,
-            indent=indent,
-            float_precision=float_precision,
-        )
+        # For compatibility with breaking change in protobuf 5.x
+        # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
+        if PROTOBUF_VERSION[0] in ("3","4"):
+            return MessageToJson(
+                cls.pb(instance),
+                use_integers_for_enums=use_integers_for_enums,
+                including_default_value_fields=including_default_value_fields,
+                preserving_proto_field_name=preserving_proto_field_name,
+                sort_keys=sort_keys,
+                indent=indent,
+                float_precision=float_precision,
+            )
+        else:
+            return MessageToJson(
+                cls.pb(instance),
+                use_integers_for_enums=use_integers_for_enums,
+                always_print_without_presence_fields=including_default_value_fields,
+                preserving_proto_field_name=preserving_proto_field_name,
+                sort_keys=sort_keys,
+                indent=indent,
+                float_precision=float_precision,
+            )
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
         """Given a json string representing an instance,
@@ -459,13 +474,24 @@ class MessageMeta(type):
                   Messages and map fields are represented as dicts,
                   repeated fields are represented as lists.
         """
-        return MessageToDict(
-            cls.pb(instance),
-            including_default_value_fields=including_default_value_fields,
-            preserving_proto_field_name=preserving_proto_field_name,
-            use_integers_for_enums=use_integers_for_enums,
-            float_precision=float_precision,
-        )
+        # For compatibility with breaking change in protobuf 5.x
+        # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
+        if PROTOBUF_VERSION[0] in ("3","4"):
+            return MessageToDict(
+                cls.pb(instance),
+                including_default_value_fields=including_default_value_fields,
+                preserving_proto_field_name=preserving_proto_field_name,
+                use_integers_for_enums=use_integers_for_enums,
+                float_precision=float_precision,
+            )
+        else:
+            return MessageToDict(
+                cls.pb(instance),
+                always_print_without_presence_fields=including_default_value_fields,
+                preserving_proto_field_name=preserving_proto_field_name,
+                use_integers_for_enums=use_integers_for_enums,
+                float_precision=float_precision,
+            )
 
     def copy_from(cls, instance, other):
         """Equivalent for protobuf.Message.CopyFrom
