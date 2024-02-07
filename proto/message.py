@@ -405,7 +405,7 @@ class MessageMeta(type):
         """
         # For compatibility with breaking change in protobuf 5.x
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if PROTOBUF_VERSION[0] in ("3","4"):
+        if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToJson(
                 cls.pb(instance),
                 use_integers_for_enums=use_integers_for_enums,
@@ -476,7 +476,7 @@ class MessageMeta(type):
         """
         # For compatibility with breaking change in protobuf 5.x
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if PROTOBUF_VERSION[0] in ("3","4"):
+        if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToDict(
                 cls.pb(instance),
                 including_default_value_fields=including_default_value_fields,
