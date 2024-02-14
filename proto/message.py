@@ -392,6 +392,11 @@ class MessageMeta(type):
             use_integers_for_enums (Optional(bool)): An option that determines whether enum
                 values should be represented by strings (False) or integers (True).
                 Default is True.
+            including_default_value_fields (Optional(bool)): Deprecated. Use argument
+                `always_print_fields_with_no_presence` instead. An option that
+                determines whether the default field values should be included in the results.
+                Default is True. If `always_print_fields_with_no_presence` is set to False, this
+                option has no effect.
             preserving_proto_field_name (Optional(bool)): An option that
                 determines whether field name representations preserve
                 proto case (snake_case) or use lowerCamelCase. Default is False.
@@ -481,7 +486,8 @@ class MessageMeta(type):
             including_default_value_fields (Optional(bool)): Deprecated. Use argument
                 `always_print_fields_with_no_presence` instead. An option that
                 determines whether the default field values should be included in the results.
-                Default is True.
+                Default is True. If `always_print_fields_with_no_presence` is set to False, this
+                option has no effect.
             float_precision (Optional(int)): If set, use this to specify float field valid digits.
                 Default is None.
             always_print_fields_with_no_presence (Optional(bool)): If True, fields without
