@@ -67,6 +67,14 @@ def pytest_runtest_setup(item):
     for name in dir(item.module):
         if name.endswith("_pb2") and not name.startswith("test_"):
             module = getattr(item.module, name)
+
+            # Exclude `google.protobuf.descriptor_pb2` which causes error
+            # `RecursionError: maximum recursion depth exceeded while calling a Python object`
+            # when running the test suite and is not required for tests.
+            # See https://github.com/googleapis/proto-plus-python/issues/425
+            if module.__package__ == "google.protobuf" and name == "descriptor_pb2":
+                continue
+
             pool.AddSerializedFile(module.DESCRIPTOR.serialized_pb)
             fd = pool.FindFileByName(module.DESCRIPTOR.name)
 
