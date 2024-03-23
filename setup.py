@@ -23,7 +23,7 @@ PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 version = None
 
 with open(os.path.join(PACKAGE_ROOT, "proto/version.py")) as fp:
-    version_candidates = re.findall(r"(?<=\")\d+.\d+.\d+(?=\")", fp.read())
+    version_candidates = re.findall(r"(?<=\")\d+.\d+.\d+.dev\d+", fp.read())
     assert len(version_candidates) == 1
     version = version_candidates[0]
 
@@ -45,7 +45,7 @@ setup(
     install_requires=("protobuf >= 3.19.0, <5.0.0dev",),
     extras_require={
         "testing": [
-            "google-api-core[grpc] >= 1.31.5",
+            "google-api-core >= 1.31.5",
         ],
     },
     python_requires=">=3.6",
