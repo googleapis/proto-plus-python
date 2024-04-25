@@ -121,6 +121,23 @@ def test_json_default_values():
     )
     assert json1 == '{"name":"Steve"}'
 
+    json1 = (
+        Squid.to_json(s, always_print_fields_with_no_presence=False)
+        .replace(" ", "")
+        .replace("\n", "")
+    )
+    assert json1 == '{"name":"Steve"}'
+
+    with pytest.raises(
+        ValueError,
+        match="Arguments.*always_print_fields_with_no_presence.*including_default_value_fields.*must match",
+    ):
+        Squid.to_json(
+            s,
+            including_default_value_fields=True,
+            always_print_fields_with_no_presence=False,
+        ).replace(" ", "").replace("\n", "")
+
     json2 = Squid.to_json(s).replace(" ", "").replace("\n", "")
     assert (
         json2 == '{"name":"Steve","massKg":0}' or json2 == '{"massKg":0,"name":"Steve"}'
