@@ -192,7 +192,10 @@ class BaseMarshal:
         # We need to look up the name of the type in compat.map_composite_types_str
         # as class `MessageMapContainer` is no longer exposed
         # This is done to avoid taking a breaking change in proto-plus
-        if value_type in compat.map_composite_types or value_type.__name__ in compat.map_composite_types_str:
+        if (
+            value_type in compat.map_composite_types
+            or value_type.__name__ in compat.map_composite_types_str
+        ):
             return MapComposite(value, marshal=self)
         return self.get_rule(proto_type=proto_type).to_python(value, absent=absent)
 

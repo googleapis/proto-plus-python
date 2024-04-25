@@ -39,7 +39,7 @@ if not _message:
 repeated_composite_types = (containers.RepeatedCompositeFieldContainer,)
 repeated_scalar_types = (containers.RepeatedScalarFieldContainer,)
 map_composite_types = (containers.MessageMap,)
-map_composite_types_str = ('MessageMapContainer')
+map_composite_types_str = ("MessageMapContainer",)
 
 if _message:
     repeated_composite_types += (_message.RepeatedCompositeContainer,)
