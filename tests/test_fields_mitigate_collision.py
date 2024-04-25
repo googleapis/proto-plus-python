@@ -15,6 +15,7 @@
 import proto
 import pytest
 
+
 # Underscores may be appended to field names
 # that collide with python or proto-plus keywords.
 # In case a key only exists with a `_` suffix, coerce the key

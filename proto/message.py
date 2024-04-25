@@ -419,15 +419,26 @@ class MessageMeta(type):
 
         # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if always_print_fields_with_no_presence is not None and including_default_value_fields is not None and always_print_fields_with_no_presence != including_default_value_fields:
-            raise ValueError("Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match")
+        if (
+            always_print_fields_with_no_presence is not None
+            and including_default_value_fields is not None
+            and always_print_fields_with_no_presence != including_default_value_fields
+        ):
+            raise ValueError(
+                "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
+            )
 
         # By default, fields with no presense will be included in the results
         # when both `always_print_fields_with_no_presence` and `including_default_value_fields` are not set
-        if always_print_fields_with_no_presence is None and including_default_value_fields is None:
+        if (
+            always_print_fields_with_no_presence is None
+            and including_default_value_fields is None
+        ):
             print_fields = True
         else:
-            print_fields = always_print_fields_with_no_presence or including_default_value_fields
+            print_fields = (
+                always_print_fields_with_no_presence or including_default_value_fields
+            )
 
         if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToJson(
@@ -513,15 +524,26 @@ class MessageMeta(type):
 
         # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if always_print_fields_with_no_presence is not None and including_default_value_fields is not None and always_print_fields_with_no_presence != including_default_value_fields:
-            raise ValueError("Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match")
+        if (
+            always_print_fields_with_no_presence is not None
+            and including_default_value_fields is not None
+            and always_print_fields_with_no_presence != including_default_value_fields
+        ):
+            raise ValueError(
+                "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
+            )
 
         # By default, fields with no presense will be included in the results
         # when both `always_print_fields_with_no_presence` and `including_default_value_fields` are not set
-        if always_print_fields_with_no_presence is None and including_default_value_fields is None:
+        if (
+            always_print_fields_with_no_presence is None
+            and including_default_value_fields is None
+        ):
             print_fields = True
         else:
-            print_fields = always_print_fields_with_no_presence or including_default_value_fields
+            print_fields = (
+                always_print_fields_with_no_presence or including_default_value_fields
+            )
 
         if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToDict(

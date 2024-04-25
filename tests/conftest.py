@@ -41,9 +41,11 @@ def pytest_runtest_setup(item):
 
         item._mocks.append(
             mock.patch(
-                "google._upb._message.default_pool"
-                if has_upb()
-                else "google.protobuf.pyext._message.default_pool",
+                (
+                    "google._upb._message.default_pool"
+                    if has_upb()
+                    else "google.protobuf.pyext._message.default_pool"
+                ),
                 pool,
             )
         )
