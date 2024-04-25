@@ -19,6 +19,9 @@
 # not be included.
 
 from google.protobuf.internal import containers
+import google.protobuf
+
+PROTOBUF_VERSION = google.protobuf.__version__
 
 # Import protobuf 4.xx first and fallback to earlier version
 # if not present.
@@ -36,15 +39,17 @@ if not _message:
 repeated_composite_types = (containers.RepeatedCompositeFieldContainer,)
 repeated_scalar_types = (containers.RepeatedScalarFieldContainer,)
 map_composite_types = (containers.MessageMap,)
+map_composite_types_str = ('MessageMapContainer')
 
 if _message:
     repeated_composite_types += (_message.RepeatedCompositeContainer,)
     repeated_scalar_types += (_message.RepeatedScalarContainer,)
-    map_composite_types += (_message.MessageMapContainer,)
-
+    if PROTOBUF_VERSION[0:2] in ["3.", "4."]:
+        map_composite_types += (_message.MessageMapContainer,)
 
 __all__ = (
     "repeated_composite_types",
     "repeated_scalar_types",
     "map_composite_types",
+    "map_composite_types_str",
 )
