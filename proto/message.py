@@ -418,8 +418,8 @@ class MessageMeta(type):
             str: The json string representation of the protocol buffer.
         """
 
-        # Warn Protobuf 5.x users that `including_default_value_fields` is deprecated.
-        if PROTOBUF_VERSION[0] == "5" and including_default_value_fields is not None:
+        # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
+        if PROTOBUF_VERSION[0] not in ("3", "4") and including_default_value_fields is not None:
             warnings.warn(
                 """The argument `including_default_value_fields` is deprecated. Please use
                 `always_print_fields_with_no_presence` instead.
@@ -532,8 +532,8 @@ class MessageMeta(type):
                   repeated fields are represented as lists.
         """
 
-        # Warn Protobuf 5.x users that `including_default_value_fields` is deprecated.
-        if PROTOBUF_VERSION[0] == "5" and including_default_value_fields is not None:
+        # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
+        if PROTOBUF_VERSION[0] not in ("3", "4") and including_default_value_fields is not None:
             warnings.warn(
                 """The argument `including_default_value_fields` is deprecated. Please use
                 `always_print_fields_with_no_presence` instead.
