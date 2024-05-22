@@ -17,6 +17,7 @@ import collections.abc
 import copy
 import re
 from typing import List, Type
+import warnings
 
 import google.protobuf
 from google.protobuf import descriptor_pb2
@@ -417,6 +418,15 @@ class MessageMeta(type):
             str: The json string representation of the protocol buffer.
         """
 
+        # Warn Protobuf 5.x users that `including_default_value_fields` is deprecated.
+        if PROTOBUF_VERSION[0] == "5" and including_default_value_fields is not None:
+            warnings.warn(
+                """The argument `including_default_value_fields` is deprecated. Please use
+                `always_print_fields_with_no_presence` instead.
+                """,
+                DeprecationWarning,
+            )
+
         # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
         if (
@@ -521,6 +531,15 @@ class MessageMeta(type):
                   Messages and map fields are represented as dicts,
                   repeated fields are represented as lists.
         """
+
+        # Warn Protobuf 5.x users that `including_default_value_fields` is deprecated.
+        if PROTOBUF_VERSION[0] == "5" and including_default_value_fields is not None:
+            warnings.warn(
+                """The argument `including_default_value_fields` is deprecated. Please use
+                `always_print_fields_with_no_presence` instead.
+                """,
+                DeprecationWarning,
+            )
 
         # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
         # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
