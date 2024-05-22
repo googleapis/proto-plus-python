@@ -419,7 +419,10 @@ class MessageMeta(type):
         """
 
         # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
-        if PROTOBUF_VERSION[0] not in ("3", "4") and including_default_value_fields is not None:
+        if (
+            PROTOBUF_VERSION[0] not in ("3", "4")
+            and including_default_value_fields is not None
+        ):
             warnings.warn(
                 """The argument `including_default_value_fields` is deprecated. Please use
                 `always_print_fields_with_no_presence` instead.
@@ -533,7 +536,10 @@ class MessageMeta(type):
         """
 
         # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
-        if PROTOBUF_VERSION[0] not in ("3", "4") and including_default_value_fields is not None:
+        if (
+            PROTOBUF_VERSION[0] not in ("3", "4")
+            and including_default_value_fields is not None
+        ):
             warnings.warn(
                 """The argument `including_default_value_fields` is deprecated. Please use
                 `always_print_fields_with_no_presence` instead.
