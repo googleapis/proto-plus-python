@@ -16,7 +16,7 @@ import collections
 import collections.abc
 import copy
 import re
-from typing import List, Type
+from typing import List, Optional, Type
 import warnings
 
 import google.protobuf
@@ -373,6 +373,84 @@ class MessageMeta(type):
         """
         return cls.wrap(cls.pb().FromString(payload))
 
+    def _warn_if_including_default_value_fields_is_used_protobuf_5(
+        cls, including_default_value_fields: Optional[bool]
+    ) -> None:
+        """
+        Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated if it is set.
+
+        Args:
+            including_default_value_fields (Optional(bool)): The value of `including_default_value_fields` set by the user.
+        """
+        if (
+            PROTOBUF_VERSION[0] not in ("3", "4")
+            and including_default_value_fields is not None
+        ):
+            warnings.warn(
+                """The argument `including_default_value_fields` has been removed from
+                Protobuf 5.x. Please use `always_print_fields_with_no_presence` instead.
+                """,
+                DeprecationWarning,
+            )
+
+    def _raise_if_print_fields_values_are_set_and_differ(
+        cls,
+        always_print_fields_with_no_presence: Optional[bool],
+        including_default_value_fields: Optional[bool],
+    ) -> None:
+        """
+        Raise Exception if both `always_print_fields_with_no_presence` and `including_default_value_fields` are set
+            and the values differ.
+
+        Args:
+            always_print_fields_with_no_presence (Optional(bool)): The value of `always_print_fields_with_no_presence` set by the user.
+            including_default_value_fields (Optional(bool)): The value of `including_default_value_fields` set by the user.
+        Returns:
+            None
+        Raises:
+            ValueError: if both `always_print_fields_with_no_presence` and `including_default_value_fields` are set and
+                the values differ.
+        """
+        if (
+            always_print_fields_with_no_presence is not None
+            and including_default_value_fields is not None
+            and always_print_fields_with_no_presence != including_default_value_fields
+        ):
+            raise ValueError(
+                "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
+            )
+
+    def _normalize_print_fields_without_presense(
+        cls,
+        always_print_fields_with_no_presence: Optional[bool],
+        including_default_value_fields: Optional[bool],
+    ) -> bool:
+        """
+        Return true if fields with no presense should be included in the results.
+        By default, fields with no presense will be included in the results
+        when both `always_print_fields_with_no_presence` and
+        `including_default_value_fields` are not set
+
+        Args:
+            always_print_fields_with_no_presence (Optional(bool)): The value of `always_print_fields_with_no_presence` set by the user.
+            including_default_value_fields (Optional(bool)): The value of `including_default_value_fields` set by the user.
+        Returns:
+            None
+        Raises:
+            ValueError: if both `always_print_fields_with_no_presence` and `including_default_value_fields` are set and
+                the values differ.
+        """
+        if (
+            always_print_fields_with_no_presence is None
+            and including_default_value_fields is None
+        ):
+            print_fields = True
+        else:
+            print_fields = (
+                always_print_fields_with_no_presence or including_default_value_fields
+            )
+        return print_fields
+
     def to_json(
         cls,
         instance,
@@ -418,40 +496,15 @@ class MessageMeta(type):
             str: The json string representation of the protocol buffer.
         """
 
-        # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
-        if (
-            PROTOBUF_VERSION[0] not in ("3", "4")
-            and including_default_value_fields is not None
-        ):
-            warnings.warn(
-                """The argument `including_default_value_fields` is deprecated. Please use
-                `always_print_fields_with_no_presence` instead.
-                """,
-                DeprecationWarning,
-            )
-
-        # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
-        # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if (
-            always_print_fields_with_no_presence is not None
-            and including_default_value_fields is not None
-            and always_print_fields_with_no_presence != including_default_value_fields
-        ):
-            raise ValueError(
-                "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
-            )
-
-        # By default, fields with no presense will be included in the results
-        # when both `always_print_fields_with_no_presence` and `including_default_value_fields` are not set
-        if (
-            always_print_fields_with_no_presence is None
-            and including_default_value_fields is None
-        ):
-            print_fields = True
-        else:
-            print_fields = (
-                always_print_fields_with_no_presence or including_default_value_fields
-            )
+        cls._warn_if_including_default_value_fields_is_used_protobuf_5(
+            including_default_value_fields
+        )
+        cls._raise_if_print_fields_values_are_set_and_differ(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
+        print_fields = cls._normalize_print_fields_without_presense(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
 
         if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToJson(
@@ -535,40 +588,15 @@ class MessageMeta(type):
                   repeated fields are represented as lists.
         """
 
-        # Warn Protobuf 5.x+ users that `including_default_value_fields` is deprecated.
-        if (
-            PROTOBUF_VERSION[0] not in ("3", "4")
-            and including_default_value_fields is not None
-        ):
-            warnings.warn(
-                """The argument `including_default_value_fields` is deprecated. Please use
-                `always_print_fields_with_no_presence` instead.
-                """,
-                DeprecationWarning,
-            )
-
-        # For backwards compatibility of this breaking change in protobuf 5.x which is specific to proto2
-        # https://github.com/protocolbuffers/protobuf/commit/26995798757fbfef5cf6648610848e389db1fecf
-        if (
-            always_print_fields_with_no_presence is not None
-            and including_default_value_fields is not None
-            and always_print_fields_with_no_presence != including_default_value_fields
-        ):
-            raise ValueError(
-                "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
-            )
-
-        # By default, fields with no presense will be included in the results
-        # when both `always_print_fields_with_no_presence` and `including_default_value_fields` are not set
-        if (
-            always_print_fields_with_no_presence is None
-            and including_default_value_fields is None
-        ):
-            print_fields = True
-        else:
-            print_fields = (
-                always_print_fields_with_no_presence or including_default_value_fields
-            )
+        cls._warn_if_including_default_value_fields_is_used_protobuf_5(
+            including_default_value_fields
+        )
+        cls._raise_if_print_fields_values_are_set_and_differ(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
+        print_fields = cls._normalize_print_fields_without_presense(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
 
         if PROTOBUF_VERSION[0] in ("3", "4"):
             return MessageToDict(
