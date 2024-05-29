@@ -447,16 +447,15 @@ class MessageMeta(type):
         cls._raise_if_print_fields_values_are_set_and_differ(
             always_print_fields_with_no_presence, including_default_value_fields
         )
-        if (
-            always_print_fields_with_no_presence is None
-            and including_default_value_fields is None
-        ):
-            print_fields = True
-        else:
-            print_fields = (
-                always_print_fields_with_no_presence or including_default_value_fields
+        # Default to True if neither `always_print_fields_with_no_presence` or `including_default_value_fields` is set
+        return (
+            (
+                always_print_fields_with_no_presence is None
+                and including_default_value_fields is None
             )
-        return print_fields
+            or always_print_fields_with_no_presence
+            or including_default_value_fields
+        )
 
     def to_json(
         cls,
