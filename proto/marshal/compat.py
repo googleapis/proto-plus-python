@@ -42,8 +42,8 @@ map_composite_types = (containers.MessageMap,)
 
 # See https://github.com/protocolbuffers/protobuf/issues/16596
 # In protobuf 5, we will use the name of the class instead `MessageMapContainer`
-# See `map_composite_types_str`
-map_composite_types_str = ("MessageMapContainer",)
+# See `map_composite_type_names`
+map_composite_type_names = ("MessageMapContainer",)
 
 if _message:
     repeated_composite_types += (_message.RepeatedCompositeContainer,)
@@ -51,7 +51,7 @@ if _message:
 
     # See https://github.com/protocolbuffers/protobuf/issues/16596
     # In protobuf 5, we will use the name of the class instead `MessageMapContainer`
-    # See `map_composite_types_str`
+    # See `map_composite_type_names`
     if PROTOBUF_VERSION[0:2] in ["3.", "4."]:
         map_composite_types += (_message.MessageMapContainer,)
 
@@ -59,5 +59,5 @@ __all__ = (
     "repeated_composite_types",
     "repeated_scalar_types",
     "map_composite_types",
-    "map_composite_types_str",
+    "map_composite_type_names",
 )

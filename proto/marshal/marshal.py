@@ -189,12 +189,12 @@ class BaseMarshal:
 
         # Same thing for maps of messages.
         # See https://github.com/protocolbuffers/protobuf/issues/16596
-        # We need to look up the name of the type in compat.map_composite_types_str
+        # We need to look up the name of the type in compat.map_composite_type_names
         # as class `MessageMapContainer` is no longer exposed
         # This is done to avoid taking a breaking change in proto-plus
         if (
             value_type in compat.map_composite_types
-            or value_type.__name__ in compat.map_composite_types_str
+            or value_type.__name__ in compat.map_composite_type_names
         ):
             return MapComposite(value, marshal=self)
         return self.get_rule(proto_type=proto_type).to_python(value, absent=absent)
