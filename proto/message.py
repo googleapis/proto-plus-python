@@ -440,6 +440,13 @@ class MessageMeta(type):
             ValueError: if both `always_print_fields_with_no_presence` and `including_default_value_fields` are set and
                 the values differ.
         """
+
+        cls._warn_if_including_default_value_fields_is_used_protobuf_5(
+            including_default_value_fields
+        )
+        cls._raise_if_print_fields_values_are_set_and_differ(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
         if (
             always_print_fields_with_no_presence is None
             and including_default_value_fields is None
@@ -496,12 +503,6 @@ class MessageMeta(type):
             str: The json string representation of the protocol buffer.
         """
 
-        cls._warn_if_including_default_value_fields_is_used_protobuf_5(
-            including_default_value_fields
-        )
-        cls._raise_if_print_fields_values_are_set_and_differ(
-            always_print_fields_with_no_presence, including_default_value_fields
-        )
         print_fields = cls._normalize_print_fields_without_presense(
             always_print_fields_with_no_presence, including_default_value_fields
         )
@@ -588,12 +589,6 @@ class MessageMeta(type):
                   repeated fields are represented as lists.
         """
 
-        cls._warn_if_including_default_value_fields_is_used_protobuf_5(
-            including_default_value_fields
-        )
-        cls._raise_if_print_fields_values_are_set_and_differ(
-            always_print_fields_with_no_presence, including_default_value_fields
-        )
         print_fields = cls._normalize_print_fields_without_presense(
             always_print_fields_with_no_presence, including_default_value_fields
         )
