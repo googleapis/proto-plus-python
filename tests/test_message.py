@@ -256,6 +256,13 @@ def test_serialize_to_dict():
     s_dict = Squid.to_dict(s)
     assert s_dict["chromatophores"][0]["color"] == 1
 
+    s_dict = Squid.to_dict(
+        s,
+        including_default_value_fields=True,
+        always_print_fields_with_no_presence=True,
+    )
+    assert s_dict["chromatophores"][0]["color"] == 1
+
     new_s = Squid(s_dict)
     assert new_s == s
 
@@ -271,6 +278,14 @@ def test_serialize_to_dict():
     expected_dict = {"mass_kg": 20}
     assert s_dict_2 == expected_dict
 
+    s_dict_2 = Squid.to_dict(
+        s_new_2,
+        including_default_value_fields=False,
+        always_print_fields_with_no_presence=False,
+    )
+    expected_dict = {"mass_kg": 20}
+    assert s_dict_2 == expected_dict
+
     with pytest.raises(
         ValueError,
         match="Arguments.*always_print_fields_with_no_presence.*including_default_value_fields.*must match",
@@ -279,6 +294,16 @@ def test_serialize_to_dict():
             s_new_2,
             including_default_value_fields=True,
             always_print_fields_with_no_presence=False,
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="Arguments.*always_print_fields_with_no_presence.*including_default_value_fields.*must match",
+    ):
+        s_dict_2 = Squid.to_dict(
+            s_new_2,
+            including_default_value_fields=False,
+            always_print_fields_with_no_presence=True,
         )
 
     new_s = Squid(s_dict)
