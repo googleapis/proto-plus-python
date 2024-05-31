@@ -168,14 +168,10 @@ def test_json_default_values():
         .replace(" ", "")
         .replace("\n", "")
     )
-    assert (
-        json2 == '{"name":"Steve","massKg":0}'
-    )
+    assert json2 == '{"name":"Steve","massKg":0}'
 
     json2 = Squid.to_json(s).replace(" ", "").replace("\n", "")
-    assert (
-        json2 == '{"name":"Steve","massKg":0}'
-    )
+    assert json2 == '{"name":"Steve","massKg":0}'
 
     s1 = Squid.from_json(json1)
     s2 = Squid.from_json(json2)
