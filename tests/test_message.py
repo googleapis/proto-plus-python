@@ -282,6 +282,20 @@ def test_serialize_to_dict():
     s_dict_2 = Squid.to_dict(
         s_new_2,
         including_default_value_fields=True,
+    )
+    expected_dict = {"mass_kg": 20, "chromatophores": []}
+    assert s_dict_2 == expected_dict
+
+    s_dict_2 = Squid.to_dict(
+        s_new_2,
+        always_print_fields_with_no_presence=True,
+    )
+    expected_dict = {"mass_kg": 20, "chromatophores": []}
+    assert s_dict_2 == expected_dict
+
+    s_dict_2 = Squid.to_dict(
+        s_new_2,
+        including_default_value_fields=True,
         always_print_fields_with_no_presence=True,
     )
     expected_dict = {"mass_kg": 20, "chromatophores": []}

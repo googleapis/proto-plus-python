@@ -170,6 +170,26 @@ def test_json_default_values():
     )
     assert json2 == '{"name":"Steve","massKg":0}'
 
+    json2 = (
+        Squid.to_json(
+            s,
+            including_default_value_fields=True,
+        )
+        .replace(" ", "")
+        .replace("\n", "")
+    )
+    assert json2 == '{"name":"Steve","massKg":0}'
+
+    json2 = (
+        Squid.to_json(
+            s,
+            always_print_fields_with_no_presence=True,
+        )
+        .replace(" ", "")
+        .replace("\n", "")
+    )
+    assert json2 == '{"name":"Steve","massKg":0}'
+
     json2 = Squid.to_json(s).replace(" ", "").replace("\n", "")
     assert json2 == '{"name":"Steve","massKg":0}'
 
