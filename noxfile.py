@@ -48,8 +48,11 @@ def unit(session, implementation):
     session.env["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = implementation
     session.install("coverage", "pytest", "pytest-cov", "pytz")
     session.install("-e", ".[testing]", "-c", constraints_path)
-    if implementation == "cpp":  # 4.20 does not have cpp.
-        session.install("protobuf==3.19.0")
+    # TODO(https://github.com/googleapis/proto-plus-python/issues/389):
+    # Remove the 'cpp' implementation once support for Protobuf 3.x is dropped.
+    # The 'cpp' implementation requires Protobuf<4.
+    if implementation == "cpp":
+        session.install("protobuf<4")
 
     # TODO(https://github.com/googleapis/proto-plus-python/issues/403): re-enable `-W=error`
     # The warnings-as-errors flag `-W=error` was removed in
