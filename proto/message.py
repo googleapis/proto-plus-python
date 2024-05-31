@@ -420,14 +420,14 @@ class MessageMeta(type):
                 "Arguments `always_print_fields_with_no_presence` and `including_default_value_fields` must match"
             )
 
-    def _normalize_print_fields_without_presense(
+    def _normalize_print_fields_without_presence(
         cls,
         always_print_fields_with_no_presence: Optional[bool],
         including_default_value_fields: Optional[bool],
     ) -> bool:
         """
-        Return true if fields with no presense should be included in the results.
-        By default, fields with no presense will be included in the results
+        Return true if fields with no presence should be included in the results.
+        By default, fields with no presence will be included in the results
         when both `always_print_fields_with_no_presence` and
         `including_default_value_fields` are not set
 
@@ -502,7 +502,7 @@ class MessageMeta(type):
             str: The json string representation of the protocol buffer.
         """
 
-        print_fields = cls._normalize_print_fields_without_presense(
+        print_fields = cls._normalize_print_fields_without_presence(
             always_print_fields_with_no_presence, including_default_value_fields
         )
 
@@ -588,7 +588,7 @@ class MessageMeta(type):
                   repeated fields are represented as lists.
         """
 
-        print_fields = cls._normalize_print_fields_without_presense(
+        print_fields = cls._normalize_print_fields_without_presence(
             always_print_fields_with_no_presence, including_default_value_fields
         )
 
