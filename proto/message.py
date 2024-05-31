@@ -519,8 +519,9 @@ class MessageMeta(type):
         else:
             # The `including_default_value_fields` argument was removed from protobuf 5.x
             # and replaced with `always_print_fields_with_no_presence` which very similar but has
-            # consistent handling of optional fields by not affecting them.
-            # The old flag accidentally had inconsistent behavior between proto2 optional and proto3 optional fields.
+            # handles optional fields consistently by not affecting them.
+            # The old flag accidentally had inconsistent behavior between proto2
+            # optional and proto3 optional fields.
             return MessageToJson(
                 cls.pb(instance),
                 use_integers_for_enums=use_integers_for_enums,
@@ -603,8 +604,9 @@ class MessageMeta(type):
         else:
             # The `including_default_value_fields` argument was removed from protobuf 5.x
             # and replaced with `always_print_fields_with_no_presence` which very similar but has
-            # consistent handling of optional fields by not affecting them.
-            # The old flag accidentally had inconsistent behavior between proto2 optional and proto3 optional fields
+            # handles optional fields consistently by not affecting them.
+            # The old flag accidentally had inconsistent behavior between proto2
+            # optional and proto3 optional fields.
             return MessageToDict(
                 cls.pb(instance),
                 always_print_fields_with_no_presence=print_fields,
