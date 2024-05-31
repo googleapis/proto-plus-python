@@ -45,8 +45,8 @@ jobs:
         python: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
         variant: ['cpp', 'python', 'upb']
         # TODO(https://github.com/googleapis/proto-plus-python/issues/389):
-        # Remove the 'cpp' implementation once support for protobuf 3.x is dropped.
-        # The 'cpp' implementation requires protobuf == 3.x however version 3.x
+        # Remove the 'cpp' implementation once support for Protobuf 3.x is dropped.
+        # The 'cpp' implementation requires Protobuf == 3.x however version 3.x
         # does not support Python 3.11 and newer. The 'cpp' implementation
         # must be excluded from the test matrix for these runtimes.
         exclude:
