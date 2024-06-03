@@ -42,7 +42,7 @@ setup(
     long_description=README,
     platforms="Posix; MacOS X",
     include_package_data=True,
-    install_requires=("protobuf >= 3.19.0, <5.0.0dev",),
+    install_requires=("protobuf >=5.27.0, <5.28.0",),
     extras_require={
         "testing": [
             "google-api-core[grpc] >= 1.31.5",
