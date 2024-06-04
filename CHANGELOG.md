@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.24.0](https://github.com/googleapis/proto-plus-python/compare/v1.23.0...v1.24.0) (2024-06-04)
+
+
+### Features
+
+* Add `always_print_fields_with_no_presence` fields to `to_json` and `to_dict` ([0f89372](https://github.com/googleapis/proto-plus-python/commit/0f893724cabe513a5a9f9c8428dbd31f1b4f1d52))
+
+
+### Bug Fixes
+
+* Add compatibility with protobuf==5.x ([0f89372](https://github.com/googleapis/proto-plus-python/commit/0f893724cabe513a5a9f9c8428dbd31f1b4f1d52))
+* AttributeError module 'google._upb._message' has no attribute 'MessageMapContainer' ([0f89372](https://github.com/googleapis/proto-plus-python/commit/0f893724cabe513a5a9f9c8428dbd31f1b4f1d52))
+
+
+### Documentation
+
+* Deprecate field `including_default_value_fields` in `to_json` and `to_dict` ([0f89372](https://github.com/googleapis/proto-plus-python/commit/0f893724cabe513a5a9f9c8428dbd31f1b4f1d52))
+
 ## [1.23.0](https://github.com/googleapis/proto-plus-python/compare/v1.22.3...v1.23.0) (2023-12-01)
 
 
