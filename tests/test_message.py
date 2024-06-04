@@ -301,6 +301,10 @@ def test_serialize_to_dict():
     expected_dict = {"mass_kg": 20, "chromatophores": []}
     assert s_dict_2 == expected_dict
 
+    s_dict_2 = Squid.to_dict(s_new_2)
+    expected_dict = {"mass_kg": 20, "chromatophores": []}
+    assert s_dict_2 == expected_dict
+
     with pytest.raises(
         ValueError,
         match="Arguments.*always_print_fields_with_no_presence.*including_default_value_fields.*must match",
