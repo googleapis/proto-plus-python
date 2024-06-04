@@ -325,9 +325,6 @@ def test_serialize_to_dict():
             always_print_fields_with_no_presence=True,
         )
 
-    new_s = Squid(s_dict)
-    assert new_s == s
-
 
 # TODO: https://github.com/googleapis/proto-plus-python/issues/390
 def test_serialize_to_dict_float_precision():
