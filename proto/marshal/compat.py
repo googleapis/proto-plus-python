@@ -30,12 +30,6 @@ try:
 except ImportError:
     _message = None
 
-if not _message:
-    try:
-        from google.protobuf.pyext import _message
-    except ImportError:
-        _message = None
-
 repeated_composite_types = (containers.RepeatedCompositeFieldContainer,)
 repeated_scalar_types = (containers.RepeatedScalarFieldContainer,)
 map_composite_types = (containers.MessageMap,)
@@ -58,6 +52,25 @@ if _message:
     # See https://github.com/protocolbuffers/protobuf/issues/16596
     if PROTOBUF_VERSION[0:2] in ["3.", "4."]:
         map_composite_types += (_message.MessageMapContainer,)
+
+
+try:
+    from google.protobuf.pyext import _message as _message_pyext
+except ImportError:
+    _message_pyext = None
+
+if _message_pyext:
+    repeated_composite_types += (_message_pyext.RepeatedCompositeContainer,)
+    repeated_scalar_types += (_message_pyext.RepeatedScalarContainer,)
+
+    # In `proto/marshal.py`, for compatibility with protobuf 5.x,
+    # we'll use `map_composite_type_names` to check whether
+    # the name of the class of a protobuf type is
+    # `MessageMapContainer`, and, if `True`, return a MapComposite.
+    # See https://github.com/protocolbuffers/protobuf/issues/16596
+    if PROTOBUF_VERSION[0:2] in ["3.", "4."]:
+        map_composite_types += (_message_pyext.MessageMapContainer,)
+
 
 __all__ = (
     "repeated_composite_types",
