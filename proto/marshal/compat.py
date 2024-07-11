@@ -50,7 +50,7 @@ if _message:
 
     try:
         map_composite_types += (_message.MessageMapContainer,)
-    except:
+    except AttributeError:
         # The `MessageMapContainer` attribute is not available in Protobuf 5.x+
         pass
 
