@@ -21,8 +21,6 @@
 from google.protobuf.internal import containers
 import google.protobuf
 
-PROTOBUF_VERSION = google.protobuf.__version__
-
 # Import protobuf 4.xx first and fallback to earlier version
 # if not present.
 try:
@@ -56,7 +54,7 @@ if _message:
     # the name of the class of a protobuf type is
     # `MessageMapContainer`, and, if `True`, return a MapComposite.
     # See https://github.com/protocolbuffers/protobuf/issues/16596
-    if PROTOBUF_VERSION[0:2] in ["3.", "4."]:
+    if google.protobuf.__version__[0:2] in ["3.", "4."]:
         map_composite_types += (_message.MessageMapContainer,)
 
 __all__ = (
