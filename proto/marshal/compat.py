@@ -21,7 +21,7 @@
 from google.protobuf.internal import containers
 
 # Import all message types to ensure that pyext types are recognized
-# when ubp types exist. Conda's protobuf defaults to pyext despite ubp existing.
+# when upb types exist. Conda's protobuf defaults to pyext despite upb existing.
 # See https://github.com/googleapis/proto-plus-python/issues/470
 try:
     from google._upb import _message as _message_upb
