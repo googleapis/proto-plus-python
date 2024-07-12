@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.24.1](https://github.com/googleapis/proto-plus-python/compare/v1.24.0...v1.24.1) (2024-07-12)
+
+
+### Bug Fixes
+
+* Fix conda compatibility issue ([#475](https://github.com/googleapis/proto-plus-python/issues/475)) ([e2f9c9d](https://github.com/googleapis/proto-plus-python/commit/e2f9c9d1c87230d0e8d9ccacdfd0872792d54f1b))
+* Remove check for Protobuf version ([#474](https://github.com/googleapis/proto-plus-python/issues/474)) ([a1748a3](https://github.com/googleapis/proto-plus-python/commit/a1748a315b6b50128b0d9927b2fee353ec55975f))
+
+
+### Documentation
+
+* Fix typos in proto/message.py ([#463](https://github.com/googleapis/proto-plus-python/issues/463)) ([4d8ee65](https://github.com/googleapis/proto-plus-python/commit/4d8ee656e008ec2b22f347e5da539b6285ec4b1b))
+* Update message.py spelling error `paylod` → `payload` ([e59fc9a](https://github.com/googleapis/proto-plus-python/commit/e59fc9a4f8dd9fcb0804b77347662ae29d1a31a1))
+
 ## [1.24.0](https://github.com/googleapis/proto-plus-python/compare/v1.23.0...v1.24.0) (2024-06-11)
 
 
