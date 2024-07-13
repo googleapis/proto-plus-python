@@ -120,7 +120,11 @@ class RepeatedComposite(Repeated):
     def __eq__(self, other):
         if super().__eq__(other):
             return True
-        return tuple([i for i in self]) == tuple(other) if isinstance(other, Iterable) else False
+        return (
+            tuple([i for i in self]) == tuple(other)
+            if isinstance(other, Iterable)
+            else False
+        )
 
     def __getitem__(self, key):
         return self._marshal.to_python(self._pb_type, self.pb[key])
