@@ -37,7 +37,7 @@ class MessageRule:
             except (TypeError, ValueError) as ex:
                 # If we have a TypeError or Valueerror,
                 # try the slow path in case the error
-                # was: 
+                # was:
                 # - an int64/string issue.
                 # - a missing key issue in case a key only exists with a `_` suffix.
                 #   See related issue: https://github.com/googleapis/python-api-core/issues/227.
