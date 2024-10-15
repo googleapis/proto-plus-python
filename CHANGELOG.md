@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.25.0](https://github.com/googleapis/proto-plus-python/compare/v1.24.0...v1.25.0) (2024-10-15)
+## [1.25.0rc0](https://github.com/googleapis/proto-plus-python/compare/v1.24.0...v1.25.0rc0) (2024-10-15)
 
 
 ### Features
