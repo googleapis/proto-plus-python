@@ -74,7 +74,7 @@ class ProtoEnumMeta(enum.EnumMeta):
                     descriptor_pb2.EnumValueDescriptorProto(name=name, number=number)
                     # Minor hack to get all the enum variants out.
                     for name, number in attrs.items()
-                    if isinstance(number, int)
+                    if name in attrs._member_names and isinstance(number, int)
                 ),
                 key=lambda v: v.number,
             ),
