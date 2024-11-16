@@ -39,9 +39,10 @@ jobs:
       - name: Build the documentation.
         run: nox -s docs
   unit:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
         variant: ['cpp', 'python', 'upb']
         # TODO(https://github.com/googleapis/proto-plus-python/issues/389):
@@ -56,6 +57,10 @@ jobs:
             python: 3.12
           - variant: "cpp"
             python: 3.13
+          - os: "macos-latest"
+            python: 3.7
+          - os: "macos-latest"
+            variant: "cpp"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python }}
