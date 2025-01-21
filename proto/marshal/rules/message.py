@@ -35,7 +35,7 @@ class MessageRule:
                 # Try the fast path first.
                 return self._descriptor(**value)
             except (TypeError, ValueError, AttributeError) as ex:
-                # If we have a TypeError, Valueerror or AttributeError,
+                # If we have a TypeError, ValueError or AttributeError,
                 # try the slow path in case the error
                 # was:
                 # - an int64/string issue.
