@@ -243,22 +243,22 @@ def test_duration_write_string():
 
 def test_duration_write_string_nested():
     class Foo(proto.Message):
-        another_field: duration_pb2.Duration = proto.Field(
+        foo_field: duration_pb2.Duration = proto.Field(
             proto.MESSAGE,
             number=1,
             message=duration_pb2.Duration,
         )
 
-    Foo(another_field="300s")
+    Foo(foo_field="300s")
 
     class Bar(proto.Message):
-        some_field = proto.Field(proto.MESSAGE, number=1, message=Foo)
+        bar_field = proto.Field(proto.MESSAGE, number=1, message=Foo)
 
-    bar = Bar({"some_field": {"another_field": "300s"}})
-    assert isinstance(bar.some_field.another_field, timedelta)
-    assert isinstance(Bar.pb(bar).some_field.another_field, duration_pb2.Duration)
-    assert bar.some_field.another_field.seconds == 300
-    assert Bar.pb(bar).some_field.another_field.seconds == 300
+    bar = Bar({"bar_field": {"foo_field": "300s"}})
+    assert isinstance(bar.bar_field.foo_field, timedelta)
+    assert isinstance(Bar.pb(bar).bar_field.foo_field, duration_pb2.Duration)
+    assert bar.bar_field.foo_field.seconds == 300
+    assert Bar.pb(bar).bar_field.foo_field.seconds == 300
 
 
 def test_duration_del():
