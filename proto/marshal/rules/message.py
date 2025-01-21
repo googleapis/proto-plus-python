@@ -41,8 +41,8 @@ class MessageRule:
                 # - an int64/string issue.
                 # - a missing key issue in case a key only exists with a `_` suffix.
                 #   See related issue: https://github.com/googleapis/python-api-core/issues/227.
-                # - a missing key issue due to nested struct. See: b/321905145.
-                # - a missing key issue due to nested duration. See: b/383651746.
+                # - a missing key issue due to nested struct. See: https://github.com/googleapis/proto-plus-python/issues/424.
+                # - a missing key issue due to nested duration. See: https://github.com/googleapis/google-cloud-python/issues/13350.
                 return self._wrapper(value)._pb
         return value
 
