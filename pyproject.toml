@@ -53,4 +53,5 @@ testing = ["google-api-core >= 1.31.5"]
 version = { attr = "proto.version.__version__" }
 
 [tool.setuptools.packages.find]
-exclude = ["docs", "tests"]
+# Only include packages under the 'proto' namespace. Do not include build, docs, tests
+include = ["proto*"]
