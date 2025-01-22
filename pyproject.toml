@@ -44,7 +44,7 @@ dependencies = ["protobuf >=3.19.0, < 6.0.0dev"]
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "https://proto-plus-python.readthedocs.io/en/latest/"
+Documentation = "https://googleapis.dev/python/proto-plus/latest/"
 Repository = "https://github.com/googleapis/proto-plus-python"
 
 [project.optional-dependencies]
