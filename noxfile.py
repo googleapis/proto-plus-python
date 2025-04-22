@@ -131,7 +131,7 @@ def prerelease_deps(session, implementation):
     )
 
 
-@nox.session(python="3.10")
+@nox.session
 def docs(session):
     """Build the docs."""
 
@@ -164,7 +164,7 @@ def docs(session):
     )
 
 
-@nox.session(python="3.10")
+@nox.session
 def lint_setup_py(session):
     """Verify that setup.py is valid (including RST check)."""
 
