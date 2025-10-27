@@ -14,6 +14,7 @@
 
 import abc
 import enum
+import threading
 
 from google.protobuf import message
 from google.protobuf import duration_pb2
@@ -256,6 +257,7 @@ class Marshal(BaseMarshal):
     """
 
     _instances = {}
+    _instances_lock = threading.Lock()
 
     def __new__(cls, *, name: str):
         """Create a marshal instance.
@@ -265,9 +267,13 @@ class Marshal(BaseMarshal):
                 marshals with the same ``name`` argument will provide the
                 same marshal each time.
         """
-        klass = cls._instances.get(name)
-        if klass is None:
-            klass = cls._instances[name] = super().__new__(cls)
+        with cls._instances_lock:
+            klass = cls._instances.get(name)
+            if klass is None:
+                klass = super().__new__(cls)
+                instances_copy = cls._instances.copy()
+                instances_copy[name] = klass
+                cls._instances = instances_copy
 
         return klass
 
