@@ -267,13 +267,15 @@ class Marshal(BaseMarshal):
                 marshals with the same ``name`` argument will provide the
                 same marshal each time.
         """
-        with cls._instances_lock:
-            klass = cls._instances.get(name)
-            if klass is None:
-                klass = super().__new__(cls)
-                instances_copy = cls._instances.copy()
-                instances_copy[name] = klass
-                cls._instances = instances_copy
+        klass = cls._instances.get(name)
+        if klass is None:
+            with cls._instances_lock:
+                klass = cls._instances.get(name)
+                if klass is None:
+                    klass = super().__new__(cls)
+                    instances_copy = cls._instances.copy()
+                    instances_copy[name] = klass
+                    cls._instances = instances_copy
 
         return klass
 
