@@ -4,6 +4,13 @@
 
 [1]: https://pypi.org/project/proto-plus/#history
 
+## [1.27.0](https://github.com/googleapis/proto-plus-python/compare/v1.26.1...v1.27.0) (2025-11-20)
+
+
+### Features
+
+* some feature ([d9749b569d2f7ed0514dbbac97d089b0c38bb83c](https://github.com/googleapis/proto-plus-python/commit/d9749b569d2f7ed0514dbbac97d089b0c38bb83c))
+
 ## [1.26.1](https://github.com/googleapis/proto-plus-python/compare/v1.26.0...v1.26.1) (2025-03-05)
 
 
