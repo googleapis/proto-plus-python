@@ -4,6 +4,13 @@
 
 [1]: https://pypi.org/project/proto-plus/#history
 
+## [1.27.0](https://github.com/googleapis/proto-plus-python/compare/v1.26.1...v1.27.0) (2025-12-12)
+
+
+### Features
+
+* Add classifier for Python 3.14 (#544) ([d9f41512648c4551fc3e926649864c5dfe3964b2](https://github.com/googleapis/proto-plus-python/commit/d9f41512648c4551fc3e926649864c5dfe3964b2))
+
 ## [1.26.1](https://github.com/googleapis/proto-plus-python/compare/v1.26.0...v1.26.1) (2025-03-05)
 
 
