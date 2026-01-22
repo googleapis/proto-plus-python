@@ -17,21 +17,21 @@ jobs:
   style-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python 3.8
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: 3.8
+          python-version: 3.14
       - name: Install black
-        run: pip install black==22.3.0
+        run: pip install black==23.7.0
       - name: Check diff
         run: black --diff --check .
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - name: Install nox.
@@ -70,9 +70,9 @@ jobs:
           - variant: "cpp"
             python: 'pypy3.10'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Install nox
@@ -84,21 +84,21 @@ jobs:
         run: |
           nox -s "unit-${{ matrix.python }}(implementation='${{ matrix.variant }}')"
       - name: Upload coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-artifact-${{ matrix.variant }}-${{ matrix.python }}
           path: .coverage-${{ matrix.variant }}-${{ matrix.python }}
           include-hidden-files: true
   prerelease:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python: ['3.14']
         variant: ['python', 'upb']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
@@ -111,7 +111,7 @@ jobs:
         run: |
           nox -s "prerelease_deps(implementation='${{ matrix.variant }}')"
       - name: Upload coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-artifact-prerelease-${{ matrix.variant }}
           path: .coverage-prerelease-${{ matrix.variant }}
@@ -121,17 +121,17 @@ jobs:
         - unit
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
-        python-version: "3.10"
+        python-version: "3.14"
     - name: Install coverage
       run: |
         python -m pip install --upgrade setuptools pip wheel
         python -m pip install coverage
     - name: Download coverage results
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         path: .coverage-results/
     - name: Report coverage results
