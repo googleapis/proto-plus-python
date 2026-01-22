@@ -39,7 +39,7 @@ jobs:
       - name: Build the documentation.
         run: nox -s docs
   unit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         # See https://github.com/actions/setup-python?tab=readme-ov-file#basic-usage
