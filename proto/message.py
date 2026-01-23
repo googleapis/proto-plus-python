@@ -457,6 +457,46 @@ class MessageMeta(type):
             or including_default_value_fields
         )
 
+    @staticmethod
+    def _to_map(
+        cls,
+        map_fn,
+        instance,
+        *,
+        including_default_value_fields=None,
+        float_precision=None,
+        always_print_fields_with_no_presence=None,
+        **kwargs,
+    ):
+        """
+        Helper for logic for to_dict and to_json
+        """
+        print_fields = cls._normalize_print_fields_without_presence(
+            always_print_fields_with_no_presence, including_default_value_fields
+        )
+
+        # The `including_default_value_fields` argument was removed from protobuf 5.x
+        # and replaced with `always_print_fields_with_no_presence` which very similar but has
+        # handles optional fields consistently by not affecting them.
+        # The old flag accidentally had inconsistent behavior between proto2
+        # optional and proto3 optional fields.
+        if PROTOBUF_VERSION[0] in ("3", "4"):
+            kwargs["including_default_value_fields"] = print_fields
+        else:
+            kwargs["always_print_fields_with_no_presence"] = print_fields
+
+        if float_precision:
+            # float_precision removed in protobuf 7
+            if int(PROTOBUF_VERSION[0]) < 7:
+                kwargs["float_precision"] = float_precision
+            else:
+                warnings.warn(
+                    "The argument `float_precision` has been removed from Protobuf 7.x.",
+                    DeprecationWarning,
+                )
+
+        return map_fn(cls.pb(instance), **kwargs)
+
     def to_json(
         cls,
         instance,
@@ -491,7 +531,7 @@ class MessageMeta(type):
                 An indent level of 0 or negative will only insert newlines.
                 Pass None for the most compact representation without newlines.
             float_precision (Optional(int)): If set, use this to specify float field valid digits.
-                Default is None.
+                Default is None. [DEPRECATED] float_precision was removed in Protobuf 7.x.
             always_print_fields_with_no_presence (Optional(bool)): If True, fields without
                 presence (implicit presence scalars, repeated fields, and map fields) will
                 always be serialized. Any field that supports presence is not affected by
@@ -501,36 +541,7 @@ class MessageMeta(type):
         Returns:
             str: The json string representation of the protocol buffer.
         """
-
-        print_fields = cls._normalize_print_fields_without_presence(
-            always_print_fields_with_no_presence, including_default_value_fields
-        )
-
-        if PROTOBUF_VERSION[0] in ("3", "4"):
-            return MessageToJson(
-                cls.pb(instance),
-                use_integers_for_enums=use_integers_for_enums,
-                including_default_value_fields=print_fields,
-                preserving_proto_field_name=preserving_proto_field_name,
-                sort_keys=sort_keys,
-                indent=indent,
-                float_precision=float_precision,
-            )
-        else:
-            # The `including_default_value_fields` argument was removed from protobuf 5.x
-            # and replaced with `always_print_fields_with_no_presence` which very similar but has
-            # handles optional fields consistently by not affecting them.
-            # The old flag accidentally had inconsistent behavior between proto2
-            # optional and proto3 optional fields.
-            return MessageToJson(
-                cls.pb(instance),
-                use_integers_for_enums=use_integers_for_enums,
-                always_print_fields_with_no_presence=print_fields,
-                preserving_proto_field_name=preserving_proto_field_name,
-                sort_keys=sort_keys,
-                indent=indent,
-                float_precision=float_precision,
-            )
+        return cls._to_map(map_fn=MessageToJson, **locals())
 
     def from_json(cls, payload, *, ignore_unknown_fields=False) -> "Message":
         """Given a json string representing an instance,
@@ -576,9 +587,7 @@ class MessageMeta(type):
                 This value must match `always_print_fields_with_no_presence`,
                 if both arguments are explicitly set.
             float_precision (Optional(int)): If set, use this to specify float field valid digits.
-                Default is None.
-                [DEPRECATED] float_precision was removed in Protobuf 7.x, and will be ignored
-                in those versions
+                Default is None. [DEPRECATED] float_precision was removed in Protobuf 7.x.
             always_print_fields_with_no_presence (Optional(bool)): If True, fields without
                 presence (implicit presence scalars, repeated fields, and map fields) will
                 always be serialized. Any field that supports presence is not affected by
@@ -590,37 +599,7 @@ class MessageMeta(type):
                   Messages and map fields are represented as dicts,
                   repeated fields are represented as lists.
         """
-
-        print_fields = cls._normalize_print_fields_without_presence(
-            always_print_fields_with_no_presence, including_default_value_fields
-        )
-        kwargs = {
-            "preserving_proto_field_name":preserving_proto_field_name,
-            "use_integers_for_enums":use_integers_for_enums,
-            "float_precision": float_precision,
-        }
-
-        # The `including_default_value_fields` argument was removed from protobuf 5.x
-        # and replaced with `always_print_fields_with_no_presence` which very similar but has
-        # handles optional fields consistently by not affecting them.
-        # The old flag accidentally had inconsistent behavior between proto2
-        # optional and proto3 optional fields.
-        if PROTOBUF_VERSION[0] in ("3", "4"):
-            kwargs["including_default_value_fields"] = print_fields
-            del kwargs[always_print_fields_with_no_presence]
-        else:
-            kwargs["always_print_fields_with_no_presence"] = print_fields
-            del kwargs["including_default_value_fields]"
-
-        # float_precision removed in protobuf 7
-        if int(PROTOBUF_VERSION[0]) > 7 and float_precision is not None:
-            warnings.warn(
-                "The argument `float_precision` has been removed from Protobuf 7.x.",
-                DeprecationWarning,
-            )
-            del kwargs["float_precision"]
-
-        return MessageToDict(cls.pb(instance), **kwargs)
+        return cls._to_map(map_fn=MessageToDict, **locals())
 
     def copy_from(cls, instance, other):
         """Equivalent for protobuf.Message.CopyFrom
