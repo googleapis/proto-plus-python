@@ -607,15 +607,17 @@ class MessageMeta(type):
         # optional and proto3 optional fields.
         if PROTOBUF_VERSION[0] in ("3", "4"):
             kwargs["including_default_value_fields"] = print_fields
+            del kwargs[always_print_fields_with_no_presence]
         else:
+            kwargs["always_print_fields_with_no_presence"] = print_fields
+            del kwargs["including_default_value_fields]"
+
+        # float_precision removed in protobuf 7
+        if int(PROTOBUF_VERSION[0]) > 7 and float_precision is not None:
             warnings.warn(
                 "The argument `float_precision` has been removed from Protobuf 7.x.",
                 DeprecationWarning,
             )
-            kwargs["use_integers_for_enums"] = print_fields
-
-        # float_precision removed in protobuf 7
-        if int(PROTOBUF_VERSION[0]) > 7 and float_precision is not None:
             del kwargs["float_precision"]
 
         return MessageToDict(cls.pb(instance), **kwargs)
