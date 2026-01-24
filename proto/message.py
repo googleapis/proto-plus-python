@@ -37,8 +37,10 @@ from proto.utils import has_upb
 PROTOBUF_VERSION = google.protobuf.__version__
 
 # extract the major version code
-_separator_idx = PROTOBUF_VERSION.find('.')
-_PROTOBUF_MAJOR_VERSION = PROTOBUF_VERSION[:_separator_idx] if _separator_idx != -1 else PROTOBUF_VERSION
+_separator_idx = PROTOBUF_VERSION.find(".")
+_PROTOBUF_MAJOR_VERSION = (
+    PROTOBUF_VERSION[:_separator_idx] if _separator_idx != -1 else PROTOBUF_VERSION
+)
 
 _upb = has_upb()  # Important to cache result here.
 
