@@ -253,7 +253,10 @@ def test_json_sort_keys():
     assert re.search(r"massKg.*name", j)
 
 
-# TODO: https://github.com/googleapis/proto-plus-python/issues/390
+pytest.skipif(
+    int(proto.message._PROTOBUF_MAJOR_VERSION) >= 7,
+    "float_precision removed in protobuf 7.x"
+)
 def test_json_float_precision():
     class Squid(proto.Message):
         name = proto.Field(proto.STRING, number=1)
@@ -263,3 +266,21 @@ def test_json_float_precision():
     j = Squid.to_json(s, float_precision=3, indent=None)
 
     assert j == '{"name": "Steve", "massKg": 3.14}'
+
+pytest.skipif(
+    int(proto.message._PROTOBUF_MAJOR_VERSION) < 7,
+    "unsupported protobuf version for test"
+)
+def test_json_float_precision_7_plus():
+    class Squid(proto.Message):
+        name = proto.Field(proto.STRING, number=1)
+        mass_kg = proto.Field(proto.FLOAT, number=2)
+
+    s = Squid(name="Steve", mass_kg=3.14159265)
+    with pytest.warns(DeprecationWarning) as warnings:
+        j = Squid.to_json(s, float_precision=3, indent=None)
+
+    assert j == '{"name": "Steve", "massKg": 3.14159265}'
+
+    assert len(warnings) == 1
+    assert "`float_precision` has been removed" in warnings[0].message.args[0]
