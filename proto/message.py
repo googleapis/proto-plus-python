@@ -949,7 +949,7 @@ def _message_to_map(
         # float_precision removed in protobuf 7
         if _PROTOBUF_MAJOR_VERSION in ("3", "4", "5", "6"):
             kwargs["float_precision"] = float_precision
-        else:
+        else:  # pragma: NO COVER
             warnings.warn(
                 "The argument `float_precision` has been removed from Protobuf 7.x.",
                 DeprecationWarning,
