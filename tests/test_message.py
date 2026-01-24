@@ -326,15 +326,34 @@ def test_serialize_to_dict():
         )
 
 
-# TODO: https://github.com/googleapis/proto-plus-python/issues/390
 def test_serialize_to_dict_float_precision():
+    if int(proto.message._PROTOBUF_MAJOR_VERSION) >= 7:
+        pytest.skip("float_precision was removed in protobuf 7.x")
+
     class Squid(proto.Message):
         mass_kg = proto.Field(proto.FLOAT, number=1)
 
-    s = Squid(mass_kg=3.14159265)
+    s = Squid(mass_kg=3.141592)
 
     s_dict = Squid.to_dict(s, float_precision=3)
     assert s_dict["mass_kg"] == 3.14
+
+
+def test_serialize_to_dict_float_precision_7_plus():
+    if int(proto.message._PROTOBUF_MAJOR_VERSION) < 7:
+        pytest.skip("unsupported protobuf version for test")
+
+    class Squid(proto.Message):
+        mass_kg = proto.Field(proto.FLOAT, number=1)
+
+    s = Squid(mass_kg=3.141592)
+
+    with pytest.warns(DeprecationWarning) as warnings:
+        s_dict = Squid.to_dict(s, float_precision=3)
+        assert s_dict["mass_kg"] == pytest.approx(3.141592)
+
+    assert len(warnings) == 1
+    assert "`float_precision` has been removed" in warnings[0].message.args[0]
 
 
 def test_unknown_field_deserialize():

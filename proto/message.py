@@ -951,6 +951,7 @@ def _message_to_map(
             warnings.warn(
                 "The argument `float_precision` has been removed from Protobuf 7.x.",
                 DeprecationWarning,
+                stacklevel=3,
             )
 
     return map_fn(cls.pb(instance), **kwargs)
