@@ -36,6 +36,10 @@ from proto.utils import has_upb
 
 PROTOBUF_VERSION = google.protobuf.__version__
 
+# extract the major version code
+_separator_idx = PROTOBUF_VERSION.find('.')
+_PROTOBUF_MAJOR_VERSION = PROTOBUF_VERSION[:_separator_idx] if _separator_idx != -1 else PROTOBUF_VERSION
+
 _upb = has_upb()  # Important to cache result here.
 
 
@@ -383,7 +387,7 @@ class MessageMeta(type):
             including_default_value_fields (Optional(bool)): The value of `including_default_value_fields` set by the user.
         """
         if (
-            PROTOBUF_VERSION[0] not in ("3", "4")
+            _PROTOBUF_MAJOR_VERSION not in ("3", "4")
             and including_default_value_fields is not None
         ):
             warnings.warn(
@@ -918,30 +922,30 @@ def _message_to_map(
     instance,
     *,
     including_default_value_fields=None,
-    float_precision=None,
     always_print_fields_with_no_presence=None,
+    float_precision=None,
     **kwargs,
 ):
     """
     Helper for logic for Message.to_dict and Message.to_json
     """
-    print_fields = cls._normalize_print_fields_without_presence(
-        always_print_fields_with_no_presence, including_default_value_fields
-    )
 
     # The `including_default_value_fields` argument was removed from protobuf 5.x
     # and replaced with `always_print_fields_with_no_presence` which very similar but has
     # handles optional fields consistently by not affecting them.
     # The old flag accidentally had inconsistent behavior between proto2
     # optional and proto3 optional fields.
-    if PROTOBUF_VERSION[0] in ("3", "4"):
+    print_fields = cls._normalize_print_fields_without_presence(
+        always_print_fields_with_no_presence, including_default_value_fields
+    )
+    if _PROTOBUF_MAJOR_VERSION in ("3", "4"):
         kwargs["including_default_value_fields"] = print_fields
     else:
         kwargs["always_print_fields_with_no_presence"] = print_fields
 
     if float_precision:
         # float_precision removed in protobuf 7
-        if int(PROTOBUF_VERSION[0]) < 7:
+        if _PROTOBUF_MAJOR_VERSION in ("3", "4", "5", "6"):
             kwargs["float_precision"] = float_precision
         else:
             warnings.warn(
