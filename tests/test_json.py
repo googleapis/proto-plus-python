@@ -261,10 +261,13 @@ def test_json_float_precision():
         name = proto.Field(proto.STRING, number=1)
         mass_kg = proto.Field(proto.FLOAT, number=2)
 
-    s = Squid(name="Steve", mass_kg=3.141592)
-    j = Squid.to_json(s, float_precision=3, indent=None)
+    with pytest.warns(UserWarning) as warnings:
+        s = Squid(name="Steve", mass_kg=3.141592)
+        j = Squid.to_json(s, float_precision=3, indent=None)
 
-    assert j == '{"name": "Steve", "massKg": 3.14}'
+        assert j == '{"name": "Steve", "massKg": 3.14}'
+    assert len(warnings) == 1
+    assert "float_precision option is deprecated" in warnings[0].message.args[0]
 
 
 def test_json_float_precision_7_plus():
@@ -282,4 +285,4 @@ def test_json_float_precision_7_plus():
     assert j == '{"name": "Steve", "massKg": 3.141592}'
 
     assert len(warnings) == 1
-    assert "`float_precision` has been removed" in warnings[0].message.args[0]
+    assert "`float_precision` was removed" in warnings[0].message.args[0]

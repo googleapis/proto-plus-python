@@ -335,8 +335,11 @@ def test_serialize_to_dict_float_precision():
 
     s = Squid(mass_kg=3.141592)
 
-    s_dict = Squid.to_dict(s, float_precision=3)
-    assert s_dict["mass_kg"] == 3.14
+    with pytest.warns(UserWarning) as warnings:
+        s_dict = Squid.to_dict(s, float_precision=3)
+        assert s_dict["mass_kg"] == 3.14
+    assert len(warnings) == 1
+    assert "float_precision option is deprecated" in warnings[0].message.args[0]
 
 
 def test_serialize_to_dict_float_precision_7_plus():
@@ -353,7 +356,7 @@ def test_serialize_to_dict_float_precision_7_plus():
         assert s_dict["mass_kg"] == pytest.approx(3.141592)
 
     assert len(warnings) == 1
-    assert "`float_precision` has been removed" in warnings[0].message.args[0]
+    assert "`float_precision` was removed" in warnings[0].message.args[0]
 
 
 def test_unknown_field_deserialize():
