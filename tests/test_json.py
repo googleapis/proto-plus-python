@@ -14,6 +14,8 @@
 
 import pytest
 import re
+import sys
+from contextlib import nullcontext
 
 import proto
 from google.protobuf.json_format import MessageToJson, Parse, ParseError
@@ -256,18 +258,22 @@ def test_json_sort_keys():
 def test_json_float_precision():
     if int(proto.message._PROTOBUF_MAJOR_VERSION) >= 7:
         pytest.skip("float_precision was removed in protobuf 7.x")
+    # expect a warning in protobuf > 3
+    expect_warning = proto.message._PROTOBUF_MAJOR_VERSION != "3"
+    warn_checker = pytest.warns(UserWarning) if expect_warning  else nullcontext()
 
     class Squid(proto.Message):
         name = proto.Field(proto.STRING, number=1)
         mass_kg = proto.Field(proto.FLOAT, number=2)
 
-    with pytest.warns(UserWarning) as warnings:
+    with warn_checker:
         s = Squid(name="Steve", mass_kg=3.141592)
         j = Squid.to_json(s, float_precision=3, indent=None)
 
         assert j == '{"name": "Steve", "massKg": 3.14}'
-    assert len(warnings) == 1
-    assert "float_precision option is deprecated" in warnings[0].message.args[0]
+    if expect_warning:
+        assert len(warn_checker) == 1
+        assert "float_precision option is deprecated" in warn_checker[0].message.args[0]
 
 
 def test_json_float_precision_7_plus():
