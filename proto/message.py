@@ -949,11 +949,13 @@ def _message_to_map(
             warning_msg = "`float_precision` will be removed in Protobuf 7.x."
 
         else:  # pragma: NO COVER
-            warning_msg = "`float_precision` was removed in Protobuf 7.x+, and will be ignored."
+            warning_msg = (
+                "`float_precision` was removed in Protobuf 7.x+, and will be ignored."
+            )
         warnings.warn(warning_msg, DeprecationWarning, stacklevel=3)
     # supress similar float_precision warning from protobuf library
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', category=UserWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
         return map_fn(cls.pb(instance), **kwargs)
 
 
