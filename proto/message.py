@@ -955,7 +955,7 @@ def _message_to_map(
         warnings.warn(warning_msg, DeprecationWarning, stacklevel=3)
     # suppress similar float_precision warning from protobuf library.
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", message=".*float_precision.*")
+        warnings.filterwarnings("ignore", message=".*float_precision.*")
         return map_fn(cls.pb(instance), **kwargs)
 
 
