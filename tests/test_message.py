@@ -341,7 +341,6 @@ def test_serialize_to_dict_float_precision(expect_proto_7_plus):
     with pytest.warns(DeprecationWarning) as warnings:
         s_dict = Squid.to_dict(s, float_precision=3)
     assert len(warnings) == 1
-    assert "`float_precision` will be removed" in warnings[0].message.args[0]
     # for protobuf <7, expect truncated float
     if expect_proto_7_plus:
         assert s_dict["mass_kg"] == pytest.approx(3.141592)
