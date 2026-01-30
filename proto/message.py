@@ -946,14 +946,15 @@ def _message_to_map(
         # float_precision removed in protobuf 7
         if _PROTOBUF_MAJOR_VERSION in ("3", "4", "5", "6"):
             kwargs["float_precision"] = float_precision
-        else:  # pragma: NO COVER
-            warnings.warn(
-                "`float_precision` was removed from Protobuf 7.x, and will be ignored",
-                DeprecationWarning,
-                stacklevel=3,
-            )
+            warning_msg = "`float_precision` will be removed in Protobuf 7.x."
 
-    return map_fn(cls.pb(instance), **kwargs)
+        else:  # pragma: NO COVER
+            warning_msg = "`float_precision` was removed in Protobuf 7.x+, and will be ignored."
+        warnings.warn(warning_msg, DeprecationWarning, stacklevel=3)
+    # supress similar float_precision warning from protobuf library
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', category=UserWarning)
+        return map_fn(cls.pb(instance), **kwargs)
 
 
 __all__ = ("Message",)
