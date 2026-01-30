@@ -930,10 +930,10 @@ def _message_to_map(
     """
 
     # The `including_default_value_fields` argument was removed from protobuf 5.x
-    # and replaced with `always_print_fields_with_no_presence` which very similar but has
+    # and replaced with `always_print_fields_with_no_presence` which is similar but
     # handles optional fields consistently by not affecting them.
-    # The old flag accidentally had inconsistent behavior between proto2
-    # optional and proto3 optional fields.
+    # The old flag accidentally had inconsistent behavior between optional fields
+    # in proto2 and proto3.
     print_fields = cls._normalize_print_fields_without_presence(
         always_print_fields_with_no_presence, including_default_value_fields
     )
@@ -953,7 +953,7 @@ def _message_to_map(
                 "`float_precision` was removed in Protobuf 7.x+, and will be ignored."
             )
         warnings.warn(warning_msg, DeprecationWarning, stacklevel=3)
-    # supress similar float_precision warning from protobuf library
+    # suppress similar float_precision warning from protobuf library.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
         return map_fn(cls.pb(instance), **kwargs)
