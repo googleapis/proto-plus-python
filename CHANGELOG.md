@@ -4,6 +4,13 @@
 
 [1]: https://pypi.org/project/proto-plus/#history
 
+## [1.27.1](https://github.com/googleapis/proto-plus-python/compare/v1.27.0...v1.27.1) (2026-01-30)
+
+
+### Bug Fixes
+
+* remove float_precision for protobuf 7 (#559) ([390b9d571bb5e58879137d5ac7c4cea1978e0024](https://github.com/googleapis/proto-plus-python/commit/390b9d571bb5e58879137d5ac7c4cea1978e0024))
+
 ## [1.27.0](https://github.com/googleapis/proto-plus-python/compare/v1.26.1...v1.27.0) (2025-12-12)
 
 
