@@ -253,7 +253,9 @@ def test_json_sort_keys():
     assert re.search(r"massKg.*name", j)
 
 
-@pytest.mark.parametrize("expect_proto_7_plus", [True, False], ids=["proto >= 7", "proto <= 6"])
+@pytest.mark.parametrize(
+    "expect_proto_7_plus", [True, False], ids=["proto >= 7", "proto <= 6"]
+)
 def test_json_float_precision(expect_proto_7_plus):
     if ((expect_proto_7_plus and int(proto.message._PROTOBUF_MAJOR_VERSION) < 7)) or (
         (not expect_proto_7_plus and int(proto.message._PROTOBUF_MAJOR_VERSION) >= 7)
